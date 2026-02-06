@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
-import type { CandlestickData, Time } from "lightweight-charts";
-import type { KLine } from "@/patterns/types/binance.types";
+import type { Time } from "lightweight-charts";
 import { MiniChart } from "./MiniChart";
 import type { OHLCVExtended } from "@/types/ohlcv";
 
@@ -55,7 +54,6 @@ export function MicroChart({
   height = 40,
   upColor = "#5dc887", // Green for up candles
   downColor = "#e35561", // Red for down candles
-  periods,
   onMouseEnter,
   onMouseLeave,
 }: MicroChartProps) {
@@ -69,9 +67,9 @@ export function MicroChart({
     if (!chartContainerRef.current || !klines || klines.length === 0) return;
 
     // Limit the number of periods to render
-    const dataToRender = periods
-      ? klines.slice(-periods) // Take the last N periods
-      : klines;
+    // const dataToRender = periods
+    //   ? klines.slice(-periods) // Take the last N periods
+    //   : klines;
 
     // Create chart instance with dark theme
     const chart = createChart(chartContainerRef.current, {
@@ -182,7 +180,7 @@ export function MicroChart({
           borderColor: candleColor,
           wickColor: candleColor,
         };
-      })
+      }),
     );
     candlestickSeries.applyOptions({
       lastValueVisible: false, // hides the price on the right scale
@@ -225,7 +223,7 @@ interface MicroChartWithModalProps extends MicroChartProps {
   /**
    * K-lines data for the mini chart modal
    */
-  miniChartKlines: KLine[];
+  miniChartKlines: OHLCVExtended[];
   /**
    * Delay before showing modal (ms)
    */
@@ -308,7 +306,7 @@ export function MicroChartWithModal({
         setShowModal(true);
       }, delay);
     },
-    [delay]
+    [delay],
   );
 
   const handleMouseLeave = useCallback(() => {
