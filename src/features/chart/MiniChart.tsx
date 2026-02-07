@@ -7,8 +7,6 @@ import type { OHLCVExtended } from "@/types/ohlcv";
 
 interface MiniChartProps {
   klines: OHLCVExtended[];
-  width?: number;
-  height?: number;
   upColor?: string;
   downColor?: string;
   /**
@@ -36,8 +34,6 @@ interface MiniChartProps {
  */
 export function MiniChart({
   klines,
-  width = 400,
-  height = 200,
   upColor = "#22c55e", // Default green for up candles
   downColor = "#ef4444", // Default red for down candles
   periods,
@@ -59,19 +55,17 @@ export function MiniChart({
     // Create chart instance with dark theme
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "#09090b" },
+        background: { type: ColorType.Solid, color: "black" },
         textColor: "#d1d5db",
       },
       grid: {
         vertLines: { visible: false },
         horzLines: { visible: false },
       },
-      width,
-      height,
-
+      autoSize: true,
       timeScale: {
         visible: true,
-        borderVisible: true,
+        borderVisible: false,
         timeVisible: true, // Show time in addition to date
         secondsVisible: false,
         shiftVisibleRangeOnNewBar: true,
@@ -84,8 +78,9 @@ export function MiniChart({
         },
       },
       rightPriceScale: {
-        visible: false, // Hide price scale for cleaner mini chart
+        visible: true, // Hide price scale for cleaner mini chart
         borderVisible: false,
+        autoScale: true,
       },
       leftPriceScale: {
         visible: false,
@@ -96,7 +91,7 @@ export function MiniChart({
       },
       handleScroll: {
         mouseWheel: false,
-        pressedMouseMove: false,
+        pressedMouseMove: true,
       },
       handleScale: {
         axisPressedMouseMove: false,
@@ -160,15 +155,9 @@ export function MiniChart({
     return () => {
       chart.remove();
     };
-  }, [klines, width, height, upColor, downColor, periods]);
+  }, [klines, upColor, downColor, periods]);
 
-  return (
-    <div
-      ref={chartContainerRef}
-      className="rounded-md"
-      style={{ width, height }}
-    />
-  );
+  return <div ref={chartContainerRef} className="rounded-md h-full w-full" />;
 }
 
 interface MiniChartModalProps {
@@ -222,7 +211,7 @@ export function MiniChartModal({
   } | null>(null);
 
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
-    null
+    null,
   );
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -284,7 +273,7 @@ export function MiniChartModal({
         setShowModal(true);
       }, delay);
     },
-    [delay, width, height]
+    [delay, width, height],
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -318,7 +307,7 @@ export function MiniChartModal({
       ).onMouseEnter;
       originalHandler?.(e);
     },
-    [handleMouseEnter, children]
+    [handleMouseEnter, children],
   );
 
   const combinedHandleMouseLeave = useCallback(
@@ -330,7 +319,7 @@ export function MiniChartModal({
       ).onMouseLeave;
       originalHandler?.(e);
     },
-    [handleMouseLeave, children]
+    [handleMouseLeave, children],
   );
 
   // Clone the child element and attach mouse handlers directly to it
@@ -363,8 +352,6 @@ export function MiniChartModal({
       <div className="pointer-events-auto border shadow-lg rounded-lg bg-base">
         <MiniChart
           klines={klines}
-          width={width}
-          height={height}
           upColor={upColor}
           downColor={downColor}
           periods={periods}

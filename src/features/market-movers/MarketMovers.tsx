@@ -52,13 +52,11 @@ function MarketMoverCard({ symbol, displayName }: MarketMoverCardProps) {
           maximumFractionDigits: 2,
         })}
       </div>
-      <div className="h-40 mt-2 bg-black">
+      <div className="h-48 mt-2 bg-black">
         {data?.ohlcData && data.ohlcData.length > 0 ? (
-          <div className="bg-black">
+          <div className="bg-black h-full w-full">
             <MiniChart
               klines={data.ohlcData}
-              width={400}
-              height={160}
               upColor="#5dc887"
               downColor="#e35561"
               periods={50}
@@ -82,14 +80,16 @@ export function MarketMovers() {
   ];
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="flex justify-center gap-4">
+    <div className="container mx-auto">
+      <div className="grid grid-cols-3 gap-4 max-w-7xl mx-auto">
         {movers.map((mover) => (
-          <MarketMoverCard
-            key={mover.symbol}
-            symbol={mover.symbol}
-            displayName={mover.displayName}
-          />
+          <div className="relative">
+            <MarketMoverCard
+              key={mover.symbol}
+              symbol={mover.symbol}
+              displayName={mover.displayName}
+            />
+          </div>
         ))}
       </div>
     </div>
