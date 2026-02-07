@@ -4,6 +4,7 @@ import { FaqAccordion } from "@/features/faq/faq-accordion";
 import { MarketMovers } from "@/features/market-movers/MarketMovers";
 import { ScreenerConfigs } from "@/features/screener/screener-buttons/ScreenerConfigs";
 import { ScreenerTable } from "@/features/screener/screener-table/ScreenerTable";
+import { ScrollingBanner } from "@/features/scrolling-banner/ScrollingBanner";
 import { useOneWayScrollLock } from "@/hooks/chart/misc/useOneWayScrollLock";
 
 export function DashboardPage() {
@@ -11,10 +12,11 @@ export function DashboardPage() {
 
   return (
     <div className="relative min-h-screen">
+      {hasScrolledPast && <ScrollingBanner />}
       <div className="relative z-10">
         {!hasScrolledPast && <DashboardHeader />}
         <div className="min-h-screen pt-20 container mx-auto">
-          <div className="pb-10">
+          <div className="pb-10 pt-14">
             <div className="my-4">
               <MarketMovers />
             </div>
