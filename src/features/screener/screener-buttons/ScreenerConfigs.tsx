@@ -180,64 +180,65 @@ export function ScreenerConfigs({
     <div className="">
       {/* Main Controls Row */}
       <div className="flex items-center gap-4 p-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground whitespace-nowrap">
-            Chart timeframe:
-          </label>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-8 text-sm">
-                {selectedTimeframeLabel}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-40">
-              <DropdownMenuLabel>Chart Timeframe</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={selectedTimeframe}
-                onValueChange={(value) =>
-                  handleTimeframeChange(value as Timeframe)
-                }
-              >
-                {timeframes.map((tf) => (
-                  <DropdownMenuRadioItem key={tf.value} value={tf.value}>
-                    {tf.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground whitespace-nowrap">
-            Profile:
-          </label>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-8 text-sm">
-                {selectedProfileLabel}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel>Screener Profile</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={selectedProfile}
-                onValueChange={(value) =>
-                  handleProfileChange(value as ScreenerProfile)
-                }
-              >
-                {profiles.map((p) => (
-                  <DropdownMenuRadioItem key={p.value} value={p.value}>
-                    {p.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground whitespace-nowrap">
+              Chart timeframe:
+            </label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-8 text-sm">
+                  {selectedTimeframeLabel}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuLabel>Chart Timeframe</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={selectedTimeframe}
+                  onValueChange={(value) =>
+                    handleTimeframeChange(value as Timeframe)
+                  }
+                >
+                  {timeframes.map((tf) => (
+                    <DropdownMenuRadioItem key={tf.value} value={tf.value}>
+                      {tf.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground whitespace-nowrap">
+              Profile:
+            </label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-8 text-sm">
+                  {selectedProfileLabel}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuLabel>Screener Profile</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={selectedProfile}
+                  onValueChange={(value) =>
+                    handleProfileChange(value as ScreenerProfile)
+                  }
+                >
+                  {profiles.map((p) => (
+                    <DropdownMenuRadioItem key={p.value} value={p.value}>
+                      {p.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

@@ -10,23 +10,23 @@ export function DashboardPage() {
   const hasScrolledPast = useOneWayScrollLock();
 
   return (
-    <div className="relative min-h-screen container mx-auto">
+    <div className="relative min-h-screen">
       <div className="relative z-10">
         {!hasScrolledPast && <DashboardHeader />}
-        <div className="min-h-screen pt-20">
+        <div className="min-h-screen pt-20 container mx-auto">
           <div className="pb-10">
             <div className="my-4">
               <MarketMovers />
             </div>
 
             <div className="mt-20">
-              <div className="border p-2 rounded-md">
+              {/* <div className="border p-2 rounded-md">
                 <h2 className="text-xl font-semibold">Screener Parameters</h2>
                 <div className="my-4">
                   <ScreenerConfigs />
                 </div>
-              </div>
-              <div className="grid grid-cols-12 gap-4">
+              </div> */}
+              <div className="grid grid-cols-12">
                 <div className="col-span-10">
                   <ScreenerTable />
                 </div>

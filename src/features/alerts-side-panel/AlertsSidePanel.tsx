@@ -39,8 +39,8 @@ export function AlertsSidePanel() {
           >
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-base">
+                <div className="">
+                  <h3 className="font-semibold text-sm">
                     {alert.asset.symbol}
                   </h3>
                   <Badge
@@ -68,7 +68,7 @@ export function AlertsSidePanel() {
                 </div> */}
             </div>
 
-            <div className="h-[200px] w-full">
+            <div className="h-[180px] w-full">
               <AlertChart alert={alert} series={alert.ohlc ?? []} />
             </div>
           </Card>
