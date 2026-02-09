@@ -34,7 +34,7 @@ export const ScrollingBanner = () => {
     },
   ];
   return (
-    <div className="h-14 fixed shadow-xl z-50 bg-black flex items-center">
+    <div className="h-14 shadow-xl z-50 bg-black flex items-center">
       <Marquee className="[--duration:20s] p-0" pauseOnHover>
         {brandList.map((brand, index) => (
           <div key={index}>

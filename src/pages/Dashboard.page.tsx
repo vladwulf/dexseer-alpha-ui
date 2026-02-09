@@ -12,13 +12,16 @@ export function DashboardPage() {
 
   return (
     <div className="relative min-h-screen">
-      {hasScrolledPast && <ScrollingBanner />}
       <div className="relative z-10">
         {!hasScrolledPast && <DashboardHeader />}
-        <div className="min-h-screen pt-20 container mx-auto">
+        <div className="min-h-screen pt-20 px-4">
           <div className="pb-10 pt-14">
             <div className="my-4">
               <MarketMovers />
+            </div>
+
+            <div className="my-10 container mx-auto">
+              <ScrollingBanner />
             </div>
 
             <div className="mt-20">
@@ -28,11 +31,12 @@ export function DashboardPage() {
                   <ScreenerConfigs />
                 </div>
               </div> */}
+
               <div className="grid grid-cols-12">
-                <div className="col-span-10">
+                <div className="col-span-9">
                   <ScreenerTable />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-3">
                   <AlertsSidePanel />
                 </div>
               </div>
