@@ -14,7 +14,15 @@ export function DashboardPage() {
     <div className="relative min-h-screen">
       <div className="relative z-10">
         {!hasScrolledPast && <DashboardHeader />}
-        <div className="min-h-screen pt-20 px-4">
+        <div className="min-h-screen px-4">
+          <div className="h-16 p-4 container mx-auto">
+            {hasScrolledPast && (
+              <div className="flex items-center gap-4">
+                <img src="/dexseer-logo2.png" className="h-16 w-16" />
+                <h1 className="font-light text-xl">Dex Seer</h1>
+              </div>
+            )}
+          </div>
           <div className="pb-10 pt-14">
             <div className="my-4">
               <MarketMovers />
@@ -25,14 +33,14 @@ export function DashboardPage() {
             </div>
 
             <div className="mt-20">
-              {/* <div className="border p-2 rounded-md">
+              <div className="border p-2 rounded-md">
                 <h2 className="text-xl font-semibold">Screener Parameters</h2>
                 <div className="my-4">
                   <ScreenerConfigs />
                 </div>
-              </div> */}
+              </div>
 
-              <div className="grid grid-cols-12">
+              <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-9">
                   <ScreenerTable />
                 </div>

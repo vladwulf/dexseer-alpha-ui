@@ -11,14 +11,18 @@ type GetChartResponse = {
 
 async function getChart(assetId: number, timeframe: string) {
   const response = await axios.get<GetChartResponse>(
-    `${API_URL}/charts?assetId=${assetId}&timeframe=${timeframe}`
+    `${API_URL}/charts?assetId=${assetId}&timeframe=${timeframe}`,
   );
   return response.data;
 }
 
-async function getChartBySymbol(symbol: string, timeframe: string) {
+async function getChartBySymbol(
+  symbol: string,
+  timeframe: string,
+  limit: number,
+) {
   const response = await axios.get<GetChartResponse>(
-    `${API_URL}/charts?symbol=${symbol}&timeframe=${timeframe}`
+    `${API_URL}/charts?symbol=${symbol}&timeframe=${timeframe}&limit=${limit}`,
   );
   return response.data;
 }
@@ -31,10 +35,14 @@ export function useGetChart(assetId: number | null, timeframe: string | null) {
   });
 }
 
-export function useGetChartBySymbol(symbol: string, timeframe: string) {
+export function useGetChartBySymbol(
+  symbol: string,
+  timeframe: string,
+  limit: number = 50,
+) {
   return useQuery({
     enabled: !!symbol,
-    queryKey: ["chart", symbol, timeframe],
-    queryFn: () => getChartBySymbol(symbol, timeframe),
+    queryKey: ["chart", symbol, timeframe, limit],
+    queryFn: () => getChartBySymbol(symbol, timeframe, limit),
   });
 }
