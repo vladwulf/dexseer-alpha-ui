@@ -1,6 +1,61 @@
 import type { Alert } from "@/types/ohlcv";
 
-const THRESHOLDS = [0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10];
+// --- Configuration ---
+const THRESHOLDS = [0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0];
+const SYMMETRIC_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // SL% = TP%
+const ASYMMETRIC_RATIOS = [
+  // 1:2 R:R
+  { sl: 1, tp: 2 },
+  { sl: 2, tp: 4 },
+  { sl: 3, tp: 6 },
+  { sl: 4, tp: 8 },
+  { sl: 5, tp: 10 },
+  { sl: 6, tp: 12 },
+  { sl: 7, tp: 14 },
+  { sl: 8, tp: 16 },
+  { sl: 9, tp: 18 },
+  { sl: 10, tp: 20 },
+
+  // 1:3 R:R
+  { sl: 1, tp: 3 },
+  { sl: 2, tp: 6 },
+  { sl: 3, tp: 9 },
+  { sl: 4, tp: 12 },
+  { sl: 5, tp: 15 },
+  { sl: 6, tp: 18 },
+  { sl: 7, tp: 21 },
+  { sl: 8, tp: 24 },
+  { sl: 9, tp: 27 },
+  { sl: 10, tp: 30 },
+
+  // 1:4 R:R
+  { sl: 1, tp: 4 },
+  { sl: 2, tp: 8 },
+  { sl: 3, tp: 12 },
+  { sl: 4, tp: 16 },
+  { sl: 5, tp: 20 },
+  { sl: 6, tp: 24 },
+  { sl: 7, tp: 28 },
+  { sl: 8, tp: 32 },
+  { sl: 9, tp: 36 },
+  { sl: 10, tp: 40 },
+
+  // 1:5 R:R
+  { sl: 1, tp: 5 },
+  { sl: 2, tp: 10 },
+  { sl: 3, tp: 15 },
+  { sl: 4, tp: 20 },
+  { sl: 5, tp: 25 },
+  { sl: 6, tp: 30 },
+  { sl: 7, tp: 35 },
+  { sl: 8, tp: 40 },
+  { sl: 9, tp: 45 },
+  { sl: 10, tp: 50 },
+];
+
+// --- Types ---
+type Direction = "up" | "down";
+type TradeOutcome = "win" | "loss" | "open";
 
 interface AlertResult {
   alertId: number;
@@ -8,29 +63,101 @@ interface AlertResult {
   alertType: string;
   alertTime: string;
   entryPrice: number;
-  expectedDirection: "up" | "down";
-  /** Max % move in expected direction (always positive) */
+  expectedDirection: Direction;
   maxFavorableMove: number;
-  /** Max % move against expected direction (always positive) */
   maxAdverseMove: number;
-  /** Did the favorable move exceed the adverse move? */
   correctDirection: boolean;
+  trades: TradeResult[];
+}
+
+interface TradeResult {
+  label: string;
+  slPct: number;
+  tpPct: number;
+  outcome: TradeOutcome;
+  /** Candle index relative to entry where SL/TP hit (undefined if open) */
+  exitBar?: number;
+}
+
+interface TradeSummary {
+  label: string;
+  slPct: number;
+  tpPct: number;
+  total: number;
+  wins: number;
+  losses: number;
+  open: number;
+  winRate: number;
+  lossRate: number;
+  /** Expected value per trade as % of entry (wins*tp - losses*sl) / total */
+  expectancy: number;
 }
 
 interface Summary {
   totalAlerts: number;
   avgMaxFavorableMove: number;
   avgMaxAdverseMove: number;
-  /** % of alerts where favorable > adverse */
   directionalAccuracy: number;
-  /** For each threshold: % of alerts that reached it in the expected direction */
   thresholdAccuracy: Record<string, number>;
+  trades: TradeSummary[];
+}
+
+// --- Trade simulation ---
+
+/** Build the list of {label, sl, tp} configs to simulate */
+function getTradeConfigs(): { label: string; sl: number; tp: number }[] {
+  const configs: { label: string; sl: number; tp: number }[] = [];
+
+  for (const pct of SYMMETRIC_LEVELS) {
+    configs.push({ label: `${pct}:${pct}`, sl: pct, tp: pct });
+  }
+  for (const { sl, tp } of ASYMMETRIC_RATIOS) {
+    configs.push({ label: `${sl}:${tp}`, sl, tp });
+  }
+  return configs;
 }
 
 /**
- * Analyze a single alert: find max favorable/adverse moves
- * from the open of the candle AFTER the alert candle to end of data.
+ * Simulate a single trade: walk candles from entry, check if TP or SL hit first.
+ *
+ * For a LONG trade: TP when price >= entry*(1+tp/100), SL when price <= entry*(1-sl/100)
+ * For a SHORT trade: TP when price <= entry*(1-tp/100), SL when price >= entry*(1+sl/100)
+ *
+ * If both could trigger on the same candle, we conservatively count it as a LOSS
+ * (the adverse wick likely hit first in volatile conditions).
  */
+function simulateTrade(
+  ohlc: Alert["ohlc"],
+  entryIdx: number,
+  entryPrice: number,
+  isLong: boolean,
+  slPct: number,
+  tpPct: number,
+): { outcome: TradeOutcome; exitBar?: number } {
+  const tpPrice = isLong
+    ? entryPrice * (1 + tpPct / 100)
+    : entryPrice * (1 - tpPct / 100);
+  const slPrice = isLong
+    ? entryPrice * (1 - slPct / 100)
+    : entryPrice * (1 + slPct / 100);
+
+  for (let i = entryIdx; i < ohlc.length; i++) {
+    const c = ohlc[i];
+    const bar = i - entryIdx;
+
+    const hitTp = isLong ? c.high >= tpPrice : c.low <= tpPrice;
+    const hitSl = isLong ? c.low <= slPrice : c.high >= slPrice;
+
+    if (hitTp && hitSl) return { outcome: "loss", exitBar: bar }; // conservative
+    if (hitSl) return { outcome: "loss", exitBar: bar };
+    if (hitTp) return { outcome: "win", exitBar: bar };
+  }
+
+  return { outcome: "open" };
+}
+
+// --- Alert analysis ---
+
 function analyzeAlert(alert: Alert): AlertResult | null {
   const { ohlc } = alert;
   const alertIdx = ohlc.findIndex((c) => c.time === alert.time);
@@ -40,12 +167,11 @@ function analyzeAlert(alert: Alert): AlertResult | null {
   if (entryIdx >= ohlc.length) {
     console.error(`No candle after alert: ${alert.id}`);
     return null;
-    // throw new Error(`No candle after alert: ${alert.id}`);
   }
 
   const entryPrice = ohlc[entryIdx].open;
   const isLong = alert.type.includes("LONG");
-  const expectedDirection: "up" | "down" = isLong ? "up" : "down";
+  const expectedDirection: Direction = isLong ? "up" : "down";
 
   let maxFavorable = 0;
   let maxAdverse = 0;
@@ -64,6 +190,20 @@ function analyzeAlert(alert: Alert): AlertResult | null {
     }
   }
 
+  // Simulate all trade configs
+  const configs = getTradeConfigs();
+  const trades: TradeResult[] = configs.map((cfg) => {
+    const { outcome, exitBar } = simulateTrade(
+      ohlc,
+      entryIdx,
+      entryPrice,
+      isLong,
+      cfg.sl,
+      cfg.tp,
+    );
+    return { label: cfg.label, slPct: cfg.sl, tpPct: cfg.tp, outcome, exitBar };
+  });
+
   return {
     alertId: alert.id,
     symbol: alert.asset.symbol,
@@ -74,17 +214,57 @@ function analyzeAlert(alert: Alert): AlertResult | null {
     maxFavorableMove: maxFavorable,
     maxAdverseMove: maxAdverse,
     correctDirection: maxFavorable > maxAdverse,
+    trades,
   };
 }
 
-/**
- * Analyze an array of alerts and return per-alert results + summary.
- */
+// --- Aggregation ---
+
+function aggregateTrades(results: AlertResult[]): TradeSummary[] {
+  const configs = getTradeConfigs();
+  return configs.map((cfg) => {
+    let wins = 0,
+      losses = 0,
+      open = 0;
+
+    for (const r of results) {
+      const t = r.trades.find((tr) => tr.label === cfg.label);
+      if (!t) continue;
+      if (t.outcome === "win") wins++;
+      else if (t.outcome === "loss") losses++;
+      else open++;
+    }
+
+    const total = results.length;
+    const resolved = wins + losses;
+    const winRate = resolved > 0 ? (wins / resolved) * 100 : 0;
+    const lossRate = resolved > 0 ? (losses / resolved) * 100 : 0;
+    // Expectancy: average P&L per trade as % of entry
+    const expectancy =
+      total > 0 ? (wins * cfg.tp - losses * cfg.sl) / total : 0;
+
+    return {
+      label: cfg.label,
+      slPct: cfg.sl,
+      tpPct: cfg.tp,
+      total,
+      wins,
+      losses,
+      open,
+      winRate,
+      lossRate,
+      expectancy,
+    };
+  });
+}
+
 export function analyzeAlerts(alerts: Alert[]): {
   results: AlertResult[];
   summary: Summary;
 } {
-  const results = alerts.map(analyzeAlert).filter(Boolean);
+  const results = alerts
+    .map(analyzeAlert)
+    .filter((r): r is AlertResult => r !== null);
   const n = results.length;
 
   if (n === 0) {
@@ -96,6 +276,7 @@ export function analyzeAlerts(alerts: Alert[]): {
         avgMaxAdverseMove: 0,
         directionalAccuracy: 0,
         thresholdAccuracy: {},
+        trades: [],
       },
     };
   }
@@ -118,13 +299,11 @@ export function analyzeAlerts(alerts: Alert[]): {
       avgMaxAdverseMove: avgAdv,
       directionalAccuracy: (correctCount / n) * 100,
       thresholdAccuracy,
+      trades: aggregateTrades(results),
     },
   };
 }
 
-/**
- * Analyze alerts split by LONG/SHORT type.
- */
 export function analyzeAlertsByType(alerts: Alert[]) {
   const longAlerts = alerts.filter((a) => a.type.includes("LONG"));
   const shortAlerts = alerts.filter((a) => a.type.includes("SHORT"));
@@ -138,6 +317,18 @@ export function analyzeAlertsByType(alerts: Alert[]) {
 
 // Usage:
 // const { long, short, all } = analyzeAlertsByType(alerts);
-// console.log(long.summary.directionalAccuracy);    // e.g. 65.2
-// console.log(long.summary.avgMaxFavorableMove);     // e.g. 3.41
-// console.log(long.summary.thresholdAccuracy["1%"]); // e.g. 78.5
+//
+// // Directional stats
+// console.log(long.summary.directionalAccuracy);     // 69.4
+// console.log(long.summary.avgMaxFavorableMove);      // 12.8
+//
+// // Trade simulations
+// long.summary.trades.forEach(t => {
+//   console.log(`${t.label} | Win: ${t.winRate.toFixed(1)}% | Exp: ${t.expectancy.toFixed(2)}%`);
+// });
+//
+// // Example output:
+// // 1:1  | Win: 72.3% | Exp: 0.45%
+// // 2:2  | Win: 68.1% | Exp: 0.72%
+// // 1:2  | Win: 61.5% | Exp: 0.46%   ← 1% risk, 2% reward
+// // 1:3  | Win: 52.0% | Exp: 0.56%   ← 1% risk, 3% reward

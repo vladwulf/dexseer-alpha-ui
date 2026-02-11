@@ -3,30 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useGetAlerts } from "./hooks/useGetAlerts";
 import { AlertChart } from "../chart/AlertChart";
-import { useEffect } from "react";
-import { analyzeAlerts, analyzeAlertsByType } from "./alert-perf";
 
 export function AlertsSidePanel() {
   const { data: alerts } = useGetAlerts();
-
-  // useEffect(() => {
-  //   if (alerts && alerts?.length > 0) {
-  //     const longAlerts = alerts.filter((a) => a.type === "VOLUME_SURGE_LONG");
-  //     const shortAlerts = alerts.filter((a) => a.type === "VOLUME_SURGE_SHORT");
-
-  //     if (longAlerts.length > 0) {
-  //       const longResults = analyzeAlerts(longAlerts);
-  //       console.log("longResults", longResults);
-  //       console.log(longResults.summary);
-  //     }
-
-  //     if (shortAlerts.length > 0) {
-  //       const shortResults = analyzeAlerts(shortAlerts);
-  //       console.log("shortResults", shortResults);
-  //       console.log(shortResults.summary);
-  //     }
-  //   }
-  // }, [alerts]);
 
   return (
     <div className="border-border bg-black flex flex-col">
