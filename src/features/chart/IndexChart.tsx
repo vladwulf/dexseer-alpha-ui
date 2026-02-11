@@ -67,6 +67,8 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
       handleScroll: {
         mouseWheel: false,
         pressedMouseMove: false,
+        horzTouchDrag: false,
+        vertTouchDrag: false,
       },
       handleScale: {
         axisPressedMouseMove: false,
