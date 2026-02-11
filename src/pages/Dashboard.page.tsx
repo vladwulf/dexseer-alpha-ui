@@ -2,7 +2,6 @@ import { AlertsSidePanel } from "@/features/alerts-side-panel/AlertsSidePanel";
 import { DashboardHeader } from "@/features/dashboard/DashboardHeader";
 import { FaqAccordion } from "@/features/faq/faq-accordion";
 import { MarketMovers } from "@/features/market-movers/MarketMovers";
-import { ScreenerConfigs } from "@/features/screener/screener-buttons/ScreenerConfigs";
 import { ScreenerTable } from "@/features/screener/screener-table/ScreenerTable";
 import { ScrollingBanner } from "@/features/scrolling-banner/ScrollingBanner";
 import { useOneWayScrollLock } from "@/hooks/chart/misc/useOneWayScrollLock";
@@ -33,18 +32,11 @@ export function DashboardPage() {
             </div>
 
             <div className="mt-20">
-              {/* <div className="border p-2 rounded-md">
-                <h2 className="text-xl font-semibold">Screener Parameters</h2>
-                <div className="my-4">
-                  
-                </div>
-              </div> */}
-
               <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-9">
+                <div className="col-span-12 sm:col-span-12 md:col-span-7 lg:col-span-8 xl:col-span-9">
                   <ScreenerTable />
                 </div>
-                <div className="col-span-3">
+                <div className="col-span-12 sm:col-span-12 md:col-span-5 lg:col-span-4 xl:col-span-3">
                   <AlertsSidePanel />
                 </div>
               </div>
