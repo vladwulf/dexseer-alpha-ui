@@ -177,10 +177,10 @@ export function ScreenerConfigs({
   };
 
   return (
-    <div className="border-b border-border h-26">
+    <div className="border-b border-border min-h-26">
       {/* Main Controls Row */}
-      <div className="flex justify-between items-center gap-4 p-4 flex-wrap">
-        <div className="flex gap-4">
+      <div className="flex justify-between items-center gap-4 flex-wrap p-6">
+        <div className="flex flex-wrap gap-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <label className="text-sm text-muted-foreground whitespace-nowrap">

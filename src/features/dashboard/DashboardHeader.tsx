@@ -90,7 +90,7 @@ export function DashboardHeader() {
       `}</style>
 
       <div className="my-5 mb-20 relative z-10">
-        <h2 className="text-6xl tracking-tight md:text-7xl text-center h-20 font-mono font-bold">
+        <h2 className="text-5xl sm:text-6xl tracking-tight md:text-7xl text-center h-24 sm:h-20 font-mono font-bold">
           <Typewriter
             words={["See Every Signal", "Trade with Vision"]}
             loop={1}
@@ -100,13 +100,13 @@ export function DashboardHeader() {
             delaySpeed={1000}
           />
         </h2>
-        <p className="text-muted-foreground text-xl leading-7 md:text-2xl not-first:mt-6 text-center">
+        <p className="text-muted-foreground text-sm sm:text-xl leading-7 md:text-2xl not-first:mt-6 text-center">
           Real-time pattern detection and alerts for serious crypto traders
         </p>
       </div>
 
       {/* Scroll down indicator */}
-      <div className="absolute bottom-2/12 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-0 pointer-events-none">
+      <div className="absolute bottom-1/12 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-0 pointer-events-none">
         <ChevronsDownIcon
           className="w-8 h-8 text-muted-foreground animate-bounce"
           style={{ animationDelay: "0s" }}
