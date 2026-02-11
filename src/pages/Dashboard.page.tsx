@@ -33,12 +33,12 @@ export function DashboardPage() {
             </div>
 
             <div className="mt-20">
-              <div className="border p-2 rounded-md">
+              {/* <div className="border p-2 rounded-md">
                 <h2 className="text-xl font-semibold">Screener Parameters</h2>
                 <div className="my-4">
-                  <ScreenerConfigs />
+                  
                 </div>
-              </div>
+              </div> */}
 
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-9">

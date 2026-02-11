@@ -77,15 +77,33 @@ export function AlertChart({
         secondsVisible: false,
         shiftVisibleRangeOnNewBar: true,
         tickMarkFormatter: (time: number) => {
-          // Convert Unix timestamp to local time for axis labels
           const date = new Date(time * 1000);
           const hours = date.getHours().toString().padStart(2, "0");
           const minutes = date.getMinutes().toString().padStart(2, "0");
           return `${hours}:${minutes}`;
+          // return date.toLocaleTimeString("default", {
+          //   hour: "2-digit",
+          //   minute: "2-digit",
+          //   hour12: false, // Use 24-hour format, set to true for 12-hour
+          // });
+        },
+      },
+      localization: {
+        // This formats the crosshair tooltip time
+        timeFormatter: (time: number) => {
+          const date = new Date(time * 1000);
+          return date.toLocaleString("default", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
         },
       },
       rightPriceScale: {
-        visible: false, // Hide price scale
+        visible: true, // Hide price scale
         borderVisible: false,
       },
       leftPriceScale: {
@@ -95,10 +113,10 @@ export function AlertChart({
       crosshair: {
         mode: 0, // Disable crosshair
         vertLine: {
-          visible: false,
+          visible: true,
         },
         horzLine: {
-          visible: false,
+          visible: true,
         },
       },
       handleScroll: {
@@ -155,7 +173,7 @@ export function AlertChart({
       } else {
         // Before alert: lower opacity (0.5)
         const baseColor = kline.close > kline.open ? upColor : downColor;
-        candleColor = hexToRgba(baseColor, 0.5);
+        candleColor = hexToRgba(baseColor, 0.3);
       }
 
       return {
@@ -185,7 +203,7 @@ export function AlertChart({
 
     // Find the index of the alert candle
     const alertIndex = candlestickData.findIndex(
-      (candle) => candle.time === alertTimestampUnix
+      (candle) => candle.time === alertTimestampUnix,
     );
 
     // Center the chart on the alert timestamp
@@ -194,7 +212,7 @@ export function AlertChart({
       const totalCandles = candlestickData.length;
       const visibleCandles = Math.min(
         Math.floor(totalCandles * 0.6),
-        totalCandles
+        totalCandles,
       );
       const halfVisible = Math.floor(visibleCandles / 2);
 

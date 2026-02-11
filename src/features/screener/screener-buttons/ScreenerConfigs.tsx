@@ -177,39 +177,42 @@ export function ScreenerConfigs({
   };
 
   return (
-    <div className="">
+    <div className="border-b border-border h-26">
       {/* Main Controls Row */}
-      <div className="flex items-center gap-4 p-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">
-              Chart timeframe:
-            </label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="h-8 text-sm">
-                  {selectedTimeframeLabel}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-40">
-                <DropdownMenuLabel>Chart Timeframe</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={selectedTimeframe}
-                  onValueChange={(value) =>
-                    handleTimeframeChange(value as Timeframe)
-                  }
-                >
-                  {timeframes.map((tf) => (
-                    <DropdownMenuRadioItem key={tf.value} value={tf.value}>
-                      {tf.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+      <div className="flex justify-between items-center gap-4 p-4 flex-wrap">
+        <div className="flex gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground whitespace-nowrap">
+                Chart timeframe:
+              </label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-8 text-sm">
+                    {selectedTimeframeLabel}
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-40">
+                  <DropdownMenuLabel>Chart Timeframe</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup
+                    value={selectedTimeframe}
+                    onValueChange={(value) =>
+                      handleTimeframeChange(value as Timeframe)
+                    }
+                  >
+                    {timeframes.map((tf) => (
+                      <DropdownMenuRadioItem key={tf.value} value={tf.value}>
+                        {tf.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
+
           <div className="flex items-center gap-2">
             <label className="text-sm text-muted-foreground whitespace-nowrap">
               Profile:
@@ -241,54 +244,156 @@ export function ScreenerConfigs({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground whitespace-nowrap">
-            Refresh:
-          </label>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-8 text-sm">
-                <RefreshCw className="mr-2 h-3 w-3" />
-                {selectedRefreshLabel}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-40">
-              <DropdownMenuLabel>Auto Refresh</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={selectedRefreshInterval}
-                onValueChange={(value) =>
-                  handleRefreshIntervalChange(value as RefreshInterval)
-                }
-              >
-                {refreshIntervals.map((r) => (
-                  <DropdownMenuRadioItem key={r.value} value={r.value}>
-                    {r.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground whitespace-nowrap">
+              Refresh:
+            </label>
+            <Button variant="outline" className="h-8 w-8 text-sm">
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-8 text-sm">
+                  {selectedRefreshLabel}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuLabel>Auto Refresh</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={selectedRefreshInterval}
+                  onValueChange={(value) =>
+                    handleRefreshIntervalChange(value as RefreshInterval)
+                  }
+                >
+                  {refreshIntervals.map((r) => (
+                    <DropdownMenuRadioItem key={r.value} value={r.value}>
+                      {r.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
-        {/* Quick Sort Presets */}
-        <div className="flex items-center gap-2 ml-auto">
-          {sortPresets.map((preset) => (
-            <Button
-              key={preset.value}
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs border-border hover:bg-accent hover:text-accent-foreground"
-              onClick={() => handleSortPreset(preset.value)}
-            >
-              {preset.label}
-            </Button>
-          ))}
-        </div>
+        {/* <div>
+          <div className="flex items-center gap-2 ml-auto">
+            {sortPresets.map((preset) => (
+              <Button
+                key={preset.value}
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs border-border hover:bg-accent hover:text-accent-foreground"
+                onClick={() => handleSortPreset(preset.value)}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+        </div> */}
+
+        {/* <div className="flex gap-4 items-center">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground whitespace-nowrap">
+                Chart timeframe:
+              </label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-8 text-sm">
+                    {selectedTimeframeLabel}
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-40">
+                  <DropdownMenuLabel>Chart Timeframe</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup
+                    value={selectedTimeframe}
+                    onValueChange={(value) =>
+                      handleTimeframeChange(value as Timeframe)
+                    }
+                  >
+                    {timeframes.map((tf) => (
+                      <DropdownMenuRadioItem key={tf.value} value={tf.value}>
+                        {tf.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground whitespace-nowrap">
+                Refresh:
+              </label>
+              <Button variant="outline" className="h-8 w-8 text-sm">
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-8 text-sm">
+                    {selectedRefreshLabel}
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-40">
+                  <DropdownMenuLabel>Auto Refresh</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup
+                    value={selectedRefreshInterval}
+                    onValueChange={(value) =>
+                      handleRefreshIntervalChange(value as RefreshInterval)
+                    }
+                  >
+                    {refreshIntervals.map((r) => (
+                      <DropdownMenuRadioItem key={r.value} value={r.value}>
+                        {r.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground whitespace-nowrap">
+                Profile:
+              </label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-8 text-sm">
+                    {selectedProfileLabel}
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuLabel>Screener Profile</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup
+                    value={selectedProfile}
+                    onValueChange={(value) =>
+                      handleProfileChange(value as ScreenerProfile)
+                    }
+                  >
+                    {profiles.map((p) => (
+                      <DropdownMenuRadioItem key={p.value} value={p.value}>
+                        {p.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div> */}
 
         {/* Column Visibility Toggle */}
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="h-8 text-sm">
               {visibleColumns.length === Object.keys(columnLabels).length ? (
@@ -313,21 +418,21 @@ export function ScreenerConfigs({
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
 
         {/* Filters Toggle */}
-        <Button
+        {/* <Button
           variant={showFilters ? "default" : "outline"}
           className="h-8 text-sm"
           onClick={() => setShowFilters(!showFilters)}
         >
           <Filter className="mr-2 h-3 w-3" />
           Filters
-        </Button>
+        </Button> */}
       </div>
 
       {/* Filters Row */}
-      {showFilters && (
+      {/* {showFilters && (
         <div className="flex items-center gap-4 p-4 border-t border-border bg-muted/30 flex-wrap">
           <div className="flex items-center gap-2">
             <label className="text-xs text-muted-foreground whitespace-nowrap">
@@ -405,7 +510,7 @@ export function ScreenerConfigs({
             Clear Filters
           </Button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

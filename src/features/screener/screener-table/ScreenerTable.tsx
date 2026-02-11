@@ -4,6 +4,7 @@ import { SortBy, useGetAssets } from "../hooks/screener.api";
 import type { ScreenerAssetWithChart } from "../types";
 import { cryptoColumns } from "./columns";
 import { DataTable } from "./data-table";
+import { ScreenerConfigs } from "../screener-buttons/ScreenerConfigs";
 
 /**
  * Maps TanStack Table column accessor keys to backend SortBy values
@@ -52,8 +53,6 @@ export const ScreenerTable = () => {
     direction,
   });
 
-  console.log("assets", assets);
-
   const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
     setSorting((old) => {
       const newSorting =
@@ -66,12 +65,15 @@ export const ScreenerTable = () => {
 
   return (
     <div className="px-4">
-      <DataTable<ScreenerAssetWithChart, unknown>
-        columns={cryptoColumns}
-        data={assets || []}
-        sorting={sorting}
-        onSortingChange={handleSortingChange}
-      />
+      <ScreenerConfigs />
+      <div className="mt-10">
+        <DataTable<ScreenerAssetWithChart, unknown>
+          columns={cryptoColumns}
+          data={assets || []}
+          sorting={sorting}
+          onSortingChange={handleSortingChange}
+        />
+      </div>
     </div>
   );
 };

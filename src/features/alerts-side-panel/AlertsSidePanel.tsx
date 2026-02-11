@@ -30,10 +30,9 @@ export function AlertsSidePanel() {
 
   return (
     <div className="border-border bg-black flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border h-26">
         <h2 className="text-xl font-semibold mb-2">Market Alerts</h2>
-        {/* <div className="flex gap-2 text-sm text-muted-foreground">
+        <div className="flex gap-2 text-sm text-muted-foreground">
           <button className="hover:text-foreground transition-colors">
             All
           </button>
@@ -49,10 +48,10 @@ export function AlertsSidePanel() {
           <button className="hover:text-foreground transition-colors">
             Breakout
           </button>
-        </div> */}
+        </div>
       </div>
 
-      <div className="px-4 pb-4 max-h-screen overflow-auto">
+      <div className="px-4 pb-4 max-h-screen overflow-auto mt-10">
         {alerts?.map((alert) => (
           <Card
             key={alert.id}

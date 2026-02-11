@@ -1,6 +1,5 @@
 import { useGetChartBySymbol } from "@/hooks/chart/useGetChart";
-import { MiniChart } from "@/features/chart/MiniChart";
-import { cn } from "@/lib/utils";
+import { IndexChart } from "../chart/IndexChart";
 
 interface MarketMoverCardProps {
   symbol: string;
@@ -8,17 +7,16 @@ interface MarketMoverCardProps {
 }
 
 function MarketMoverCard({ symbol, displayName }: MarketMoverCardProps) {
-  const { data, isLoading } = useGetChartBySymbol(symbol, "1h");
-  console.log("data", data);
+  const { data, isLoading } = useGetChartBySymbol(symbol, "1h", 100);
 
   // Calculate price change percentage (24h equivalent)
-  const priceChange =
-    data?.ohlcData && data.ohlcData.length > 0
-      ? ((data.ohlcData[data.ohlcData.length - 1].close -
-          data.ohlcData[0].open) /
-          data.ohlcData[0].open) *
-        100
-      : 0;
+  // const priceChange =
+  //   data?.ohlcData && data.ohlcData.length > 0
+  //     ? ((data.ohlcData[data.ohlcData.length - 1].close -
+  //         data.ohlcData[0].open) /
+  //         data.ohlcData[0].open) *
+  //       100
+  //     : 0;
 
   const currentPrice =
     data?.ohlcData && data.ohlcData.length > 0
@@ -40,26 +38,14 @@ function MarketMoverCard({ symbol, displayName }: MarketMoverCardProps) {
 
   return (
     <div className="flex-1 bg-black rounded-lg p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-semibold text-foreground">
-          {displayName}
-        </h3>
-      </div>
-      <div className="text-xl font-bold mb-4">
-        $
-        {currentPrice.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}
-      </div>
-      <div className="h-48 mt-2 bg-black">
+      <div className="h-48 max-w-[350px] mx-auto mt-2 bg-black">
         {data?.ohlcData && data.ohlcData.length > 0 ? (
           <div className="bg-black h-full w-full">
-            <MiniChart
+            <IndexChart
+              symbol={data.asset.symbol}
               klines={data.ohlcData}
               upColor="#5dc887"
               downColor="#e35561"
-              periods={50}
             />
           </div>
         ) : (
@@ -81,7 +67,7 @@ export function MarketMovers() {
 
   return (
     <div className="container mx-auto">
-      <div className="grid grid-cols-3 gap-4 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto">
         {movers.map((mover) => (
           <div className="relative">
             <MarketMoverCard
