@@ -44,5 +44,6 @@ export function useGetChartBySymbol(
     enabled: !!symbol,
     queryKey: ["chart", symbol, timeframe, limit],
     queryFn: () => getChartBySymbol(symbol, timeframe, limit),
+    refetchInterval: 15000,
   });
 }
