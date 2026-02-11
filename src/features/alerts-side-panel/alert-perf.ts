@@ -1,6 +1,6 @@
 import type { Alert } from "@/types/ohlcv";
 
-const THRESHOLDS = [0.5, 1.0, 2.0, 3.0, 5.0];
+const THRESHOLDS = [0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10];
 
 interface AlertResult {
   alertId: number;
@@ -31,14 +31,17 @@ interface Summary {
  * Analyze a single alert: find max favorable/adverse moves
  * from the open of the candle AFTER the alert candle to end of data.
  */
-function analyzeAlert(alert: Alert): AlertResult {
+function analyzeAlert(alert: Alert): AlertResult | null {
   const { ohlc } = alert;
   const alertIdx = ohlc.findIndex((c) => c.time === alert.time);
   if (alertIdx === -1) throw new Error(`Alert candle not found: ${alert.id}`);
 
   const entryIdx = alertIdx + 1;
-  if (entryIdx >= ohlc.length)
-    throw new Error(`No candle after alert: ${alert.id}`);
+  if (entryIdx >= ohlc.length) {
+    console.error(`No candle after alert: ${alert.id}`);
+    return null;
+    // throw new Error(`No candle after alert: ${alert.id}`);
+  }
 
   const entryPrice = ohlc[entryIdx].open;
   const isLong = alert.type.includes("LONG");
@@ -81,7 +84,7 @@ export function analyzeAlerts(alerts: Alert[]): {
   results: AlertResult[];
   summary: Summary;
 } {
-  const results = alerts.map(analyzeAlert);
+  const results = alerts.map(analyzeAlert).filter(Boolean);
   const n = results.length;
 
   if (n === 0) {
