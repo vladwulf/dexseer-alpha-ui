@@ -95,7 +95,14 @@ export const cryptoColumns: ColumnDef<ScreenerAssetWithChart>[] = [
             </Link>
           </div>
 
-          <MiniChartModal
+          <MicroChart
+            klines={row.original.chart.data}
+            alertTimestamp="2026-01-17 09:53:00+00"
+            width={100}
+            height={40}
+            periods={100}
+          />
+          {/* <MiniChartModal
             klines={row.original.chart.data}
             upColor="#5dc887"
             downColor="#e35561"
@@ -112,7 +119,7 @@ export const cryptoColumns: ColumnDef<ScreenerAssetWithChart>[] = [
                 periods={100}
               />
             </div>
-          </MiniChartModal>
+          </MiniChartModal> */}
         </div>
       );
     },
