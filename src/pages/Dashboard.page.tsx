@@ -17,8 +17,13 @@ export function DashboardPage() {
           <div className="h-16 p-4 container mx-auto">
             {hasScrolledPast && (
               <div className="flex items-center gap-4">
-                <img src="/dexseer-logo2.png" className="h-16 w-16" />
-                <h1 className="font-light text-xl">Dex Seer</h1>
+                <img src="/dexseer-logo3.svg" className="h-12 w-12" />
+                <div className="relative">
+                  <h1 className="font-base text-xl text-gray-200">Dex Seer</h1>
+                  <span className="font-light text-xs absolute -bottom-1 -right-10 text-green-300">
+                    alpha
+                  </span>
+                </div>
               </div>
             )}
           </div>
