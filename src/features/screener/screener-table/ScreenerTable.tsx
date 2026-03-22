@@ -4,7 +4,10 @@ import { SortBy, useGetAssets } from "../hooks/screener.api";
 import type { ScreenerAssetWithChart } from "../types";
 import { cryptoColumns } from "./columns";
 import { DataTable } from "./data-table";
-import { ScreenerConfigs } from "../screener-buttons/ScreenerConfigs";
+import {
+  ScreenerConfigs,
+  type Timeframe,
+} from "../screener-buttons/ScreenerConfigs";
 
 /**
  * Maps TanStack Table column accessor keys to backend SortBy values
@@ -46,11 +49,13 @@ export const ScreenerTable = () => {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "change_4h", desc: true },
   ]);
+  const [timeframe, setTimeframe] = useState<Timeframe>("15m");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
 
   const { data: assets } = useGetAssets({
     sortBy,
     direction,
+    chartTimeframe: timeframe,
   });
 
   const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
@@ -65,7 +70,7 @@ export const ScreenerTable = () => {
 
   return (
     <div className="px-4">
-      <ScreenerConfigs />
+      <ScreenerConfigs timeframe={timeframe} onTimeframeChange={setTimeframe} />
       <div className="mt-10">
         <DataTable<ScreenerAssetWithChart, unknown>
           columns={cryptoColumns}

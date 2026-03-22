@@ -1,7 +1,9 @@
 import { API_URL } from "@/config";
 import { useQuery } from "@tanstack/react-query";
-import axios, { type AxiosResponse } from "axios";
+import axios from "axios";
 import type { ScreenerAssetWithChart } from "../types";
+
+export type ChartTimeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 
 export const SortBy = {
   PRICE: "price",
@@ -23,10 +25,16 @@ export type SortBy = (typeof SortBy)[keyof typeof SortBy];
 
 async function getAssets(
   sortBy: SortBy = SortBy.PRICE,
-  direction: "asc" | "desc" = "asc"
+  direction: "asc" | "desc" = "asc",
+  chartTimeframe: ChartTimeframe = "15m",
 ) {
+  const params = new URLSearchParams({
+    sortBy,
+    direction,
+    chartTimeframe,
+  });
   const response = await axios.get<ScreenerAssetWithChart[]>(
-    `${API_URL}/screener/top-assets?sortBy=${sortBy}&direction=${direction}`
+    `${API_URL}/screener/top-assets?${params.toString()}`
   );
   return response.data;
 }
@@ -36,11 +44,17 @@ async function getAssets(
 type Params = {
   sortBy?: SortBy;
   direction?: "asc" | "desc";
+  chartTimeframe?: ChartTimeframe;
 };
-export const useGetAssets = ({ sortBy, direction }: Params) => {
+export const useGetAssets = ({ sortBy, direction, chartTimeframe }: Params) => {
   return useQuery({
-    queryKey: ["top-assets", sortBy, direction],
-    queryFn: () => getAssets(sortBy ?? SortBy.PRICE, direction ?? "asc"),
+    queryKey: ["top-assets", sortBy, direction, chartTimeframe],
+    queryFn: () =>
+      getAssets(
+        sortBy ?? SortBy.PRICE,
+        direction ?? "asc",
+        chartTimeframe ?? "15m",
+      ),
     refetchInterval: 5000,
   });
 };

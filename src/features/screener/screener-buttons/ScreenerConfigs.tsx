@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, RefreshCw, Eye, EyeOff, Filter } from "lucide-react";
 
-export type Timeframe = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+export type Timeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 export type ScreenerProfile = "day-trading" | "swing-trading";
 export type RefreshInterval = "manual" | "5s" | "10s" | "30s" | "1m" | "5m";
 export type SortPreset =
@@ -26,6 +26,7 @@ const timeframes: { value: Timeframe; label: string }[] = [
   { value: "1m", label: "1 minute" },
   { value: "5m", label: "5 minutes" },
   { value: "15m", label: "15 minutes" },
+  { value: "30m", label: "30 minutes" },
   { value: "1h", label: "1 hour" },
   { value: "4h", label: "4 hours" },
   { value: "1d", label: "1 day" },
@@ -87,7 +88,7 @@ interface ScreenerConfigsProps {
 }
 
 export function ScreenerConfigs({
-  timeframe = "1h",
+  timeframe = "15m",
   profile = "day-trading",
   refreshInterval = "manual",
   onTimeframeChange,
