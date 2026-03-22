@@ -14,9 +14,7 @@ interface AlertChartProps {
   /**
    * Alert object containing the timestamp and candlestick series data
    */
-  alert: {
-    time: string;
-  };
+  alertTime: string;
   series: OHLCVExtended[];
   width?: number;
   height?: number;
@@ -45,7 +43,7 @@ interface AlertChartProps {
  * ```
  */
 export function AlertChart({
-  alert,
+  alertTime,
   series,
   upColor = "#5dc887", // Green for up candles
   downColor = "#e35561", // Red for down candles
@@ -157,7 +155,7 @@ export function AlertChart({
     });
 
     // Convert alert timestamp to Unix timestamp for comparison
-    const alertTimestampUnix = (new Date(alert.time).getTime() / 1000) as Time;
+    const alertTimestampUnix = (new Date(alertTime).getTime() / 1000) as Time;
 
     // Map OHLC data to candlestick format with opacity variations
     const candlestickData = series.map((kline) => {
