@@ -205,7 +205,7 @@ export function MicroChart({
     return () => {
       chart.remove();
     };
-  }, []);
+  }, [alertTimestamp, downColor, height, klines, upColor, width]);
 
   return (
     <div

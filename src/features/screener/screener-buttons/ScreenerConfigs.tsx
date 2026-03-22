@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -119,6 +119,10 @@ export function ScreenerConfigs({
   ]);
   const [filters, setFilters] = useState<FilterValues>({});
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    setSelectedTimeframe(timeframe);
+  }, [timeframe]);
 
   const handleTimeframeChange = (value: Timeframe) => {
     setSelectedTimeframe(value);
