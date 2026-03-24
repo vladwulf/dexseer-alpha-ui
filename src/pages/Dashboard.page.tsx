@@ -12,9 +12,9 @@ export function DashboardPage() {
   return (
     <div className="relative min-h-screen">
       <div className="relative z-10">
-        {!hasScrolledPast && <DashboardHeader />}
+        {/* {!hasScrolledPast && <DashboardHeader />} */}
         <div className="min-h-screen px-4">
-          <div className="h-16 p-4 container mx-auto">
+          {/* <div className="h-16 p-4 container mx-auto">
             {hasScrolledPast && (
               <div className="flex items-center gap-4">
                 <img src="/dexseer-logo3.svg" className="h-12 w-12" />
@@ -26,13 +26,25 @@ export function DashboardPage() {
                 </div>
               </div>
             )}
+          </div> */}
+          <div className="h-16 p-4 container mx-auto">
+            <div className="flex items-center gap-4">
+              <img src="/dexseer-logo3.svg" className="h-12 w-12" />
+              <div className="relative">
+                <h1 className="font-base text-xl text-gray-200">Dex Seer</h1>
+                <span className="font-light text-xs absolute -bottom-1 -right-10 text-green-300">
+                  alpha
+                </span>
+              </div>
+            </div>
           </div>
+
           <div className="pb-10 pt-14">
             <div className="my-4 hidden sm:block">{/* <MarketMovers /> */}</div>
 
-            <div className="my-10 container mx-auto">
+            {/* <div className="my-10 container mx-auto">
               <ScrollingBanner />
-            </div>
+            </div> */}
 
             <div className="mt-20">
               <div className="grid grid-cols-12 gap-4">
