@@ -79,9 +79,11 @@ interface ScreenerConfigsProps {
   timeframe?: Timeframe;
   profile?: ScreenerProfile;
   refreshInterval?: RefreshInterval;
+  isRefreshing?: boolean;
   onTimeframeChange?: (timeframe: Timeframe) => void;
   onProfileChange?: (profile: ScreenerProfile) => void;
   onRefreshIntervalChange?: (interval: RefreshInterval) => void;
+  onManualRefresh?: () => void;
   onSortPresetChange?: (preset: SortPreset) => void;
   onColumnVisibilityChange?: (columns: ColumnKey[]) => void;
   onFiltersChange?: (filters: FilterValues) => void;
@@ -91,9 +93,11 @@ export function ScreenerConfigs({
   timeframe = "15m",
   profile = "day-trading",
   refreshInterval = "manual",
+  isRefreshing = false,
   onTimeframeChange,
   onProfileChange,
   onRefreshIntervalChange,
+  onManualRefresh,
   onSortPresetChange,
   onColumnVisibilityChange,
   onFiltersChange,
@@ -123,6 +127,10 @@ export function ScreenerConfigs({
   useEffect(() => {
     setSelectedTimeframe(timeframe);
   }, [timeframe]);
+
+  useEffect(() => {
+    setSelectedRefreshInterval(refreshInterval);
+  }, [refreshInterval]);
 
   const handleTimeframeChange = (value: Timeframe) => {
     setSelectedTimeframe(value);
@@ -254,8 +262,15 @@ export function ScreenerConfigs({
             <label className="text-sm text-muted-foreground whitespace-nowrap">
               Refresh:
             </label>
-            <Button variant="outline" className="h-8 w-8 text-sm">
-              <RefreshCw className="h-3 w-3" />
+            <Button
+              variant="outline"
+              className="h-8 w-8 text-sm"
+              onClick={onManualRefresh}
+              aria-label="Refresh screener"
+            >
+              <RefreshCw
+                className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`}
+              />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

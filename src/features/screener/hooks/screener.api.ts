@@ -45,8 +45,14 @@ type Params = {
   sortBy?: SortBy;
   direction?: "asc" | "desc";
   chartTimeframe?: ChartTimeframe;
+  refetchIntervalMs?: number | false;
 };
-export const useGetAssets = ({ sortBy, direction, chartTimeframe }: Params) => {
+export const useGetAssets = ({
+  sortBy,
+  direction,
+  chartTimeframe,
+  refetchIntervalMs = false,
+}: Params) => {
   return useQuery({
     queryKey: ["top-assets", sortBy, direction, chartTimeframe],
     queryFn: () =>
@@ -55,6 +61,6 @@ export const useGetAssets = ({ sortBy, direction, chartTimeframe }: Params) => {
         direction ?? "asc",
         chartTimeframe ?? "15m",
       ),
-    refetchInterval: 5000,
+    refetchInterval: refetchIntervalMs,
   });
 };

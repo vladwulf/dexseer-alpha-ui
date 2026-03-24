@@ -6,6 +6,7 @@ import { cryptoColumns } from "./columns";
 import { DataTable } from "./data-table";
 import {
   ScreenerConfigs,
+  type RefreshInterval,
   type Timeframe,
 } from "../screener-buttons/ScreenerConfigs";
 
@@ -50,12 +51,32 @@ export const ScreenerTable = () => {
     { id: "change_4h", desc: true },
   ]);
   const [timeframe, setTimeframe] = useState<Timeframe>("15m");
+  const [refreshInterval, setRefreshInterval] =
+    useState<RefreshInterval>("manual");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
 
-  const { data: assets } = useGetAssets({
+  const refreshIntervalMs: number | false =
+    refreshInterval === "manual"
+      ? false
+      : refreshInterval === "5s"
+      ? 5000
+      : refreshInterval === "10s"
+      ? 10000
+      : refreshInterval === "30s"
+      ? 30000
+      : refreshInterval === "1m"
+      ? 60000
+      : 300000;
+
+  const {
+    data: assets,
+    refetch,
+    isFetching,
+  } = useGetAssets({
     sortBy,
     direction,
     chartTimeframe: timeframe,
+    refetchIntervalMs: refreshIntervalMs,
   });
 
   const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
@@ -70,7 +91,16 @@ export const ScreenerTable = () => {
 
   return (
     <div className="px-4">
-      <ScreenerConfigs timeframe={timeframe} onTimeframeChange={setTimeframe} />
+      <ScreenerConfigs
+        timeframe={timeframe}
+        refreshInterval={refreshInterval}
+        isRefreshing={isFetching}
+        onTimeframeChange={setTimeframe}
+        onRefreshIntervalChange={setRefreshInterval}
+        onManualRefresh={() => {
+          void refetch();
+        }}
+      />
       <div className="mt-10">
         <DataTable<ScreenerAssetWithChart, unknown>
           columns={cryptoColumns}
