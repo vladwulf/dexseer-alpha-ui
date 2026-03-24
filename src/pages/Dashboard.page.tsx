@@ -28,9 +28,7 @@ export function DashboardPage() {
             )}
           </div>
           <div className="pb-10 pt-14">
-            <div className="my-4 hidden sm:block">
-              <MarketMovers />
-            </div>
+            <div className="my-4 hidden sm:block">{/* <MarketMovers /> */}</div>
 
             <div className="my-10 container mx-auto">
               <ScrollingBanner />
@@ -38,12 +36,15 @@ export function DashboardPage() {
 
             <div className="mt-20">
               <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-12 sm:col-span-12 md:col-span-7 lg:col-span-8 xl:col-span-9">
+                <div className="col-span-12">
                   <ScreenerTable />
                 </div>
-                <div className="col-span-12 sm:col-span-12 md:col-span-5 lg:col-span-4 xl:col-span-3">
+                {/* <div className="col-span-12 sm:col-span-12 md:col-span-7 lg:col-span-8 xl:col-span-9">
+                  <ScreenerTable />
+                </div> */}
+                {/* <div className="col-span-12 sm:col-span-12 md:col-span-5 lg:col-span-4 xl:col-span-3">
                   <AlertsSidePanel />
-                </div>
+                </div> */}
               </div>
             </div>
 
