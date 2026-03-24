@@ -27,14 +27,17 @@ async function getAssets(
   sortBy: SortBy = SortBy.PRICE,
   direction: "asc" | "desc" = "asc",
   chartTimeframe: ChartTimeframe = "15m",
+  assetName?: string,
 ) {
-  const params = new URLSearchParams({
-    sortBy,
-    direction,
-    chartTimeframe,
-  });
+  const params = new URLSearchParams();
+  params.set("sortBy", sortBy);
+  params.set("direction", direction);
+  params.set("chartTimeframe", chartTimeframe);
+  if (assetName?.trim()) {
+    params.set("assetName", assetName.trim());
+  }
   const response = await axios.get<ScreenerAssetWithChart[]>(
-    `${API_URL}/screener/top-assets?${params.toString()}`
+    `${API_URL}/screener/top-assets?${params.toString()}`,
   );
   return response.data;
 }
@@ -45,21 +48,24 @@ type Params = {
   sortBy?: SortBy;
   direction?: "asc" | "desc";
   chartTimeframe?: ChartTimeframe;
+  assetName?: string;
   refetchIntervalMs?: number | false;
 };
 export const useGetAssets = ({
   sortBy,
   direction,
   chartTimeframe,
+  assetName,
   refetchIntervalMs = false,
 }: Params) => {
   return useQuery({
-    queryKey: ["top-assets", sortBy, direction, chartTimeframe],
+    queryKey: ["top-assets", sortBy, direction, chartTimeframe, assetName],
     queryFn: () =>
       getAssets(
         sortBy ?? SortBy.PRICE,
         direction ?? "asc",
         chartTimeframe ?? "15m",
+        assetName,
       ),
     refetchInterval: refetchIntervalMs,
   });

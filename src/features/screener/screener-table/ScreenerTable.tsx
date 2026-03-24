@@ -51,6 +51,7 @@ export const ScreenerTable = () => {
     { id: "change_4h", desc: true },
   ]);
   const [timeframe, setTimeframe] = useState<Timeframe>("15m");
+  const [assetNameFilter, setAssetNameFilter] = useState("");
   const [refreshInterval, setRefreshInterval] =
     useState<RefreshInterval>("manual");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
@@ -76,6 +77,7 @@ export const ScreenerTable = () => {
     sortBy,
     direction,
     chartTimeframe: timeframe,
+    assetName: assetNameFilter,
     refetchIntervalMs: refreshIntervalMs,
   });
 
@@ -94,9 +96,11 @@ export const ScreenerTable = () => {
       <ScreenerConfigs
         timeframe={timeframe}
         refreshInterval={refreshInterval}
+        assetNameFilter={assetNameFilter}
         isRefreshing={isFetching}
         onTimeframeChange={setTimeframe}
         onRefreshIntervalChange={setRefreshInterval}
+        onAssetNameFilterChange={setAssetNameFilter}
         onManualRefresh={() => {
           void refetch();
         }}

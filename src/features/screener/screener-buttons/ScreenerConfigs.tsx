@@ -79,10 +79,12 @@ interface ScreenerConfigsProps {
   timeframe?: Timeframe;
   profile?: ScreenerProfile;
   refreshInterval?: RefreshInterval;
+  assetNameFilter?: string;
   isRefreshing?: boolean;
   onTimeframeChange?: (timeframe: Timeframe) => void;
   onProfileChange?: (profile: ScreenerProfile) => void;
   onRefreshIntervalChange?: (interval: RefreshInterval) => void;
+  onAssetNameFilterChange?: (value: string) => void;
   onManualRefresh?: () => void;
   onSortPresetChange?: (preset: SortPreset) => void;
   onColumnVisibilityChange?: (columns: ColumnKey[]) => void;
@@ -93,10 +95,12 @@ export function ScreenerConfigs({
   timeframe = "15m",
   profile = "day-trading",
   refreshInterval = "manual",
+  assetNameFilter = "",
   isRefreshing = false,
   onTimeframeChange,
   onProfileChange,
   onRefreshIntervalChange,
+  onAssetNameFilterChange,
   onManualRefresh,
   onSortPresetChange,
   onColumnVisibilityChange,
@@ -194,6 +198,21 @@ export function ScreenerConfigs({
       {/* Main Controls Row */}
       <div className="flex justify-between items-center gap-4 flex-wrap p-6">
         <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="asset-name-filter"
+              className="text-sm text-muted-foreground whitespace-nowrap"
+            >
+              Asset name:
+            </label>
+            <Input
+              id="asset-name-filter"
+              placeholder="e.g. BTC"
+              value={assetNameFilter}
+              onChange={(e) => onAssetNameFilterChange?.(e.target.value)}
+              className="h-8 w-44"
+            />
+          </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <label className="text-sm text-muted-foreground whitespace-nowrap">
