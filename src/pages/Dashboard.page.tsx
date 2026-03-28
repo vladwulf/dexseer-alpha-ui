@@ -40,7 +40,9 @@ export function DashboardPage() {
           </div>
 
           <div className="pb-10 pt-14">
-            <div className="my-4 hidden sm:block">{/* <MarketMovers /> */}</div>
+            <div className="my-4 hidden sm:block">
+              <MarketMovers />
+            </div>
 
             {/* <div className="my-10 container mx-auto">
               <ScrollingBanner />
