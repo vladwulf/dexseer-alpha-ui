@@ -10,41 +10,9 @@ type GetChartResponse = {
 
 async function getChart(assetId: number, timeframe: string) {
   const response = await axios.get<GetChartResponse>(
-    `${API_URL}/chart/asset/${assetId}/timeframe/${timeframe}`,
+    `${API_URL}/screener/chart/asset/${assetId}/timeframe/${timeframe}`,
   );
   return response.data;
-}
-
-type AssetLookupResponse = Array<{
-  id: number;
-  symbol: string;
-}>;
-
-async function getAssetIdBySymbol(symbol: string) {
-  const params = new URLSearchParams();
-  params.set("sortBy", "price");
-  params.set("direction", "desc");
-  params.set("chartTimeframe", "1m");
-  params.set("assetName", symbol);
-
-  const response = await axios.get<AssetLookupResponse>(
-    `${API_URL}/screener/top-assets?${params.toString()}`,
-  );
-
-  const exactMatch = response.data.find(
-    (asset) => asset.symbol.toLowerCase() === symbol.toLowerCase(),
-  );
-
-  if (exactMatch) {
-    return exactMatch.id;
-  }
-
-  const firstMatch = response.data[0];
-  if (!firstMatch) {
-    throw new Error(`No asset found for symbol: ${symbol}`);
-  }
-
-  return firstMatch.id;
 }
 
 async function getChartBySymbol(
@@ -52,17 +20,10 @@ async function getChartBySymbol(
   timeframe: string,
   limit: number,
 ) {
-  const assetId = await getAssetIdBySymbol(symbol);
-  const chart = await getChart(assetId, timeframe);
-
-  if (limit > 0 && chart.ohlcData.length > limit) {
-    return {
-      ...chart,
-      ohlcData: chart.ohlcData.slice(-limit),
-    };
-  }
-
-  return chart;
+  const response = await axios.get<GetChartResponse>(
+    `${API_URL}/charts?symbol=${symbol}&timeframe=${timeframe}&limit=${limit}`,
+  );
+  return response.data;
 }
 
 export function useGetChart(assetId: number | null, timeframe: string | null) {
