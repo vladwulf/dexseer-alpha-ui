@@ -109,7 +109,7 @@ export function DataTable<TData, TValue>({
                 data-state={row.getIsSelected() && "selected"}
                 className={cn(
                   "hover:bg-transparent",
-                  density === "extended" ? "h-98" : "h-14",
+                  density === "extended" ? "h-[440px]" : "h-14",
                 )}
               >
                 {row.getVisibleCells().map((cell) => (

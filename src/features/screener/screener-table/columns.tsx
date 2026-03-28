@@ -105,9 +105,7 @@ const getVolumeDeltaClassName = (value: number | null | undefined) => {
   return "text-gray-300";
 };
 
-export const getCryptoColumns = (
-  density: ScreenerDensity = "compact",
-) => {
+export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
   if (density === "extended") {
     return [
       {
@@ -120,7 +118,7 @@ export const getCryptoColumns = (
           return (
             <div className="w-full px-1">
               <div className="flex flex-col gap-3 lg:flex-row">
-                <div className="relative h-[340px] w-full overflow-hidden rounded-md border border-border/60 bg-black lg:w-[62%]">
+                <div className="relative h-[400px] w-full overflow-hidden rounded-md border border-border/60 bg-black lg:flex-1">
                   <StandardChart
                     klines={asset.chart.data.slice(-120)}
                     width="100%"
@@ -142,7 +140,7 @@ export const getCryptoColumns = (
                   </div>
                 </div>
 
-                <div className="w-full rounded-md border border-border/60 bg-black/50 p-3 lg:w-[38%]">
+                <div className="h-[400px] w-full rounded-md border border-border/60 bg-black/50 p-3 lg:w-full lg:max-w-[350px] lg:flex-none">
                   <div className="mb-3 border-b border-border/60 pb-2">
                     <Link
                       to={`/chart?symbol=${asset.symbol}&timeframe=1m`}
@@ -150,7 +148,9 @@ export const getCryptoColumns = (
                     >
                       {shortSymbol}
                     </Link>
-                    <p className="text-xs text-muted-foreground">{asset.symbol}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {asset.symbol}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">

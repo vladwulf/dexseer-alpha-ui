@@ -46,11 +46,6 @@ const refreshIntervals: { value: RefreshInterval; label: string }[] = [
   { value: "5m", label: "5 minutes" },
 ];
 
-const screenerDensities: { value: ScreenerDensity; label: string }[] = [
-  { value: "compact", label: "Compact" },
-  { value: "extended", label: "Extended" },
-];
-
 // Column keys that can be toggled
 export type ColumnKey =
   | "price"
@@ -141,9 +136,10 @@ export function ScreenerConfigs({
     onRefreshIntervalChange?.(value);
   };
 
-  const handleDensityChange = (value: ScreenerDensity) => {
-    setSelectedDensity(value);
-    onDensityChange?.(value);
+  const handleDensityToggle = (isExtended: boolean) => {
+    const nextDensity: ScreenerDensity = isExtended ? "extended" : "compact";
+    setSelectedDensity(nextDensity);
+    onDensityChange?.(nextDensity);
   };
 
   const selectedTimeframeLabel =
@@ -154,9 +150,7 @@ export function ScreenerConfigs({
   const selectedRefreshLabel =
     refreshIntervals.find((r) => r.value === selectedRefreshInterval)?.label ||
     selectedRefreshInterval;
-  const selectedDensityLabel =
-    screenerDensities.find((d) => d.value === selectedDensity)?.label ||
-    selectedDensity;
+  const isExtended = selectedDensity === "extended";
 
   return (
     <div className="border-b border-border min-h-26">
@@ -240,38 +234,6 @@ export function ScreenerConfigs({
             </DropdownMenu>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">
-              View:
-            </label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="h-8 text-sm">
-                  {selectedDensityLabel}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-36">
-                <DropdownMenuLabel>Row Size</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={selectedDensity}
-                  onValueChange={(value) =>
-                    handleDensityChange(value as ScreenerDensity)
-                  }
-                >
-                  {screenerDensities.map((densityOption) => (
-                    <DropdownMenuRadioItem
-                      key={densityOption.value}
-                      value={densityOption.value}
-                    >
-                      {densityOption.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -313,6 +275,31 @@ export function ScreenerConfigs({
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <div className="ml-3 flex items-center gap-2">
+              <label className="text-sm text-muted-foreground whitespace-nowrap">
+                Extended
+              </label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isExtended}
+                onClick={() => handleDensityToggle(!isExtended)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${
+                  isExtended
+                    ? "border-[#5dc887] bg-[#5dc887]/20"
+                    : "border-border bg-muted/40"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
+                    isExtended
+                      ? "translate-x-6 bg-[#5dc887]"
+                      : "translate-x-1 bg-muted-foreground"
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
 
