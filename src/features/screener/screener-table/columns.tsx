@@ -120,7 +120,7 @@ export const getCryptoColumns = (
           return (
             <div className="w-full px-1">
               <div className="flex flex-col gap-3 lg:flex-row">
-                <div className="relative h-[340px] w-full overflow-hidden rounded-md border border-border/60 bg-[#09090b] lg:w-[62%]">
+                <div className="relative h-[340px] w-full overflow-hidden rounded-md border border-border/60 bg-black lg:w-[62%]">
                   <StandardChart
                     klines={asset.chart.data.slice(-120)}
                     width="100%"
@@ -128,6 +128,7 @@ export const getCryptoColumns = (
                     upColor="#5dc887"
                     downColor="#e35561"
                     showLegend={false}
+                    backgroundColor="#000000"
                   />
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-6xl font-bold tracking-widest text-white/10">
                     {shortSymbol}

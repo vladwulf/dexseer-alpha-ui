@@ -25,6 +25,7 @@ interface MiniChartProps {
   klines: OHLCVExtended[];
   assetName?: string;
   showLegend?: boolean;
+  backgroundColor?: string;
   width?: string;
   height?: string;
   upColor?: string;
@@ -45,6 +46,7 @@ export function StandardChart({
   klines,
   assetName,
   showLegend = true,
+  backgroundColor = "#09090b",
   width = "100%",
   height = "100%",
   upColor = "#22c55e", // Default green for up candles
@@ -69,7 +71,7 @@ export function StandardChart({
     // Create chart instance with dark theme
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "#09090b" },
+        background: { type: ColorType.Solid, color: backgroundColor },
         textColor: "#d1d5db",
       },
       autoSize: true,
@@ -664,7 +666,17 @@ export function StandardChart({
       chart.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [klines, width, height, upColor, downColor, assetName, events, showLegend]);
+  }, [
+    klines,
+    width,
+    height,
+    upColor,
+    downColor,
+    assetName,
+    events,
+    showLegend,
+    backgroundColor,
+  ]);
 
   return (
     <div
