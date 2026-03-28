@@ -9,13 +9,13 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, RefreshCw, Eye, EyeOff, Filter } from "lucide-react";
+import { ChevronDown, RefreshCw } from "lucide-react";
 
 export type Timeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 export type ScreenerProfile = "day-trading" | "swing-trading";
 export type RefreshInterval = "manual" | "5s" | "10s" | "30s" | "1m" | "5m";
+export type ScreenerDensity = "compact" | "extended";
 export type SortPreset =
   | "top-gainers"
   | "top-losers"
@@ -46,11 +46,9 @@ const refreshIntervals: { value: RefreshInterval; label: string }[] = [
   { value: "5m", label: "5 minutes" },
 ];
 
-const sortPresets: { value: SortPreset; label: string }[] = [
-  { value: "top-gainers", label: "Top Gainers" },
-  { value: "top-losers", label: "Top Losers" },
-  { value: "highest-volume", label: "Highest Volume" },
-  { value: "most-volatile", label: "Most Volatile" },
+const screenerDensities: { value: ScreenerDensity; label: string }[] = [
+  { value: "compact", label: "Compact" },
+  { value: "extended", label: "Extended" },
 ];
 
 // Column keys that can be toggled
@@ -79,11 +77,13 @@ interface ScreenerConfigsProps {
   timeframe?: Timeframe;
   profile?: ScreenerProfile;
   refreshInterval?: RefreshInterval;
+  density?: ScreenerDensity;
   assetNameFilter?: string;
   isRefreshing?: boolean;
   onTimeframeChange?: (timeframe: Timeframe) => void;
   onProfileChange?: (profile: ScreenerProfile) => void;
   onRefreshIntervalChange?: (interval: RefreshInterval) => void;
+  onDensityChange?: (density: ScreenerDensity) => void;
   onAssetNameFilterChange?: (value: string) => void;
   onManualRefresh?: () => void;
   onSortPresetChange?: (preset: SortPreset) => void;
@@ -95,16 +95,15 @@ export function ScreenerConfigs({
   timeframe = "15m",
   profile = "day-trading",
   refreshInterval = "manual",
+  density = "compact",
   assetNameFilter = "",
   isRefreshing = false,
   onTimeframeChange,
   onProfileChange,
   onRefreshIntervalChange,
+  onDensityChange,
   onAssetNameFilterChange,
   onManualRefresh,
-  onSortPresetChange,
-  onColumnVisibilityChange,
-  onFiltersChange,
 }: ScreenerConfigsProps) {
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<Timeframe>(timeframe);
@@ -112,21 +111,8 @@ export function ScreenerConfigs({
     useState<ScreenerProfile>(profile);
   const [selectedRefreshInterval, setSelectedRefreshInterval] =
     useState<RefreshInterval>(refreshInterval);
-  const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>([
-    "price",
-    "change_1m",
-    "change_5m",
-    "change_15m",
-    "change_1h",
-    "change_4h",
-    "volume_1d",
-    "volume_delta_1m",
-    "volume_delta_5m",
-    "volume_delta_1h",
-    "volume_delta_4h",
-  ]);
-  const [filters, setFilters] = useState<FilterValues>({});
-  const [showFilters, setShowFilters] = useState(false);
+  const [selectedDensity, setSelectedDensity] =
+    useState<ScreenerDensity>(density);
 
   useEffect(() => {
     setSelectedTimeframe(timeframe);
@@ -135,6 +121,10 @@ export function ScreenerConfigs({
   useEffect(() => {
     setSelectedRefreshInterval(refreshInterval);
   }, [refreshInterval]);
+
+  useEffect(() => {
+    setSelectedDensity(density);
+  }, [density]);
 
   const handleTimeframeChange = (value: Timeframe) => {
     setSelectedTimeframe(value);
@@ -151,23 +141,9 @@ export function ScreenerConfigs({
     onRefreshIntervalChange?.(value);
   };
 
-  const handleSortPreset = (preset: SortPreset) => {
-    onSortPresetChange?.(preset);
-  };
-
-  const handleColumnToggle = (column: ColumnKey) => {
-    const newVisibleColumns = visibleColumns.includes(column)
-      ? visibleColumns.filter((c) => c !== column)
-      : [...visibleColumns, column];
-    setVisibleColumns(newVisibleColumns);
-    onColumnVisibilityChange?.(newVisibleColumns);
-  };
-
-  const handleFilterChange = (key: keyof FilterValues, value: string) => {
-    const numValue = value === "" ? undefined : parseFloat(value);
-    const newFilters = { ...filters, [key]: numValue };
-    setFilters(newFilters);
-    onFiltersChange?.(newFilters);
+  const handleDensityChange = (value: ScreenerDensity) => {
+    setSelectedDensity(value);
+    onDensityChange?.(value);
   };
 
   const selectedTimeframeLabel =
@@ -178,20 +154,9 @@ export function ScreenerConfigs({
   const selectedRefreshLabel =
     refreshIntervals.find((r) => r.value === selectedRefreshInterval)?.label ||
     selectedRefreshInterval;
-
-  const columnLabels: Record<ColumnKey, string> = {
-    price: "Price",
-    change_1m: "1m %",
-    change_5m: "5m %",
-    change_15m: "15m %",
-    change_1h: "1h %",
-    change_4h: "4h %",
-    volume_1d: "Volume 1d",
-    volume_delta_1m: "Volume Δ 1m",
-    volume_delta_5m: "Volume Δ 5m",
-    volume_delta_1h: "Volume Δ 1h",
-    volume_delta_4h: "Volume Δ 4h",
-  };
+  const selectedDensityLabel =
+    screenerDensities.find((d) => d.value === selectedDensity)?.label ||
+    selectedDensity;
 
   return (
     <div className="border-b border-border min-h-26">
@@ -268,6 +233,39 @@ export function ScreenerConfigs({
                   {profiles.map((p) => (
                     <DropdownMenuRadioItem key={p.value} value={p.value}>
                       {p.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground whitespace-nowrap">
+              View:
+            </label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-8 text-sm">
+                  {selectedDensityLabel}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-36">
+                <DropdownMenuLabel>Row Size</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={selectedDensity}
+                  onValueChange={(value) =>
+                    handleDensityChange(value as ScreenerDensity)
+                  }
+                >
+                  {screenerDensities.map((densityOption) => (
+                    <DropdownMenuRadioItem
+                      key={densityOption.value}
+                      value={densityOption.value}
+                    >
+                      {densityOption.label}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>

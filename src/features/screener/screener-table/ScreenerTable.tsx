@@ -2,10 +2,11 @@ import { useState } from "react";
 import type { SortingState, Updater } from "@tanstack/react-table";
 import { SortBy, useGetAssets } from "../hooks/screener.api";
 import type { ScreenerAssetWithChart } from "../types";
-import { cryptoColumns } from "./columns";
+import { getCryptoColumns } from "./columns";
 import { DataTable } from "./data-table";
 import {
   ScreenerConfigs,
+  type ScreenerDensity,
   type RefreshInterval,
   type Timeframe,
 } from "../screener-buttons/ScreenerConfigs";
@@ -54,20 +55,22 @@ export const ScreenerTable = () => {
   const [assetNameFilter, setAssetNameFilter] = useState("");
   const [refreshInterval, setRefreshInterval] =
     useState<RefreshInterval>("manual");
+  const [density, setDensity] = useState<ScreenerDensity>("compact");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
+  const columns = getCryptoColumns(density);
 
   const refreshIntervalMs: number | false =
     refreshInterval === "manual"
       ? false
       : refreshInterval === "5s"
-      ? 5000
-      : refreshInterval === "10s"
-      ? 10000
-      : refreshInterval === "30s"
-      ? 30000
-      : refreshInterval === "1m"
-      ? 60000
-      : 300000;
+        ? 5000
+        : refreshInterval === "10s"
+          ? 10000
+          : refreshInterval === "30s"
+            ? 30000
+            : refreshInterval === "1m"
+              ? 60000
+              : 300000;
 
   const {
     data: assets,
@@ -96,10 +99,12 @@ export const ScreenerTable = () => {
       <ScreenerConfigs
         timeframe={timeframe}
         refreshInterval={refreshInterval}
+        density={density}
         assetNameFilter={assetNameFilter}
         isRefreshing={isFetching}
         onTimeframeChange={setTimeframe}
         onRefreshIntervalChange={setRefreshInterval}
+        onDensityChange={setDensity}
         onAssetNameFilterChange={setAssetNameFilter}
         onManualRefresh={() => {
           void refetch();
@@ -107,10 +112,12 @@ export const ScreenerTable = () => {
       />
       <div className="mt-10">
         <DataTable<ScreenerAssetWithChart, unknown>
-          columns={cryptoColumns}
+          columns={columns}
           data={assets || []}
           sorting={sorting}
           onSortingChange={handleSortingChange}
+          density={density}
+          hideHeader={density === "extended"}
         />
       </div>
     </div>

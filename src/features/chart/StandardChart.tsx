@@ -24,6 +24,7 @@ interface ChartEvent {
 interface MiniChartProps {
   klines: OHLCVExtended[];
   assetName?: string;
+  showLegend?: boolean;
   width?: string;
   height?: string;
   upColor?: string;
@@ -43,6 +44,7 @@ function getAverageVolume(klines: OHLCVExtended[], loopbackPeriod: number) {
 export function StandardChart({
   klines,
   assetName,
+  showLegend = true,
   width = "100%",
   height = "100%",
   upColor = "#22c55e", // Default green for up candles
@@ -446,7 +448,7 @@ export function StandardChart({
     chart.timeScale().fitContent();
 
     // Create and setup legend
-    if (chartContainerRef.current && !legendRef.current) {
+    if (showLegend && chartContainerRef.current && !legendRef.current) {
       const legend = document.createElement("div");
       legend.style.cssText = `
         position: absolute;
@@ -636,10 +638,14 @@ export function StandardChart({
     };
 
     // Subscribe to crosshair move events
-    chart.subscribeCrosshairMove(updateLegend);
+    if (showLegend) {
+      chart.subscribeCrosshairMove(updateLegend);
+    }
 
     // Initialize legend with last bar
-    updateLegend(undefined);
+    if (showLegend) {
+      updateLegend(undefined);
+    }
 
     // Store refs
     chartRef.current = chart;
@@ -658,7 +664,7 @@ export function StandardChart({
       chart.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [klines, width, height, upColor, downColor, assetName, events]);
+  }, [klines, width, height, upColor, downColor, assetName, events, showLegend]);
 
   return (
     <div

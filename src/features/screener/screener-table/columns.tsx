@@ -1,11 +1,12 @@
 import type { ColumnDef, CellContext } from "@tanstack/react-table";
 import type { ReactElement } from "react";
 import { cn } from "@/lib/utils";
-import { MiniChartModal } from "@/features/chart/MiniChart";
 import type { ScreenerAsset, ScreenerAssetWithChart } from "../types";
 import { MicroChart } from "@/features/chart/MicroChart";
+import { StandardChart } from "@/features/chart/StandardChart";
 import { Link } from "react-router";
 import { millify } from "millify";
+import type { ScreenerDensity } from "../screener-buttons/ScreenerConfigs";
 
 /**
  * Reusable cell renderer for percentage change values
@@ -78,110 +79,269 @@ export type TrackedAssetExtended = ScreenerAsset & {
   chart: ReactElement;
 };
 
-export const cryptoColumns: ColumnDef<ScreenerAssetWithChart>[] = [
-  {
-    accessorKey: "symbol",
-    header: "Name",
-    enableSorting: false,
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-around gap-4">
-          <div className="w-22 flex justify-center items-center">
-            <Link
-              to={`/chart?symbol=${row.original.symbol}&timeframe=1m`}
-              className="text-xs"
-            >
-              {row.original.symbol.replace("USDT", "")}
-            </Link>
-          </div>
+const formatPercent = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "N/A";
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)}%`;
+};
 
-          <MicroChart
-            klines={row.original.chart.data}
-            alertTimestamp="2026-01-17 09:53:00+00"
-            width={100}
-            height={40}
-            periods={100}
-          />
-          {/* <MiniChartModal
-            klines={row.original.chart.data}
-            upColor="#5dc887"
-            downColor="#e35561"
-            height={250}
-            width={400}
-            periods={100}
-          >
-            <div className="cursor-pointer">
-              <MicroChart
-                klines={row.original.chart.data}
-                alertTimestamp="2026-01-17 09:53:00+00"
-                width={100}
-                height={40}
-                periods={100}
-              />
+const getPercentClassName = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "text-muted-foreground";
+  if (value > 0) return "text-[#5dc887]";
+  if (value < 0) return "text-[#e35561]";
+  return "text-gray-300";
+};
+
+const formatVolumeDelta = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "N/A";
+  if (value < 0) return value.toFixed(2);
+  return `+${value.toFixed(2)}`;
+};
+
+const getVolumeDeltaClassName = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "text-muted-foreground";
+  if (value > 0) return "text-[#5dc887]";
+  if (value < 0) return "text-[#e35561]";
+  return "text-gray-300";
+};
+
+export const getCryptoColumns = (
+  density: ScreenerDensity = "compact",
+) => {
+  if (density === "extended") {
+    return [
+      {
+        id: "ta_view",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }: CellContext<ScreenerAssetWithChart, unknown>) => {
+          const asset = row.original;
+          const shortSymbol = asset.symbol.replace("USDT", "");
+          return (
+            <div className="w-full px-1">
+              <div className="flex flex-col gap-3 lg:flex-row">
+                <div className="relative h-[340px] w-full overflow-hidden rounded-md border border-border/60 bg-[#09090b] lg:w-[62%]">
+                  <StandardChart
+                    klines={asset.chart.data.slice(-120)}
+                    width="100%"
+                    height="100%"
+                    upColor="#5dc887"
+                    downColor="#e35561"
+                    showLegend={false}
+                  />
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-6xl font-bold tracking-widest text-white/10">
+                    {shortSymbol}
+                  </div>
+                </div>
+
+                <div className="w-full rounded-md border border-border/60 bg-black/50 p-3 lg:w-[38%]">
+                  <div className="mb-3 border-b border-border/60 pb-2">
+                    <Link
+                      to={`/chart?symbol=${asset.symbol}&timeframe=1m`}
+                      className="text-lg font-semibold text-foreground hover:underline"
+                    >
+                      {shortSymbol}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">{asset.symbol}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    <div className="text-muted-foreground">Price</div>
+                    <div className="text-right font-medium">
+                      {asset.price.toFixed(6)}
+                    </div>
+
+                    <div className="text-muted-foreground">1m %</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getPercentClassName(asset.change_1m),
+                      )}
+                    >
+                      {formatPercent(asset.change_1m)}
+                    </div>
+
+                    <div className="text-muted-foreground">5m %</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getPercentClassName(asset.change_5m),
+                      )}
+                    >
+                      {formatPercent(asset.change_5m)}
+                    </div>
+
+                    <div className="text-muted-foreground">15m %</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getPercentClassName(asset.change_15m),
+                      )}
+                    >
+                      {formatPercent(asset.change_15m)}
+                    </div>
+
+                    <div className="text-muted-foreground">1h %</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getPercentClassName(asset.change_1h),
+                      )}
+                    >
+                      {formatPercent(asset.change_1h)}
+                    </div>
+
+                    <div className="text-muted-foreground">4h %</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getPercentClassName(asset.change_4h),
+                      )}
+                    >
+                      {formatPercent(asset.change_4h)}
+                    </div>
+
+                    <div className="text-muted-foreground">Volume 1d</div>
+                    <div className="text-right font-medium">
+                      {millify(asset.volume_1d)}
+                    </div>
+
+                    <div className="text-muted-foreground">Volume Δ 1m</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getVolumeDeltaClassName(asset.volume_delta_1m),
+                      )}
+                    >
+                      {formatVolumeDelta(asset.volume_delta_1m)}
+                    </div>
+
+                    <div className="text-muted-foreground">Volume Δ 5m</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getVolumeDeltaClassName(asset.volume_delta_5m),
+                      )}
+                    >
+                      {formatVolumeDelta(asset.volume_delta_5m)}
+                    </div>
+
+                    <div className="text-muted-foreground">Volume Δ 1h</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getVolumeDeltaClassName(asset.volume_delta_1h),
+                      )}
+                    >
+                      {formatVolumeDelta(asset.volume_delta_1h)}
+                    </div>
+
+                    <div className="text-muted-foreground">Volume Δ 4h</div>
+                    <div
+                      className={cn(
+                        "text-right font-medium",
+                        getVolumeDeltaClassName(asset.volume_delta_4h),
+                      )}
+                    >
+                      {formatVolumeDelta(asset.volume_delta_4h)}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </MiniChartModal> */}
-        </div>
-      );
+          );
+        },
+      },
+    ];
+  }
+
+  return [
+    {
+      accessorKey: "symbol",
+      header: "Name",
+      enableSorting: false,
+      cell: ({ row }) => {
+        return (
+          <div className="flex justify-around gap-4">
+            <div className="w-22 flex justify-center items-center">
+              <Link
+                to={`/chart?symbol=${row.original.symbol}&timeframe=1m`}
+                className="text-xs"
+              >
+                {row.original.symbol.replace("USDT", "")}
+              </Link>
+            </div>
+
+            <MicroChart
+              klines={row.original.chart.data}
+              alertTimestamp="2026-01-17 09:53:00+00"
+              width={100}
+              height={40}
+              periods={100}
+            />
+          </div>
+        );
+      },
     },
-  },
-  {
-    accessorKey: "price",
-    header: "Price",
-  },
-  {
-    accessorKey: "change_1m",
-    header: "1m %",
-    cell: percentageChangeCell,
-  },
-  {
-    accessorKey: "change_5m",
-    header: "5m %",
-    cell: percentageChangeCell,
-  },
-  {
-    accessorKey: "change_15m",
-    header: "15m %",
-    cell: percentageChangeCell,
-  },
-  {
-    accessorKey: "change_1h",
-    header: "1h %",
-    cell: percentageChangeCell,
-  },
-  {
-    accessorKey: "change_4h",
-    header: "4h %",
-    cell: percentageChangeCell,
-  },
-  {
-    accessorKey: "volume_1d",
-    header: "Volume 1d",
-    enableSorting: false,
-    cell: ({ row }) => {
-      return <span>{millify(row.original.volume_1d)}</span>;
+    {
+      accessorKey: "price",
+      header: "Price",
     },
-  },
-  {
-    accessorKey: "volume_delta_1m",
-    header: "Volume Δ 1m",
-    cell: volumeDeltaChangeCell,
-  },
-  {
-    accessorKey: "volume_delta_5m",
-    header: "Volume Δ 5m",
-    cell: volumeDeltaChangeCell,
-  },
-  {
-    accessorKey: "volume_delta_1h",
-    header: "Volume Δ 1h",
-    cell: volumeDeltaChangeCell,
-  },
-  {
-    accessorKey: "volume_delta_4h",
-    header: "Volume Δ 4h",
-    cell: volumeDeltaChangeCell,
-  },
-];
+    {
+      accessorKey: "change_1m",
+      header: "1m %",
+      cell: percentageChangeCell,
+    },
+    {
+      accessorKey: "change_5m",
+      header: "5m %",
+      cell: percentageChangeCell,
+    },
+    {
+      accessorKey: "change_15m",
+      header: "15m %",
+      cell: percentageChangeCell,
+    },
+    {
+      accessorKey: "change_1h",
+      header: "1h %",
+      cell: percentageChangeCell,
+    },
+    {
+      accessorKey: "change_4h",
+      header: "4h %",
+      cell: percentageChangeCell,
+    },
+    {
+      accessorKey: "volume_1d",
+      header: "Volume 1d",
+      enableSorting: false,
+      cell: ({ row }) => {
+        return <span>{millify(row.original.volume_1d)}</span>;
+      },
+    },
+    {
+      accessorKey: "volume_delta_1m",
+      header: "Volume Δ 1m",
+      cell: volumeDeltaChangeCell,
+    },
+    {
+      accessorKey: "volume_delta_5m",
+      header: "Volume Δ 5m",
+      cell: volumeDeltaChangeCell,
+    },
+    {
+      accessorKey: "volume_delta_1h",
+      header: "Volume Δ 1h",
+      cell: volumeDeltaChangeCell,
+    },
+    {
+      accessorKey: "volume_delta_4h",
+      header: "Volume Δ 4h",
+      cell: volumeDeltaChangeCell,
+    },
+  ];
+};
 
 export const cryptoExtendedColumns: ColumnDef<TrackedAssetExtended>[] = [
   {

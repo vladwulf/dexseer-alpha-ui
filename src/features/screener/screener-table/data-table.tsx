@@ -15,6 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import type { ScreenerDensity } from "../screener-buttons/ScreenerConfigs";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -22,6 +24,8 @@ interface DataTableProps<TData, TValue> {
   sorting?: SortingState;
   onSortingChange?: OnChangeFn<SortingState>;
   isLoading?: boolean;
+  density?: ScreenerDensity;
+  hideHeader?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -29,6 +33,8 @@ export function DataTable<TData, TValue>({
   data,
   sorting = [],
   onSortingChange,
+  density = "compact",
+  hideHeader = false,
 }: DataTableProps<TData, TValue>) {
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -55,53 +61,61 @@ export function DataTable<TData, TValue>({
   return (
     <div className="overflow-hidden rounded-md bg-black">
       <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead
-                    key={header.id}
-                    className={
-                      header.column.getCanSort()
-                        ? "cursor-pointer select-none hover:underline"
-                        : ""
-                    }
-                    onClick={header.column.getToggleSortingHandler()}
-                    style={{ userSelect: "none" }}
-                  >
-                    <div className="flex items-center gap-2">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      {header.column.getCanSort() && (
-                        <span className="text-muted-foreground">
-                          {header.column.getIsSorted() === "asc"
-                            ? " ↑"
-                            : header.column.getIsSorted() === "desc"
-                            ? " ↓"
-                            : null}
-                        </span>
-                      )}
-                    </div>
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
+        {!hideHeader && (
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={
+                        header.column.getCanSort()
+                          ? "cursor-pointer select-none hover:underline"
+                          : ""
+                      }
+                      onClick={header.column.getToggleSortingHandler()}
+                      style={{ userSelect: "none" }}
+                    >
+                      <div className="flex items-center gap-2">
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                        {header.column.getCanSort() && (
+                          <span className="text-muted-foreground">
+                            {header.column.getIsSorted() === "asc"
+                              ? " ↑"
+                              : header.column.getIsSorted() === "desc"
+                                ? " ↓"
+                                : null}
+                          </span>
+                        )}
+                      </div>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+        )}
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
+                className={cn(density === "extended" ? "h-98" : "h-14")}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className={cn(
+                      density === "extended" ? "py-4 text-sm" : "py-2 text-xs",
+                    )}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

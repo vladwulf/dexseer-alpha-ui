@@ -62,9 +62,9 @@ export function DashboardPage() {
               </div>
             </div>
 
-            <div className="mt-10">
+            {/* <div className="mt-10">
               <FaqAccordion />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
