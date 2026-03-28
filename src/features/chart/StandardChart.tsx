@@ -26,6 +26,8 @@ interface MiniChartProps {
   assetName?: string;
   showLegend?: boolean;
   backgroundColor?: string;
+  headerTitle?: string;
+  headerSubtitle?: string;
   width?: string;
   height?: string;
   upColor?: string;
@@ -47,6 +49,8 @@ export function StandardChart({
   assetName,
   showLegend = true,
   backgroundColor = "#09090b",
+  headerTitle,
+  headerSubtitle,
   width = "100%",
   height = "100%",
   upColor = "#22c55e", // Default green for up candles
@@ -683,6 +687,21 @@ export function StandardChart({
       ref={chartContainerRef}
       className="rounded-md w-full h-full relative"
       style={{ width, height }}
-    />
+    >
+      {(headerTitle || headerSubtitle) && (
+        <div className="pointer-events-none absolute left-3 top-2 z-20">
+          {headerTitle && (
+            <div className="text-2xl font-semibold tracking-wide text-white/60">
+              {headerTitle}
+            </div>
+          )}
+          {headerSubtitle && (
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/35">
+              {headerSubtitle}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

@@ -129,9 +129,16 @@ export const getCryptoColumns = (
                     downColor="#e35561"
                     showLegend={false}
                     backgroundColor="#000000"
+                    headerTitle={shortSymbol}
+                    headerSubtitle={asset.symbol}
                   />
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-6xl font-bold tracking-widest text-white/10">
-                    {shortSymbol}
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center leading-none">
+                    <span className="text-6xl font-bold tracking-widest text-white/10">
+                      {shortSymbol}
+                    </span>
+                    <span className="mt-2 text-sm font-medium tracking-[0.2em] text-white/15">
+                      {asset.symbol}
+                    </span>
                   </div>
                 </div>
 
