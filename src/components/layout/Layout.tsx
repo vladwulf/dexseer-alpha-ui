@@ -1,3 +1,5 @@
 export function Layout({ children }: { children: React.ReactNode }) {
-  return <div className="space-y-6 max-w-full">{children}</div>;
+  return (
+    <div className="max-w-[1700px] mx-auto container px-2">{children}</div>
+  );
 }
