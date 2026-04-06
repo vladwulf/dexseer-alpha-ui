@@ -1,5 +1,10 @@
 import { useEffect, useRef } from "react";
-import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
+import {
+  createChart,
+  ColorType,
+  CandlestickSeries,
+  HistogramSeries,
+} from "lightweight-charts";
 import type { Time } from "lightweight-charts";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { MARibbonIndicator } from "./indicators/ma-ribbon-plugin";
@@ -227,6 +232,41 @@ export function AlertChart({
       .sort((a, b) => (a.time as number) - (b.time as number));
 
     ribbonPlugin.setData(ribbonData);
+
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      priceFormat: {
+        type: "volume",
+      },
+      priceScaleId: "",
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
+
+    volumeSeries.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    });
+
+    const volumeData = series.map((kline) => {
+      const time = (new Date(kline.time).getTime() / 1000) as Time;
+      const isUp = kline.close >= kline.open;
+      const baseColor = isUp ? upColor : downColor;
+
+      let color = baseColor;
+      if (time < alertTimestampUnix) {
+        color = hexToRgba(baseColor, 0.3);
+      }
+
+      return {
+        time,
+        value: Number(kline.asset_volume) || 0,
+        color,
+      };
+    });
+
+    volumeSeries.setData(volumeData);
 
     candlestickSeries.applyOptions({
       lastValueVisible: false, // hides the price on the right scale
