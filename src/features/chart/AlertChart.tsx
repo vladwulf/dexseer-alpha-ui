@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
 import type { Time } from "lightweight-charts";
 import type { OHLCVExtended } from "@/types/ohlcv";
+import { MARibbonIndicator } from "./indicators/ma-ribbon-plugin";
 
 const hexToRgba = (hex: string, opacity: number): string => {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -188,6 +189,45 @@ export function AlertChart({
 
     candlestickSeries.setData(candlestickData);
 
+    const ribbonPlugin = new MARibbonIndicator({
+      fillColor: "rgba(100, 100, 100, 0.2)",
+      lineWidth: 0,
+    });
+    candlestickSeries.attachPrimitive(ribbonPlugin);
+
+    const ribbonData = series
+      .map((kline) => {
+        if (
+          typeof kline.ema9 !== "number" ||
+          typeof kline.ema20 !== "number" ||
+          typeof kline.macd_histogram !== "number"
+        ) {
+          return null;
+        }
+
+        const isBullTrend = kline.ema9 > kline.ema20;
+        const macdPositive = kline.macd_histogram > 0;
+        const macdNegative = kline.macd_histogram < 0;
+
+        let color = "rgba(100, 100, 100, 0.2)";
+        if (isBullTrend && macdPositive) {
+          color = "#6be671";
+        } else if (!isBullTrend && macdNegative) {
+          color = "#FF244D";
+        }
+
+        return {
+          time: (new Date(kline.time).getTime() / 1000) as Time,
+          upper: kline.ema9,
+          lower: kline.ema20,
+          color,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => (a.time as number) - (b.time as number));
+
+    ribbonPlugin.setData(ribbonData);
+
     candlestickSeries.applyOptions({
       lastValueVisible: false, // hides the price on the right scale
       priceLineVisible: false, // hides the horizontal last price line
@@ -246,7 +286,7 @@ export function AlertChart({
     return () => {
       chart.remove();
     };
-  }, [alert, series, upColor, downColor]);
+  }, [alertTime, series, upColor, downColor]);
 
   return (
     <div className="inline-block w-full h-full">
