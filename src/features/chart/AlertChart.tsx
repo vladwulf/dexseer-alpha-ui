@@ -329,8 +329,8 @@ export function AlertChart({
   }, [alertTime, series, upColor, downColor]);
 
   return (
-    <div className="inline-block w-full h-full">
-      <div ref={chartContainerRef} className="w-full h-full" />
+    <div className="block h-full w-full min-w-0 overflow-hidden">
+      <div ref={chartContainerRef} className="h-full w-full min-w-0 overflow-hidden" />
     </div>
   );
 }

@@ -8,6 +8,7 @@ interface Alert {
   id: number;
   time: string;
   type: AlertType;
+  price: number;
   asset: {
     id: number;
     symbol: string;
