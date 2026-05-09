@@ -147,7 +147,9 @@ export function MicroChart({
       1000) as Time;
 
     candlestickSeries.setData(
-      klines.map((kline) => {
+      klines.filter((kline) =>
+        kline.open != null && kline.high != null && kline.low != null && kline.close != null
+      ).map((kline) => {
         const time = (new Date(kline.time).getTime() / 1000) as Time;
         let candleColor = undefined;
         if (time === alertTimestampUnix) {

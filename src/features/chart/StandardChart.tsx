@@ -180,6 +180,9 @@ export function StandardChart({
 
     // Convert Binance K-line data to candlestick format
     const chartData: (CandlestickData & { volume: number })[] = dataToRender
+      .filter((kline) =>
+        kline.open != null && kline.high != null && kline.low != null && kline.close != null
+      )
       .map((kline) => {
         const timestamp = new Date(kline.time).getTime() / 1000;
         return {
