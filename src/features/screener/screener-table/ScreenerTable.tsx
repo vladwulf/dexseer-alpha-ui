@@ -54,7 +54,7 @@ export const ScreenerTable = () => {
   const [timeframe, setTimeframe] = useState<Timeframe>("15m");
   const [assetNameFilter, setAssetNameFilter] = useState("");
   const [refreshInterval, setRefreshInterval] =
-    useState<RefreshInterval>("manual");
+    useState<RefreshInterval>("5s");
   const [density, setDensity] = useState<ScreenerDensity>("compact");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
   const columns = getCryptoColumns(density);
@@ -95,9 +95,9 @@ export const ScreenerTable = () => {
   };
 
   return (
-    <div className="px-4">
+    <div className="px-0 sm:px-4">
       {/* Section label */}
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3 px-4 sm:px-0">
         <p
           style={{
             fontFamily: "var(--font-mono)",
@@ -113,10 +113,10 @@ export const ScreenerTable = () => {
       </div>
 
       <div
+        className="rounded-none sm:rounded-[8px]"
         style={{
           background: "#0a0a0a",
           border: "1px solid oklch(1 0 0 / 7%)",
-          borderRadius: "8px",
           overflow: "hidden",
         }}
       >
