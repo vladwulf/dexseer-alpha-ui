@@ -12,13 +12,13 @@ export function AlertsChartWrapper(props: Props) {
 
   return (
     <div className="grid h-full min-w-0 grid-cols-3 gap-3 overflow-hidden">
-      <div className="min-w-0 h-full overflow-hidden">
+      {/* <div className="min-w-0 h-full overflow-hidden">
         <AlertChart alertTime={props.alertTime} series={chartData1s.data ?? []} />
       </div>
       <div className="min-w-0 h-full overflow-hidden">
         <AlertChart alertTime={props.alertTime} series={chartData1m.data ?? []} />
-      </div>
-      <div className="min-w-0 h-full overflow-hidden">
+      </div> */}
+      <div className="min-w-0 h-full overflow-hidden col-span-3">
         <AlertChart
           alertTime={props.alertTime}
           series={chartData15m.data ?? []}

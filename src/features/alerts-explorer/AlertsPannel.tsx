@@ -6,7 +6,7 @@ import { AlertsChartWrapper } from "./AlertChartWrapper";
 
 export function AlertsPannel() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetAlertsPaginated("15m", 100);
+    useGetAlertsPaginated("15m", 1000);
   const alerts = data?.pages.flatMap((p) => p.data);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
