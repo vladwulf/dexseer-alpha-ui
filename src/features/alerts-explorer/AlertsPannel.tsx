@@ -1,7 +1,5 @@
 import { useEffect, useRef } from "react";
 import { useGetAlertsPaginated } from "./hooks/alerts.api";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { AlertsChartWrapper } from "./AlertChartWrapper";
 
 export function AlertsPannel() {
@@ -28,91 +26,200 @@ export function AlertsPannel() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {
-          fetchNextPage();
-        }
+        if (entries[0]?.isIntersecting) fetchNextPage();
       },
-      {
-        root: null,
-        rootMargin: "600px 0px",
-        threshold: 0,
-      },
+      { root: null, rootMargin: "600px 0px", threshold: 0 },
     );
 
     observer.observe(loadMoreRef.current);
-
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
-    <div className="mt-10 w-full min-w-0 space-y-10 overflow-x-hidden pb-4">
-      {alerts?.map((alert) => (
-        <Card
-          key={alert.id}
-          className="w-full overflow-hidden rounded-lg border border-border/70 bg-gradient-to-b from-zinc-950 to-zinc-950/80 p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] transition-colors"
+    <div className="mt-8 w-full min-w-0 space-y-6 overflow-x-hidden pb-4">
+      {/* Section label */}
+      <div className="flex items-center gap-3">
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.62rem",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "oklch(0.45 0 0)",
+          }}
         >
-          <div className="mb-4 space-y-3">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+          Signal Feed
+        </p>
+        <div className="h-px flex-1" style={{ background: "oklch(1 0 0 / 6%)" }} />
+        {alerts && (
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.62rem",
+              letterSpacing: "0.08em",
+              color: "oklch(0.38 0 0)",
+            }}
+          >
+            {alerts.length} signals
+          </span>
+        )}
+      </div>
+
+      {alerts?.map((alert) => (
+        <div
+          key={alert.id}
+          className="w-full overflow-hidden transition-all duration-200"
+          style={{
+            background: "oklch(0.13 0 0)",
+            border: "1px solid oklch(1 0 0 / 7%)",
+            borderRadius: "8px",
+            borderLeft: "3px solid oklch(0.72 0.18 248 / 60%)",
+          }}
+        >
+          {/* Card header */}
+          <div className="p-5 pb-4">
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+              {/* Symbol info */}
+              <div className="min-w-0">
+                <p
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.58rem",
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: "oklch(0.45 0 0)",
+                    marginBottom: "3px",
+                  }}
+                >
                   Symbol
                 </p>
-                <h3 className="truncate text-lg font-semibold leading-tight text-foreground">
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "1.25rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.02em",
+                    color: "oklch(0.96 0 0)",
+                    lineHeight: 1.1,
+                  }}
+                >
                   {alert.asset.symbol}
                 </h3>
-                <p className="mt-1 text-sm font-medium text-zinc-300">
+                <p
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.82rem",
+                    fontWeight: 500,
+                    color: "oklch(0.72 0 0)",
+                    marginTop: "3px",
+                  }}
+                >
                   ${formatPrice(alert.price)}
                 </p>
               </div>
-              <div className="flex items-start">
-                <Badge
-                  variant="outline"
-                  className="border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-300"
-                >
-                  {formatType(alert.type)}
-                </Badge>
+
+              {/* Alert type badge */}
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.65rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "oklch(0.72 0.18 248)",
+                  background: "oklch(0.72 0.18 248 / 10%)",
+                  border: "1px solid oklch(0.72 0.18 248 / 25%)",
+                  borderRadius: "4px",
+                  padding: "5px 10px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {formatType(alert.type)}
               </div>
             </div>
 
-            <div className="grid gap-2 text-xs sm:grid-cols-3">
-              <div className="rounded-md border border-zinc-800/80 bg-zinc-900/40 px-3 py-2">
-                <p className="uppercase tracking-wide text-zinc-500">
-                  Alert ID
-                </p>
-                <p className="mt-1 font-medium text-zinc-200">{alert.id}</p>
-              </div>
-              <div className="rounded-md border border-zinc-800/80 bg-zinc-900/40 px-3 py-2">
-                <p className="uppercase tracking-wide text-zinc-500">
-                  Asset ID
-                </p>
-                <p className="mt-1 font-medium text-zinc-200">
-                  {alert.asset.id}
-                </p>
-              </div>
-              <div className="rounded-md border border-zinc-800/80 bg-zinc-900/40 px-3 py-2">
-                <p className="uppercase tracking-wide text-zinc-500">Time</p>
-                <p className="mt-1 font-medium text-zinc-200">
-                  {alert.time ? new Date(alert.time).toLocaleString() : "N/A"}
-                </p>
-              </div>
+            {/* Metadata grid */}
+            <div className="grid gap-2 sm:grid-cols-3">
+              {[
+                { label: "Alert ID", value: String(alert.id) },
+                { label: "Asset ID", value: String(alert.asset.id) },
+                {
+                  label: "Time",
+                  value: alert.time
+                    ? new Date(alert.time).toLocaleString()
+                    : "N/A",
+                },
+              ].map(({ label, value }) => (
+                <div
+                  key={label}
+                  className="rounded px-3 py-2"
+                  style={{
+                    background: "oklch(0.1 0 0)",
+                    border: "1px solid oklch(1 0 0 / 5%)",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.57rem",
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      color: "oklch(0.4 0 0)",
+                      marginBottom: "3px",
+                    }}
+                  >
+                    {label}
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.75rem",
+                      fontWeight: 500,
+                      color: "oklch(0.75 0 0)",
+                    }}
+                  >
+                    {value}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="h-[320px] w-full min-w-0 overflow-hidden">
+          {/* Chart area */}
+          <div
+            className="h-[320px] w-full min-w-0 overflow-hidden"
+            style={{ borderTop: "1px solid oklch(1 0 0 / 5%)" }}
+          >
             <AlertsChartWrapper alertTime={alert.time} alertId={alert.id} />
           </div>
-        </Card>
+        </div>
       ))}
 
       <div ref={loadMoreRef} className="h-6 w-full" />
       {isFetchingNextPage && (
-        <p className="pb-2 text-center text-sm text-muted-foreground">
-          Loading more alerts...
+        <p
+          className="pb-2 text-center"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.7rem",
+            letterSpacing: "0.08em",
+            color: "oklch(0.45 0 0)",
+          }}
+        >
+          Loading more signals...
         </p>
       )}
       {!hasNextPage && alerts && alerts.length > 0 && (
-        <p className="pb-2 text-center text-xs text-muted-foreground/70">
-          End of alerts
+        <p
+          className="pb-2 text-center"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.65rem",
+            letterSpacing: "0.1em",
+            color: "oklch(0.35 0 0)",
+          }}
+        >
+          — End of signal feed —
         </p>
       )}
     </div>

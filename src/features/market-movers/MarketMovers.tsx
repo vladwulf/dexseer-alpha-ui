@@ -4,78 +4,171 @@ import { IndexChart } from "../chart/IndexChart";
 interface MarketMoverCardProps {
   symbol: string;
   displayName: string;
+  ticker: string;
 }
 
-function MarketMoverCard({ symbol, displayName }: MarketMoverCardProps) {
+function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) {
   const { data, isLoading } = useGetChartBySymbol(symbol, "1h", 100);
 
-  // Calculate price change percentage (24h equivalent)
-  // const priceChange =
-  //   data?.ohlcData && data.ohlcData.length > 0
-  //     ? ((data.ohlcData[data.ohlcData.length - 1].close -
-  //         data.ohlcData[0].open) /
-  //         data.ohlcData[0].open) *
-  //       100
-  //     : 0;
+  const ohlc = data?.ohlcData ?? [];
+  const currentPrice = ohlc.length > 0 ? ohlc[ohlc.length - 1].close : 0;
+  const openPrice = ohlc.length > 0 ? ohlc[0].open : 0;
+  const priceChange =
+    openPrice > 0 ? ((currentPrice - openPrice) / openPrice) * 100 : 0;
+  const isPositive = priceChange >= 0;
 
-  const currentPrice =
-    data?.ohlcData && data.ohlcData.length > 0
-      ? data.ohlcData[data.ohlcData.length - 1].close
-      : 0;
+  const formatPrice = (p: number) => {
+    if (p >= 1000) return p.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    if (p >= 1) return p.toFixed(2);
+    return p.toFixed(4);
+  };
 
   if (isLoading) {
     return (
-      <div className="flex-1 bg-black rounded-lg p-5">
-        <div className="animate-pulse">
-          <div className="h-4 bg-muted rounded w-20 mb-3" />
-          <div className="h-7 bg-muted rounded w-32 mb-3" />
-          <div className="h-3 bg-muted rounded w-16 mb-4" />
-          <div className="h-40 bg-muted rounded" />
+      <div
+        className="flex-1 rounded-lg p-5"
+        style={{
+          background: "oklch(0.14 0 0)",
+          border: "1px solid oklch(1 0 0 / 7%)",
+        }}
+      >
+        <div className="animate-pulse space-y-3">
+          <div className="h-3 w-16 rounded bg-white/5" />
+          <div className="h-6 w-28 rounded bg-white/5" />
+          <div className="h-4 w-20 rounded bg-white/5" />
+          <div className="mt-4 h-40 rounded bg-white/5" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 bg-black rounded-lg p-5">
-      <div className="h-48 max-w-[350px] mx-auto mt-2 bg-black">
-        {data?.ohlcData && data.ohlcData.length > 0 ? (
-          <div className="bg-black h-full w-full">
+    <div
+      className="flex-1 overflow-hidden rounded-lg transition-all duration-200"
+      style={{
+        background: "oklch(0.14 0 0)",
+        border: "1px solid oklch(1 0 0 / 7%)",
+      }}
+    >
+      {/* Top accent bar */}
+      <div
+        className="h-[2px] w-full"
+        style={{
+          background: isPositive
+            ? "linear-gradient(90deg, transparent, #5dc887, transparent)"
+            : "linear-gradient(90deg, transparent, #e35561, transparent)",
+        }}
+      />
+
+      <div className="p-5">
+        {/* Header */}
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.6rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "oklch(0.48 0 0)",
+                marginBottom: "2px",
+              }}
+            >
+              {displayName}
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "1rem",
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                color: "oklch(0.96 0 0)",
+              }}
+            >
+              {ticker}
+            </p>
+          </div>
+
+          {/* Price + change */}
+          <div className="text-right">
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+                color: "oklch(0.92 0 0)",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              ${formatPrice(currentPrice)}
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.72rem",
+                fontWeight: 500,
+                color: isPositive ? "#5dc887" : "#e35561",
+                letterSpacing: "0.02em",
+              }}
+            >
+              {isPositive ? "▲" : "▼"} {Math.abs(priceChange).toFixed(2)}%
+            </p>
+          </div>
+        </div>
+
+        {/* Chart */}
+        <div className="h-44 w-full">
+          {ohlc.length > 0 ? (
             <IndexChart
-              symbol={data.asset.symbol}
-              klines={data.ohlcData}
+              symbol={data!.asset.symbol}
+              klines={ohlc}
               upColor="#5dc887"
               downColor="#e35561"
             />
-          </div>
-        ) : (
-          <div className="h-full flex items-center justify-center text-muted-foreground text-xs">
-            No data
-          </div>
-        )}
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs text-white/20">
+              No data
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-export function MarketMovers() {
-  const movers = [
-    { symbol: "BTCUSDT", displayName: "Bitcoin" },
-    { symbol: "ETHUSDT", displayName: "Ethereum" },
-    { symbol: "SOLUSDT", displayName: "Solana" },
-  ];
+const movers = [
+  { symbol: "BTCUSDT", displayName: "Bitcoin", ticker: "BTC/USDT" },
+  { symbol: "ETHUSDT", displayName: "Ethereum", ticker: "ETH/USDT" },
+  { symbol: "SOLUSDT", displayName: "Solana", ticker: "SOL/USDT" },
+];
 
+export function MarketMovers() {
   return (
-    <div className="container mx-auto">
-      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl">
+      {/* Section label */}
+      <div className="mb-3 flex items-center gap-3">
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.62rem",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "oklch(0.45 0 0)",
+          }}
+        >
+          Market Overview
+        </p>
+        <div className="h-px flex-1" style={{ background: "oklch(1 0 0 / 6%)" }} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {movers.map((mover) => (
-          <div className="relative">
-            <MarketMoverCard
-              key={mover.symbol}
-              symbol={mover.symbol}
-              displayName={mover.displayName}
-            />
-          </div>
+          <MarketMoverCard
+            key={mover.symbol}
+            symbol={mover.symbol}
+            displayName={mover.displayName}
+            ticker={mover.ticker}
+          />
         ))}
       </div>
     </div>

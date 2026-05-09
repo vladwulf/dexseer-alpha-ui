@@ -59,7 +59,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="overflow-hidden rounded-md bg-black">
+    <div className="overflow-hidden">
       <Table>
         {!hideHeader && (
           <TableHeader>

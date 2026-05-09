@@ -1,4 +1,5 @@
 import { RouterProvider, createBrowserRouter } from "react-router";
+import { RootLayout } from "./components/layout/RootLayout";
 import { DashboardPage } from "./pages/Dashboard.page";
 import { PatternsPage } from "./pages/Patterns.page";
 import ChartPage from "./pages/Chart.page";
@@ -7,24 +8,14 @@ import AlertsExplorerPage from "./pages/AlertsExplorer.page";
 
 const routes = createBrowserRouter([
   {
-    path: "/alerts/explorer",
-    element: <AlertsExplorerPage />,
-  },
-  {
-    path: "/patterns",
-    element: <PatternsPage />,
-  },
-  {
-    path: "/chart",
-    element: <ChartPage />,
-  },
-  {
-    path: "/",
-    element: <DashboardPage />,
-  },
-  {
-    path: "/simulation",
-    element: <Simulation />,
+    element: <RootLayout />,
+    children: [
+      { path: "/", element: <DashboardPage /> },
+      { path: "/alerts/explorer", element: <AlertsExplorerPage /> },
+      { path: "/patterns", element: <PatternsPage /> },
+      { path: "/chart", element: <ChartPage /> },
+      { path: "/simulation", element: <Simulation /> },
+    ],
   },
 ]);
 

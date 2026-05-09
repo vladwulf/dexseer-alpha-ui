@@ -96,6 +96,30 @@ export const ScreenerTable = () => {
 
   return (
     <div className="px-4">
+      {/* Section label */}
+      <div className="mb-4 flex items-center gap-3">
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.62rem",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "oklch(0.45 0 0)",
+          }}
+        >
+          Asset Screener
+        </p>
+        <div className="h-px flex-1" style={{ background: "oklch(1 0 0 / 6%)" }} />
+      </div>
+
+      <div
+        style={{
+          background: "oklch(0.13 0 0)",
+          border: "1px solid oklch(1 0 0 / 7%)",
+          borderRadius: "8px",
+          overflow: "hidden",
+        }}
+      >
       <ScreenerConfigs
         timeframe={timeframe}
         refreshInterval={refreshInterval}
@@ -110,7 +134,7 @@ export const ScreenerTable = () => {
           void refetch();
         }}
       />
-      <div className="mt-10">
+      <div>
         <DataTable<ScreenerAssetWithChart, unknown>
           columns={columns}
           data={assets || []}
@@ -119,6 +143,7 @@ export const ScreenerTable = () => {
           density={density}
           hideHeader={density === "extended"}
         />
+      </div>
       </div>
     </div>
   );
