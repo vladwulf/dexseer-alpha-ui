@@ -269,17 +269,23 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
       header: "Name",
       enableSorting: false,
       cell: ({ row }) => {
+        const ticker = row.original.symbol.replace("USDT", "");
         return (
-          <div className="flex justify-around gap-4">
-            <div className="w-22 flex justify-center items-center">
-              <Link
-                to={`/chart?symbol=${row.original.symbol}&timeframe=1m`}
-                className="text-xs"
-              >
-                {row.original.symbol.replace("USDT", "")}
-              </Link>
-            </div>
-
+          <div className="flex items-center gap-4">
+            <Link
+              to={`/chart?symbol=${row.original.symbol}&timeframe=1m`}
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                color: "oklch(0.88 0 0)",
+                textDecoration: "none",
+                minWidth: 44,
+              }}
+            >
+              {ticker}
+            </Link>
             <MicroChart
               klines={row.original.chart.data}
               alertTimestamp="2026-01-17 09:53:00+00"

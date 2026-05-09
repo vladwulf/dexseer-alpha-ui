@@ -64,7 +64,7 @@ export function DataTable<TData, TValue>({
         {!hideHeader && (
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+              <TableRow key={headerGroup.id} className="hover:bg-transparent" style={{ borderColor: "oklch(1 0 0 / 8%)" }}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
@@ -84,13 +84,9 @@ export function DataTable<TData, TValue>({
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
-                        {header.column.getCanSort() && (
-                          <span className="text-muted-foreground">
-                            {header.column.getIsSorted() === "asc"
-                              ? " ↑"
-                              : header.column.getIsSorted() === "desc"
-                                ? " ↓"
-                                : null}
+                        {header.column.getCanSort() && header.column.getIsSorted() && (
+                          <span style={{ color: "oklch(0.72 0.18 248)", fontSize: "0.65rem" }}>
+                            {header.column.getIsSorted() === "asc" ? "↑" : "↓"}
                           </span>
                         )}
                       </div>
@@ -107,17 +103,23 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className={cn(
-                  "hover:bg-transparent",
-                  density === "extended" ? "h-[440px]" : "h-14",
-                )}
+                className={cn(density === "extended" ? "h-[440px]" : "h-14")}
+                style={{ transition: "background 0.1s" }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = "oklch(1 0 0 / 2.5%)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = "transparent";
+                }}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={cn(
-                      density === "extended" ? "py-4 text-sm" : "py-2 text-xs",
-                    )}
+                    className={cn(density === "extended" ? "py-4" : "py-2")}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: density === "extended" ? "0.8rem" : "0.72rem",
+                    }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

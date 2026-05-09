@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -10,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, RefreshCw } from "lucide-react";
+import { RefreshCw, Search, ChevronDown } from "lucide-react";
 
 export type Timeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 export type ScreenerProfile = "day-trading" | "swing-trading";
@@ -23,30 +22,24 @@ export type SortPreset =
   | "most-volatile";
 
 const timeframes: { value: Timeframe; label: string }[] = [
-  { value: "1m", label: "1 minute" },
-  { value: "5m", label: "5 minutes" },
-  { value: "15m", label: "15 minutes" },
-  { value: "30m", label: "30 minutes" },
-  { value: "1h", label: "1 hour" },
-  { value: "4h", label: "4 hours" },
-  { value: "1d", label: "1 day" },
-];
-
-const profiles: { value: ScreenerProfile; label: string }[] = [
-  { value: "day-trading", label: "Day Trading" },
-  { value: "swing-trading", label: "Swing Trading" },
+  { value: "1m", label: "1m" },
+  { value: "5m", label: "5m" },
+  { value: "15m", label: "15m" },
+  { value: "30m", label: "30m" },
+  { value: "1h", label: "1h" },
+  { value: "4h", label: "4h" },
+  { value: "1d", label: "1d" },
 ];
 
 const refreshIntervals: { value: RefreshInterval; label: string }[] = [
-  { value: "manual", label: "Manual" },
-  { value: "5s", label: "5 seconds" },
-  { value: "10s", label: "10 seconds" },
-  { value: "30s", label: "30 seconds" },
-  { value: "1m", label: "1 minute" },
-  { value: "5m", label: "5 minutes" },
+  { value: "manual", label: "Off" },
+  { value: "5s", label: "5s" },
+  { value: "10s", label: "10s" },
+  { value: "30s", label: "30s" },
+  { value: "1m", label: "1m" },
+  { value: "5m", label: "5m" },
 ];
 
-// Column keys that can be toggled
 export type ColumnKey =
   | "price"
   | "change_1m"
@@ -86,6 +79,36 @@ interface ScreenerConfigsProps {
   onFiltersChange?: (filters: FilterValues) => void;
 }
 
+const monoLabel: React.CSSProperties = {
+  fontFamily: "var(--font-mono)",
+  fontSize: "0.58rem",
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+  color: "oklch(0.42 0 0)",
+  whiteSpace: "nowrap",
+};
+
+const chipBase: React.CSSProperties = {
+  fontFamily: "var(--font-mono)",
+  fontSize: "0.7rem",
+  fontWeight: 500,
+  letterSpacing: "0.05em",
+  padding: "3px 9px",
+  borderRadius: "4px",
+  cursor: "pointer",
+  border: "1px solid transparent",
+  transition: "all 0.12s",
+  background: "transparent",
+  color: "oklch(0.48 0 0)",
+};
+
+const chipActive: React.CSSProperties = {
+  ...chipBase,
+  color: "oklch(0.72 0.18 248)",
+  background: "oklch(0.72 0.18 248 / 12%)",
+  border: "1px solid oklch(0.72 0.18 248 / 30%)",
+};
+
 export function ScreenerConfigs({
   timeframe = "15m",
   profile = "day-trading",
@@ -100,26 +123,14 @@ export function ScreenerConfigs({
   onAssetNameFilterChange,
   onManualRefresh,
 }: ScreenerConfigsProps) {
-  const [selectedTimeframe, setSelectedTimeframe] =
-    useState<Timeframe>(timeframe);
-  const [selectedProfile, setSelectedProfile] =
-    useState<ScreenerProfile>(profile);
-  const [selectedRefreshInterval, setSelectedRefreshInterval] =
-    useState<RefreshInterval>(refreshInterval);
-  const [selectedDensity, setSelectedDensity] =
-    useState<ScreenerDensity>(density);
+  const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>(timeframe);
+  const [selectedProfile, setSelectedProfile] = useState<ScreenerProfile>(profile);
+  const [selectedRefreshInterval, setSelectedRefreshInterval] = useState<RefreshInterval>(refreshInterval);
+  const [selectedDensity, setSelectedDensity] = useState<ScreenerDensity>(density);
 
-  useEffect(() => {
-    setSelectedTimeframe(timeframe);
-  }, [timeframe]);
-
-  useEffect(() => {
-    setSelectedRefreshInterval(refreshInterval);
-  }, [refreshInterval]);
-
-  useEffect(() => {
-    setSelectedDensity(density);
-  }, [density]);
+  useEffect(() => { setSelectedTimeframe(timeframe); }, [timeframe]);
+  useEffect(() => { setSelectedRefreshInterval(refreshInterval); }, [refreshInterval]);
+  useEffect(() => { setSelectedDensity(density); }, [density]);
 
   const handleTimeframeChange = (value: Timeframe) => {
     setSelectedTimeframe(value);
@@ -137,404 +148,244 @@ export function ScreenerConfigs({
   };
 
   const handleDensityToggle = (isExtended: boolean) => {
-    const nextDensity: ScreenerDensity = isExtended ? "extended" : "compact";
-    setSelectedDensity(nextDensity);
-    onDensityChange?.(nextDensity);
+    const next: ScreenerDensity = isExtended ? "extended" : "compact";
+    setSelectedDensity(next);
+    onDensityChange?.(next);
   };
 
-  const selectedTimeframeLabel =
-    timeframes.find((t) => t.value === selectedTimeframe)?.label ||
-    selectedTimeframe;
-  const selectedProfileLabel =
-    profiles.find((p) => p.value === selectedProfile)?.label || selectedProfile;
   const selectedRefreshLabel =
-    refreshIntervals.find((r) => r.value === selectedRefreshInterval)?.label ||
-    selectedRefreshInterval;
+    refreshIntervals.find((r) => r.value === selectedRefreshInterval)?.label ?? selectedRefreshInterval;
   const isExtended = selectedDensity === "extended";
 
+  const divider = (
+    <div style={{ width: 1, height: 16, background: "oklch(1 0 0 / 8%)", flexShrink: 0 }} />
+  );
+
   return (
-    <div className="border-b border-border min-h-26">
-      {/* Main Controls Row */}
-      <div className="flex justify-between items-center gap-4 flex-wrap p-6">
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="asset-name-filter"
-              className="text-sm text-muted-foreground whitespace-nowrap"
-            >
-              Asset name:
-            </label>
+    <div
+      style={{
+        borderBottom: "1px solid oklch(1 0 0 / 7%)",
+        padding: "10px 16px",
+      }}
+    >
+      <div className="flex flex-wrap items-center gap-3">
+
+        {/* Search */}
+        <div className="flex items-center gap-2">
+          <span style={monoLabel}>Search</span>
+          <div className="relative">
+            <Search
+              size={11}
+              style={{
+                position: "absolute",
+                left: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "oklch(0.42 0 0)",
+                pointerEvents: "none",
+              }}
+            />
             <Input
-              id="asset-name-filter"
-              placeholder="e.g. BTC"
+              placeholder="BTC, ETH…"
               value={assetNameFilter}
               onChange={(e) => onAssetNameFilterChange?.(e.target.value)}
-              className="h-8 w-44"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.7rem",
+                height: 28,
+                width: 120,
+                paddingLeft: 24,
+                background: "oklch(0.1 0 0)",
+                border: "1px solid oklch(1 0 0 / 8%)",
+                borderRadius: 4,
+                color: "oklch(0.85 0 0)",
+              }}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-muted-foreground whitespace-nowrap">
-                Chart timeframe:
-              </label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-8 text-sm">
-                    {selectedTimeframeLabel}
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-40">
-                  <DropdownMenuLabel>Chart Timeframe</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup
-                    value={selectedTimeframe}
-                    onValueChange={(value) =>
-                      handleTimeframeChange(value as Timeframe)
-                    }
-                  >
-                    {timeframes.map((tf) => (
-                      <DropdownMenuRadioItem key={tf.value} value={tf.value}>
-                        {tf.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">
-              Profile:
-            </label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="h-8 text-sm">
-                  {selectedProfileLabel}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuLabel>Screener Profile</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={selectedProfile}
-                  onValueChange={(value) =>
-                    handleProfileChange(value as ScreenerProfile)
-                  }
-                >
-                  {profiles.map((p) => (
-                    <DropdownMenuRadioItem key={p.value} value={p.value}>
-                      {p.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
         </div>
 
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">
-              Refresh:
-            </label>
-            <Button
-              variant="outline"
-              className="h-8 w-8 text-sm"
-              onClick={onManualRefresh}
-              aria-label="Refresh screener"
-            >
-              <RefreshCw
-                className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`}
-              />
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="h-8 text-sm">
-                  {selectedRefreshLabel}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-40">
-                <DropdownMenuLabel>Auto Refresh</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={selectedRefreshInterval}
-                  onValueChange={(value) =>
-                    handleRefreshIntervalChange(value as RefreshInterval)
-                  }
-                >
-                  {refreshIntervals.map((r) => (
-                    <DropdownMenuRadioItem key={r.value} value={r.value}>
-                      {r.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        {divider}
 
-            <div className="ml-3 flex items-center gap-2">
-              <label className="text-sm text-muted-foreground whitespace-nowrap">
-                Extended
-              </label>
+        {/* Timeframe chips */}
+        <div className="flex items-center gap-2">
+          <span style={monoLabel}>Timeframe</span>
+          <div className="flex items-center gap-0.5">
+            {timeframes.map((tf) => (
               <button
+                key={tf.value}
                 type="button"
-                role="switch"
-                aria-checked={isExtended}
-                onClick={() => handleDensityToggle(!isExtended)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-colors ${
-                  isExtended
-                    ? "border-[#5dc887] bg-[#5dc887]/20"
-                    : "border-border bg-muted/40"
-                }`}
+                onClick={() => handleTimeframeChange(tf.value)}
+                style={selectedTimeframe === tf.value ? chipActive : chipBase}
               >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                    isExtended
-                      ? "translate-x-6 bg-[#5dc887]"
-                      : "translate-x-1 bg-muted-foreground"
-                  }`}
-                />
+                {tf.label}
               </button>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* <div>
-          <div className="flex items-center gap-2 ml-auto">
-            {sortPresets.map((preset) => (
-              <Button
-                key={preset.value}
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs border-border hover:bg-accent hover:text-accent-foreground"
-                onClick={() => handleSortPreset(preset.value)}
-              >
-                {preset.label}
-              </Button>
-            ))}
-          </div>
-        </div> */}
+        {divider}
 
-        {/* <div className="flex gap-4 items-center">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-muted-foreground whitespace-nowrap">
-                Chart timeframe:
-              </label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-8 text-sm">
-                    {selectedTimeframeLabel}
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-40">
-                  <DropdownMenuLabel>Chart Timeframe</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup
-                    value={selectedTimeframe}
-                    onValueChange={(value) =>
-                      handleTimeframeChange(value as Timeframe)
-                    }
-                  >
-                    {timeframes.map((tf) => (
-                      <DropdownMenuRadioItem key={tf.value} value={tf.value}>
-                        {tf.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-muted-foreground whitespace-nowrap">
-                Refresh:
-              </label>
-              <Button variant="outline" className="h-8 w-8 text-sm">
-                <RefreshCw className="h-3 w-3" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-8 text-sm">
-                    {selectedRefreshLabel}
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-40">
-                  <DropdownMenuLabel>Auto Refresh</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup
-                    value={selectedRefreshInterval}
-                    onValueChange={(value) =>
-                      handleRefreshIntervalChange(value as RefreshInterval)
-                    }
-                  >
-                    {refreshIntervals.map((r) => (
-                      <DropdownMenuRadioItem key={r.value} value={r.value}>
-                        {r.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-muted-foreground whitespace-nowrap">
-                Profile:
-              </label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-8 text-sm">
-                    {selectedProfileLabel}
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuLabel>Screener Profile</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup
-                    value={selectedProfile}
-                    onValueChange={(value) =>
-                      handleProfileChange(value as ScreenerProfile)
-                    }
-                  >
-                    {profiles.map((p) => (
-                      <DropdownMenuRadioItem key={p.value} value={p.value}>
-                        {p.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div> */}
-
-        {/* Column Visibility Toggle */}
-        {/* <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-8 text-sm">
-              {visibleColumns.length === Object.keys(columnLabels).length ? (
-                <Eye className="mr-2 h-3 w-3" />
-              ) : (
-                <EyeOff className="mr-2 h-3 w-3" />
-              )}
-              Columns
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Show Columns</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {(Object.keys(columnLabels) as ColumnKey[]).map((column) => (
-              <DropdownMenuCheckboxItem
-                key={column}
-                checked={visibleColumns.includes(column)}
-                onCheckedChange={() => handleColumnToggle(column)}
-              >
-                {columnLabels[column]}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu> */}
-
-        {/* Filters Toggle */}
-        {/* <Button
-          variant={showFilters ? "default" : "outline"}
-          className="h-8 text-sm"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <Filter className="mr-2 h-3 w-3" />
-          Filters
-        </Button> */}
-      </div>
-
-      {/* Filters Row */}
-      {/* {showFilters && (
-        <div className="flex items-center gap-4 p-4 border-t border-border bg-muted/30 flex-wrap">
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground whitespace-nowrap">
-              Min Price:
-            </label>
-            <Input
-              type="number"
-              placeholder="0"
-              className="h-8 w-24 text-sm"
-              value={filters.minPrice || ""}
-              onChange={(e) => handleFilterChange("minPrice", e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground whitespace-nowrap">
-              Max Price:
-            </label>
-            <Input
-              type="number"
-              placeholder="∞"
-              className="h-8 w-24 text-sm"
-              value={filters.maxPrice || ""}
-              onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground whitespace-nowrap">
-              Min Volume:
-            </label>
-            <Input
-              type="number"
-              placeholder="0"
-              className="h-8 w-24 text-sm"
-              value={filters.minVolume || ""}
-              onChange={(e) => handleFilterChange("minVolume", e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground whitespace-nowrap">
-              Min Performance %:
-            </label>
-            <Input
-              type="number"
-              placeholder="-∞"
-              className="h-8 w-24 text-sm"
-              value={filters.minPerformance || ""}
-              onChange={(e) =>
-                handleFilterChange("minPerformance", e.target.value)
-              }
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground whitespace-nowrap">
-              Max Performance %:
-            </label>
-            <Input
-              type="number"
-              placeholder="+∞"
-              className="h-8 w-24 text-sm"
-              value={filters.maxPerformance || ""}
-              onChange={(e) =>
-                handleFilterChange("maxPerformance", e.target.value)
-              }
-            />
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 text-xs ml-auto"
-            onClick={() => {
-              setFilters({});
-              onFiltersChange?.({});
+        {/* Profile toggle */}
+        <div className="flex items-center gap-2">
+          <span style={monoLabel}>Profile</span>
+          <div
+            className="flex items-center"
+            style={{
+              background: "oklch(0.1 0 0)",
+              border: "1px solid oklch(1 0 0 / 8%)",
+              borderRadius: 4,
+              padding: 2,
+              gap: 2,
             }}
           >
-            Clear Filters
-          </Button>
+            {(["day-trading", "swing-trading"] as ScreenerProfile[]).map((p) => {
+              const label = p === "day-trading" ? "Day" : "Swing";
+              const active = selectedProfile === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => handleProfileChange(p)}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.68rem",
+                    fontWeight: active ? 600 : 400,
+                    letterSpacing: "0.06em",
+                    padding: "2px 10px",
+                    borderRadius: 3,
+                    cursor: "pointer",
+                    border: "none",
+                    transition: "all 0.12s",
+                    background: active ? "oklch(0.72 0.18 248 / 15%)" : "transparent",
+                    color: active ? "oklch(0.72 0.18 248)" : "oklch(0.45 0 0)",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      )} */}
+
+        {divider}
+
+        {/* Refresh */}
+        <div className="flex items-center gap-2">
+          <span style={monoLabel}>Refresh</span>
+          <button
+            type="button"
+            onClick={onManualRefresh}
+            aria-label="Refresh"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 26,
+              height: 26,
+              borderRadius: 4,
+              border: "1px solid oklch(1 0 0 / 8%)",
+              background: "oklch(0.1 0 0)",
+              cursor: "pointer",
+              color: "oklch(0.48 0 0)",
+              transition: "color 0.12s, border-color 0.12s",
+            }}
+          >
+            <RefreshCw size={11} className={isRefreshing ? "animate-spin" : ""} />
+          </button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  height: 26,
+                  padding: "0 8px",
+                  borderRadius: 4,
+                  border: "1px solid oklch(1 0 0 / 8%)",
+                  background: selectedRefreshInterval !== "manual"
+                    ? "oklch(0.72 0.18 248 / 10%)"
+                    : "oklch(0.1 0 0)",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.68rem",
+                  fontWeight: 500,
+                  letterSpacing: "0.05em",
+                  color: selectedRefreshInterval !== "manual"
+                    ? "oklch(0.72 0.18 248)"
+                    : "oklch(0.48 0 0)",
+                  transition: "all 0.12s",
+                }}
+              >
+                {selectedRefreshLabel}
+                <ChevronDown size={10} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-36">
+              <DropdownMenuLabel
+                style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", letterSpacing: "0.1em" }}
+              >
+                Auto Refresh
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={selectedRefreshInterval}
+                onValueChange={(v) => handleRefreshIntervalChange(v as RefreshInterval)}
+              >
+                {refreshIntervals.map((r) => (
+                  <DropdownMenuRadioItem
+                    key={r.value}
+                    value={r.value}
+                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}
+                  >
+                    {r.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {divider}
+
+        {/* Extended toggle */}
+        <div className="flex items-center gap-2">
+          <span style={monoLabel}>Extended</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isExtended}
+            onClick={() => handleDensityToggle(!isExtended)}
+            style={{
+              position: "relative",
+              display: "inline-flex",
+              height: 18,
+              width: 32,
+              alignItems: "center",
+              borderRadius: 9,
+              border: `1px solid ${isExtended ? "oklch(0.72 0.18 248 / 50%)" : "oklch(1 0 0 / 12%)"}`,
+              background: isExtended ? "oklch(0.72 0.18 248 / 15%)" : "oklch(0.1 0 0)",
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                height: 12,
+                width: 12,
+                borderRadius: "50%",
+                transform: isExtended ? "translateX(16px)" : "translateX(2px)",
+                background: isExtended ? "oklch(0.72 0.18 248)" : "oklch(0.35 0 0)",
+                transition: "transform 0.15s, background 0.15s",
+              }}
+            />
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 }
