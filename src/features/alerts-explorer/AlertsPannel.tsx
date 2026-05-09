@@ -70,7 +70,7 @@ export function AlertsPannel() {
           key={alert.id}
           className="w-full overflow-hidden transition-all duration-200"
           style={{
-            background: "oklch(0.13 0 0)",
+            background: "#0a0a0a",
             border: "1px solid oklch(1 0 0 / 7%)",
             borderRadius: "8px",
             borderLeft: "3px solid oklch(0.72 0.18 248 / 60%)",
@@ -154,7 +154,7 @@ export function AlertsPannel() {
                   key={label}
                   className="rounded px-3 py-2"
                   style={{
-                    background: "oklch(0.1 0 0)",
+                    background: "#0d0d0d",
                     border: "1px solid oklch(1 0 0 / 5%)",
                   }}
                 >

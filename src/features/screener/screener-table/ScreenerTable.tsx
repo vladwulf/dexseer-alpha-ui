@@ -114,7 +114,7 @@ export const ScreenerTable = () => {
 
       <div
         style={{
-          background: "oklch(0.13 0 0)",
+          background: "#0a0a0a",
           border: "1px solid oklch(1 0 0 / 7%)",
           borderRadius: "8px",
           overflow: "hidden",

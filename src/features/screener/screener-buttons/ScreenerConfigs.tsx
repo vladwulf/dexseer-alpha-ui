@@ -195,7 +195,7 @@ export function ScreenerConfigs({
                 height: 28,
                 width: 120,
                 paddingLeft: 24,
-                background: "oklch(0.1 0 0)",
+                background: "#0d0d0d",
                 border: "1px solid oklch(1 0 0 / 8%)",
                 borderRadius: 4,
                 color: "oklch(0.85 0 0)",
@@ -231,7 +231,7 @@ export function ScreenerConfigs({
           <div
             className="flex items-center"
             style={{
-              background: "oklch(0.1 0 0)",
+              background: "#0d0d0d",
               border: "1px solid oklch(1 0 0 / 8%)",
               borderRadius: 4,
               padding: 2,
@@ -284,7 +284,7 @@ export function ScreenerConfigs({
               height: 26,
               borderRadius: 4,
               border: "1px solid oklch(1 0 0 / 8%)",
-              background: "oklch(0.1 0 0)",
+              background: "#0d0d0d",
               cursor: "pointer",
               color: "oklch(0.48 0 0)",
               transition: "color 0.12s, border-color 0.12s",
@@ -307,7 +307,7 @@ export function ScreenerConfigs({
                   border: "1px solid oklch(1 0 0 / 8%)",
                   background: selectedRefreshInterval !== "manual"
                     ? "oklch(0.72 0.18 248 / 10%)"
-                    : "oklch(0.1 0 0)",
+                    : "#0d0d0d",
                   cursor: "pointer",
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.68rem",
@@ -366,7 +366,7 @@ export function ScreenerConfigs({
               alignItems: "center",
               borderRadius: 9,
               border: `1px solid ${isExtended ? "oklch(0.72 0.18 248 / 50%)" : "oklch(1 0 0 / 12%)"}`,
-              background: isExtended ? "oklch(0.72 0.18 248 / 15%)" : "oklch(0.1 0 0)",
+              background: isExtended ? "oklch(0.72 0.18 248 / 15%)" : "#0d0d0d",
               cursor: "pointer",
               transition: "all 0.15s",
             }}

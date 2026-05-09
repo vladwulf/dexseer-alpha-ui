@@ -118,7 +118,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
           return (
             <div className="w-full px-1">
               <div className="flex flex-col gap-3 lg:flex-row">
-                <div className="relative h-[400px] w-full overflow-hidden rounded-md border border-border/60 bg-black lg:flex-1">
+                <div className="relative h-[400px] w-full overflow-hidden rounded-md border border-border/60 lg:flex-1" style={{ background: "#0a0a0a" }}>
                   <StandardChart
                     klines={asset.chart.data.slice(-120)}
                     width="100%"
@@ -126,7 +126,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
                     upColor="#5dc887"
                     downColor="#e35561"
                     showLegend={false}
-                    backgroundColor="#000000"
+                    backgroundColor="#0a0a0a"
                     headerTitle={shortSymbol}
                     headerSubtitle={asset.symbol}
                   />
@@ -140,7 +140,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
                   </div>
                 </div>
 
-                <div className="h-[400px] w-full rounded-md border border-border/60 bg-black/50 p-3 lg:w-full lg:max-w-[350px] lg:flex-none">
+                <div className="h-[400px] w-full rounded-md border border-border/60 p-3 lg:w-full lg:max-w-[350px] lg:flex-none" style={{ background: "#070707" }}>
                   <div className="mb-3 border-b border-border/60 pb-2">
                     <Link
                       to={`/chart?symbol=${asset.symbol}&timeframe=1m`}
@@ -271,7 +271,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
       cell: ({ row }) => {
         const ticker = row.original.symbol.replace("USDT", "");
         return (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-around">
             <Link
               to={`/chart?symbol=${row.original.symbol}&timeframe=1m`}
               style={{
@@ -281,7 +281,6 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
                 letterSpacing: "0.04em",
                 color: "oklch(0.88 0 0)",
                 textDecoration: "none",
-                minWidth: 44,
               }}
             >
               {ticker}

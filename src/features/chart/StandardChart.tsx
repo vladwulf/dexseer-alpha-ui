@@ -48,7 +48,7 @@ export function StandardChart({
   klines,
   assetName,
   showLegend = true,
-  backgroundColor = "#09090b",
+  backgroundColor = "#0a0a0a",
   headerTitle,
   headerSubtitle,
   width = "100%",

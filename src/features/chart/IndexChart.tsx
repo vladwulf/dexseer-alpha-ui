@@ -30,7 +30,7 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     // Create chart instance with dark theme
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "black" },
+        background: { type: ColorType.Solid, color: "#0a0a0a" },
         textColor: "#d1d5db",
       },
       grid: {

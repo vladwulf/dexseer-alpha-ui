@@ -28,7 +28,7 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
       <div
         className="flex-1 rounded-lg p-5"
         style={{
-          background: "oklch(0.14 0 0)",
+          background: "#0a0a0a",
           border: "1px solid oklch(1 0 0 / 7%)",
         }}
       >
@@ -46,7 +46,7 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
     <div
       className="flex-1 overflow-hidden rounded-lg transition-all duration-200"
       style={{
-        background: "oklch(0.14 0 0)",
+        background: "#0a0a0a",
         border: "1px solid oklch(1 0 0 / 7%)",
       }}
     >
