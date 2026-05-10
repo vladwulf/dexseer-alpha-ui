@@ -77,7 +77,7 @@ export function DataTable<TData, TValue>({
                       onClick={header.column.getToggleSortingHandler()}
                       style={{ userSelect: "none" }}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className={cn("flex items-center gap-2", !header.column.getCanSort() && "justify-center")}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -103,7 +103,7 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className={cn(density === "extended" ? "h-[440px]" : "h-14")}
+                className={cn(density === "extended" ? "h-[440px]" : "h-[88px]")}
                 style={{ transition: "background 0.1s" }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.background = "oklch(1 0 0 / 2.5%)";

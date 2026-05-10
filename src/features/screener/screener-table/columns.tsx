@@ -294,32 +294,60 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
   return [
     {
       accessorKey: "symbol",
-      header: "Name",
+      header: "Asset",
       enableSorting: false,
+      size: 180,
       cell: ({ row }) => {
         const ticker = row.original.symbol.replace("USDT", "");
+        const chartData = row.original.chart.data;
+        const lastCandle = chartData[chartData.length - 1];
+        const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
+        const accentColor = isUp ? "#5dc887" : "#e35561";
+
         return (
-          <div className="flex items-center justify-around">
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <div
+              style={{
+                position: "relative",
+                display: "inline-block",
+                borderRadius: "6px",
+                overflow: "hidden",
+                border: "1px solid oklch(1 0 0 / 7%)",
+                background: "#0a0a0a",
+              }}
+            >
+              <div
+                style={{
+                  height: "1px",
+                  background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+                }}
+              />
+              <MicroChart
+                klines={chartData}
+                alertTimestamp="2026-01-17 09:53:00+00"
+                width={158}
+                height={74}
+                periods={100}
+              />
             <Link
               to={`/chart?symbol=${row.original.symbol}&timeframe=1m`}
               style={{
+                position: "absolute",
+                top: 7,
+                left: 7,
                 fontFamily: "var(--font-display)",
-                fontSize: "0.8rem",
-                fontWeight: 600,
+                fontSize: "0.72rem",
+                fontWeight: 700,
                 letterSpacing: "0.04em",
-                color: "oklch(0.88 0 0)",
+                color: "oklch(0.96 0 0)",
                 textDecoration: "none",
+                lineHeight: 1,
+                textShadow: "0 1px 6px rgba(0,0,0,0.9)",
               }}
             >
               {ticker}
             </Link>
-            <MicroChart
-              klines={row.original.chart.data}
-              alertTimestamp="2026-01-17 09:53:00+00"
-              width={100}
-              height={40}
-              periods={100}
-            />
+            </div>
           </div>
         );
       },

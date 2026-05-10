@@ -113,6 +113,30 @@ export const ScreenerTable = () => {
       </div>
 
       <div
+        className="mb-2 rounded-[8px] px-1 sm:px-0"
+        style={{
+          background: "oklch(1 0 0 / 2%)",
+          border: "1px solid oklch(1 0 0 / 6%)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <ScreenerConfigs
+          timeframe={timeframe}
+          refreshInterval={refreshInterval}
+          density={density}
+          assetNameFilter={assetNameFilter}
+          isRefreshing={isFetching}
+          onTimeframeChange={setTimeframe}
+          onRefreshIntervalChange={setRefreshInterval}
+          onDensityChange={setDensity}
+          onAssetNameFilterChange={setAssetNameFilter}
+          onManualRefresh={() => {
+            void refetch();
+          }}
+        />
+      </div>
+
+      <div
         className="rounded-none sm:rounded-[8px]"
         style={{
           background: "#0a0a0a",
@@ -120,21 +144,6 @@ export const ScreenerTable = () => {
           overflow: "hidden",
         }}
       >
-      <ScreenerConfigs
-        timeframe={timeframe}
-        refreshInterval={refreshInterval}
-        density={density}
-        assetNameFilter={assetNameFilter}
-        isRefreshing={isFetching}
-        onTimeframeChange={setTimeframe}
-        onRefreshIntervalChange={setRefreshInterval}
-        onDensityChange={setDensity}
-        onAssetNameFilterChange={setAssetNameFilter}
-        onManualRefresh={() => {
-          void refetch();
-        }}
-      />
-      <div>
         <DataTable<ScreenerAssetWithChart, unknown>
           columns={columns}
           data={assets || []}
@@ -143,7 +152,6 @@ export const ScreenerTable = () => {
           density={density}
           hideHeader={density === "extended"}
         />
-      </div>
       </div>
     </div>
   );
