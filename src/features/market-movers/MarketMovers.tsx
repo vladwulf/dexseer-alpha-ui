@@ -8,7 +8,7 @@ interface MarketMoverCardProps {
 }
 
 function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) {
-  const { data, isLoading } = useGetChartBySymbol(symbol, "1h", 100);
+  const { data, isLoading } = useGetChartBySymbol(symbol, "15m", 500);
 
   const ohlc = data?.ohlcData ?? [];
   const currentPrice = ohlc.length > 0 ? ohlc[ohlc.length - 1].close : 0;
