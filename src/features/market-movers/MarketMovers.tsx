@@ -26,17 +26,17 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
   if (isLoading) {
     return (
       <div
-        className="flex-1 rounded-lg p-5"
+        className="flex-1 rounded-lg p-3"
         style={{
           background: "#0a0a0a",
           border: "1px solid oklch(1 0 0 / 7%)",
         }}
       >
-        <div className="animate-pulse space-y-3">
+        <div className="animate-pulse space-y-2">
           <div className="h-3 w-16 rounded bg-white/5" />
-          <div className="h-6 w-28 rounded bg-white/5" />
+          <div className="h-5 w-28 rounded bg-white/5" />
           <div className="h-4 w-20 rounded bg-white/5" />
-          <div className="mt-4 h-40 rounded bg-white/5" />
+          <div className="mt-2 h-28 rounded bg-white/5" />
         </div>
       </div>
     );
@@ -60,9 +60,9 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
         }}
       />
 
-      <div className="p-5">
+      <div className="p-3">
         {/* Header */}
-        <div className="mb-4 flex items-start justify-between">
+        <div className="mb-2 flex items-start justify-between">
           <div>
             <p
               style={{
@@ -79,7 +79,7 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
             <p
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "1rem",
+                fontSize: "0.85rem",
                 fontWeight: 700,
                 letterSpacing: "0.04em",
                 color: "oklch(0.96 0 0)",
@@ -94,7 +94,7 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
             <p
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "0.95rem",
+                fontSize: "0.8rem",
                 fontWeight: 600,
                 color: "oklch(0.92 0 0)",
                 letterSpacing: "-0.01em",
@@ -117,7 +117,7 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
         </div>
 
         {/* Chart */}
-        <div className="h-44 w-full">
+        <div className="h-28 w-full">
           {ohlc.length > 0 ? (
             <IndexChart
               symbol={data!.asset.symbol}
