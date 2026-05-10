@@ -80,26 +80,54 @@ export type TrackedAssetExtended = ScreenerAsset & {
 };
 
 const formatPercent = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "N/A";
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "N/A";
+  }
+
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(2)}%`;
 };
 
+const formatPrice = (value: number | null | undefined) => {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "N/A";
+  }
+
+  return value.toFixed(6);
+};
+
+const formatCompactNumber = (value: number | null | undefined) => {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "N/A";
+  }
+
+  return millify(value);
+};
+
 const getPercentClassName = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "text-muted-foreground";
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "text-muted-foreground";
+  }
+
   if (value > 0) return "text-[#5dc887]";
   if (value < 0) return "text-[#e35561]";
   return "text-gray-300";
 };
 
 const formatVolumeDelta = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "N/A";
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "N/A";
+  }
+
   if (value < 0) return value.toFixed(2);
   return `+${value.toFixed(2)}`;
 };
 
 const getVolumeDeltaClassName = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "text-muted-foreground";
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "text-muted-foreground";
+  }
+
   if (value > 0) return "text-[#5dc887]";
   if (value < 0) return "text-[#e35561]";
   return "text-gray-300";
@@ -156,7 +184,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                     <div className="text-muted-foreground">Price</div>
                     <div className="text-right font-medium">
-                      {asset.price.toFixed(6)}
+                      {formatPrice(asset.price)}
                     </div>
 
                     <div className="text-muted-foreground">1m %</div>
@@ -211,7 +239,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
 
                     <div className="text-muted-foreground">Volume 1d</div>
                     <div className="text-right font-medium">
-                      {millify(asset.volume_1d)}
+                      {formatCompactNumber(asset.volume_1d)}
                     </div>
 
                     <div className="text-muted-foreground">Volume Δ 1m</div>
@@ -330,7 +358,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
       header: "Volume 1d",
       enableSorting: false,
       cell: ({ row }) => {
-        return <span>{millify(row.original.volume_1d)}</span>;
+        return <span>{formatCompactNumber(row.original.volume_1d)}</span>;
       },
     },
     {
