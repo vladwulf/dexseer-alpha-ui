@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Pullback Break Setup: What It Is and How to Get Automatic Alerts | DexSeer Alpha</title>
+  <meta name="description" content="The pullback break is one of the cleanest continuation setups in crypto futures. Learn the exact pattern logic and how DexSeer detects pullback break long and short setups automatically.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── PAGE-SPECIFIC: ARTICLE LAYOUT ───────────── */
+    .article-hero {
+      padding: 72px 48px 56px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .article-tag {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .article-tag::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 1px;
+      background: var(--electric);
+      opacity: 0.5;
+    }
+    .article-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 3.8vw, 2.85rem);
+      font-weight: 700;
+      letter-spacing: -0.022em;
+      line-height: 1.09;
+      margin-bottom: 22px;
+    }
+    .article-meta {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.07em;
+      color: var(--text-dim);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .article-meta span { color: var(--text-muted); }
+
+    /* ── ARTICLE BODY ─────────────────────────────── */
+    .article-body {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 48px 80px;
+    }
+    .article-body h2 {
+      font-family: var(--font-display);
+      font-size: 1.28rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      margin: 52px 0 16px;
+      color: var(--text);
+    }
+    .article-body p {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      line-height: 1.78;
+      margin-bottom: 18px;
+    }
+    .article-body ol, .article-body ul {
+      margin: 0 0 18px 0;
+      padding-left: 22px;
+    }
+    .article-body li {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      line-height: 1.72;
+      margin-bottom: 8px;
+    }
+    .article-body strong { color: var(--text); font-weight: 500; }
+    .article-body code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--electric);
+      background: var(--electric-dim);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    /* ── PHASE DIAGRAM ────────────────────────────── */
+    .phase-strip {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 28px 0;
+    }
+    .phase-cell {
+      flex: 1;
+      padding: 18px 16px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+    .phase-cell:last-child { border-right: none; }
+    .phase-number {
+      font-family: var(--font-mono);
+      font-size: 0.56rem;
+      letter-spacing: 0.14em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .phase-name {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+    }
+    .phase-name.green { color: var(--green); }
+    .phase-name.muted { color: var(--text-muted); }
+    .phase-name.electric { color: var(--electric); }
+    .phase-desc {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+
+    /* ── CALLOUT BOX ──────────────────────────────── */
+    .callout {
+      border-left: 2px solid var(--electric);
+      background: rgba(91,143,249,0.05);
+      border-radius: 0 6px 6px 0;
+      padding: 18px 22px;
+      margin: 28px 0;
+    }
+    .callout p {
+      margin: 0;
+      font-size: 0.94rem;
+      color: var(--text);
+      line-height: 1.68;
+    }
+    .callout-label {
+      font-family: var(--font-mono);
+      font-size: 0.56rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 10px;
+    }
+
+    /* ── LONG / SHORT SPLIT ───────────────────────── */
+    .direction-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 28px 0;
+    }
+    .dir-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-card);
+      padding: 18px;
+    }
+    .dir-card.long { border-color: rgba(93,200,135,0.2); background: rgba(93,200,135,0.03); }
+    .dir-card.short { border-color: rgba(227,85,97,0.2); background: rgba(227,85,97,0.03); }
+    .dir-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .dir-label.long { color: var(--green); }
+    .dir-label.short { color: var(--red); }
+    .dir-title {
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .dir-steps {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.62;
+      padding-left: 16px;
+    }
+    .dir-steps li { margin-bottom: 6px; }
+
+    /* ── INLINE SIGNAL CARD ───────────────────────── */
+    .signal-demo {
+      border: 1px solid var(--electric-border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      overflow: hidden;
+      margin: 32px 0;
+    }
+    .signal-demo-bar {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+    .signal-demo-body { padding: 20px; }
+    .signal-demo-tier {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 14px;
+    }
+    .signal-demo-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .signal-demo-sym {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .signal-demo-price {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+    .signal-demo-msg {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.62;
+      margin-bottom: 14px;
+    }
+    .signal-demo-ctx {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    .ctx-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ctx-k {
+      font-family: var(--font-mono);
+      font-size: 0.57rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .ctx-v {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 600;
+    }
+    .cv-up { color: var(--green); }
+    .cv-dn { color: var(--red); }
+    .cv-n  { color: var(--text-muted); }
+    .type-badge {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+    .badge-g { background: var(--green-dim); color: var(--green); border: 1px solid rgba(93,200,135,0.22); }
+    .badge-r { background: var(--red-dim); color: var(--red); border: 1px solid rgba(227,85,97,0.22); }
+    .badge-b { background: var(--electric-dim); color: var(--electric); border: 1px solid var(--electric-border); }
+
+    /* ── ALGO STEPS ───────────────────────────────── */
+    .algo-steps {
+      counter-reset: algo;
+      margin: 28px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .algo-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    .algo-step:last-child { border-bottom: none; }
+    .algo-step-num {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--electric);
+      background: var(--electric-dim);
+      border: 1px solid var(--electric-border);
+      border-radius: 3px;
+      padding: 2px 7px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .algo-step-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .algo-step-text strong { color: var(--text); }
+
+    /* ── CTA BANNER ───────────────────────────────── */
+    .cta-banner {
+      background: rgba(91,143,249,0.06);
+      border: 1px solid var(--electric-border);
+      border-radius: 10px;
+      padding: 36px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      margin: 56px 0;
+      flex-wrap: wrap;
+    }
+    .cta-banner-text {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      max-width: 480px;
+      line-height: 1.38;
+    }
+    .cta-banner-actions { display: flex; gap: 10px; flex-shrink: 0; }
+
+    /* ── RELATED POSTS ────────────────────────────── */
+    .related-wrap {
+      border-top: 1px solid var(--border);
+      padding-top: 40px;
+      margin-top: 16px;
+    }
+    .related-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .related-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-card);
+      padding: 16px;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.16s, background 0.16s;
+    }
+    .related-card:hover {
+      border-color: var(--border-mid);
+      background: var(--bg-elevated);
+    }
+    .related-card-tag {
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 8px;
+    }
+    .related-card-title {
+      font-family: var(--font-display);
+      font-size: 0.83rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────── */
+    @media (max-width: 760px) {
+      .article-hero { padding: 48px 20px 36px; }
+      .article-body { padding: 0 20px 56px; }
+      .cta-banner { padding: 24px 20px; }
+      .related-grid { grid-template-columns: 1fr; }
+      .signal-demo-ctx { grid-template-columns: 1fr; }
+      .direction-grid { grid-template-columns: 1fr; }
+      .phase-strip { flex-direction: column; }
+      .phase-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .phase-cell:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker">
+    <div class="t-item"><span class="t-sym">SOLUSDT</span><span class="t-badge tb-l">LONG</span>Pullback Break Long · 15m<span style="color:var(--text-dim);">$162.40</span></div>
+    <div class="t-item"><span class="t-sym">WIFUSDT</span><span class="t-badge tb-s">SHORT</span>Pullback Break Short · 15m<span style="color:var(--text-dim);">$2.31</span></div>
+    <div class="t-item"><span class="t-sym">ETHUSDT</span><span class="t-badge tb-l">LONG</span>Breakout + OI Confirm · 15m<span style="color:var(--text-dim);">$3,512</span></div>
+    <div class="t-item"><span class="t-sym">BTCUSDT</span><span class="t-badge tb-n">SCAN</span>Volume Spike · 1h<span style="color:var(--text-dim);">$67,240</span></div>
+    <div class="t-item"><span class="t-sym">DOGEUSDT</span><span class="t-badge tb-l">LONG</span>Short Squeeze Candidate · 15m<span style="color:var(--text-dim);">$0.1618</span></div>
+    <div class="t-item"><span class="t-sym">SUIUSDT</span><span class="t-badge tb-l">LONG</span>Compression Breakout · 5m<span style="color:var(--text-dim);">$1.084</span></div>
+    <div class="t-item"><span class="t-sym">ARBUSDT</span><span class="t-badge tb-l">LONG</span>VWAP Reclaim · 5m<span style="color:var(--text-dim);">$0.845</span></div>
+    <div class="t-item"><span class="t-sym">AVAXUSDT</span><span class="t-badge tb-s">SHORT</span>Crowded Longs Warning · 1h<span style="color:var(--text-dim);">$36.12</span></div>
+    <div class="t-item"><span class="t-sym">BNBUSDT</span><span class="t-badge tb-n">SCAN</span>OI Build-Up · 1h<span style="color:var(--text-dim);">$584.20</span></div>
+    <div class="t-item"><span class="t-sym">LINKUSDT</span><span class="t-badge tb-l">LONG</span>BTC-Relative Strength · 15m<span style="color:var(--text-dim);">$14.62</span></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="logo-dot"></div>DEXSEER ALPHA</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#signals">Signals</a></li>
+    <li><a href="../index.html#pricing">Pricing</a></li>
+    <li><a href="../index.html#api">API</a></li>
+    <li><a href="../blog.html">Blog</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="#" class="btn btn-ghost">Log in</a>
+    <a href="#" class="btn btn-primary">Start Free</a>
+  </div>
+</nav>
+
+<!-- ARTICLE HERO -->
+<div class="article-hero reveal">
+  <div class="article-tag">Strategy</div>
+  <h1 class="article-h1">The Pullback Break Setup: Continuation Signals for Binance Perp Traders</h1>
+  <div class="article-meta">
+    <span>May 2026</span>
+    <span>·</span>
+    <span>5 min read</span>
+    <span>·</span>
+    <span>By DexSeer Team</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ARTICLE BODY -->
+<article class="article-body">
+
+  <h2>What is a Pullback Break?</h2>
+  <p>A pullback break — also called a pullback continuation or flag breakout — is a three-phase price structure. It's one of the most widely traded continuation patterns in all markets, and it's particularly clean on perpetual futures where momentum tends to sustain for defined windows.</p>
+
+  <div class="phase-strip reveal">
+    <div class="phase-cell">
+      <div class="phase-number">Phase 01</div>
+      <div class="phase-name green">Impulse Move</div>
+      <div class="phase-desc">A strong, fast directional move — typically 3–5 consecutive candles in the same direction above a minimum size threshold.</div>
+    </div>
+    <div class="phase-cell">
+      <div class="phase-number">Phase 02</div>
+      <div class="phase-name muted">Pullback</div>
+      <div class="phase-desc">Price pauses and retraces partially — 2–4 candles moving against the initial impulse direction. Weak hands exit. Structure holds.</div>
+    </div>
+    <div class="phase-cell">
+      <div class="phase-number">Phase 03</div>
+      <div class="phase-name electric">Break</div>
+      <div class="phase-desc">Price closes above the pullback high (for longs) or below the pullback low (for shorts). The original direction resumes.</div>
+    </div>
+  </div>
+
+  <p>The thesis is straightforward: the initial impulse shows directional intent. The pullback shakes out weak hands who entered late and stops out early longs that had tight stops. The break confirms that the market's intent is still intact and the original direction is resuming with the weak-hand noise cleared.</p>
+
+  <h2>Why This Setup Has Edge on Binance Perps</h2>
+  <p>The pullback break works across markets, but perpetual futures amplify its characteristics in two ways that make it particularly worth watching.</p>
+  <p>First, leverage amplifies intent. When a leveraged market starts moving directionally, position management creates a feedback loop: traders managing leveraged longs need to react quickly to adverse moves, which can accelerate both the pullback and the subsequent break. The structure that looks like a flag on equities can play out in minutes on perps.</p>
+  <p>Second, funding rate dynamics create directional pressure. A sustained uptrend on perps will gradually push funding positive, which means short sellers pay longs to hold. This creates a systematic tailwind for continuation trades on the long side when funding is neutral to slightly positive — and a headwind when funding becomes extreme (crowded longs are at risk of reversal).</p>
+
+  <div class="callout">
+    <div class="callout-label">The Pattern's Logic</div>
+    <p>The pullback break is how trend traders identify continuation. The impulse is the signal; the pullback is the entry point. You're entering after confirmation rather than chasing the initial move — which is why entries tend to be tighter and stops are more logical.</p>
+  </div>
+
+  <h2>Pullback Break Long vs. Short</h2>
+  <p>Both directions use the same three-phase structure, with the interpretation mirrored.</p>
+
+  <div class="direction-grid reveal">
+    <div class="dir-card long">
+      <div class="dir-label long">Pullback Break Long</div>
+      <div class="dir-title">Bullish Continuation</div>
+      <ul class="dir-steps">
+        <li>Strong impulse <strong>up</strong> — 3–5 bullish candles</li>
+        <li>Price corrects <strong>down</strong> for 2–4 candles against the impulse</li>
+        <li>Price <strong>breaks above</strong> the correction high</li>
+        <li>Bulls absorbed the pullback and are resuming</li>
+      </ul>
+    </div>
+    <div class="dir-card short">
+      <div class="dir-label short">Pullback Break Short</div>
+      <div class="dir-title">Bearish Continuation</div>
+      <ul class="dir-steps">
+        <li>Strong impulse <strong>down</strong> — 3–5 bearish candles</li>
+        <li>Price bounces <strong>up</strong> for 2–4 candles against the impulse</li>
+        <li>Price <strong>breaks below</strong> the bounce low</li>
+        <li>Bears absorbed the bounce and are resuming</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>For both directions, the confirmation criteria are the same: you want volume above average at the break candle, OI rising (new positions entering in the direction of the break), and BTC not moving against the trade.</p>
+
+  <h2>The Multi-Factor Version (Pro Setup)</h2>
+  <p>The basic pullback break watches price structure alone. Adding confluence factors significantly improves the reliability of the setup by filtering breaks that don't have real capital behind them.</p>
+  <ul>
+    <li><strong>Volume:</strong> Is the break candle on elevated volume? Volume above 1.5× the recent average is a meaningful signal — it means participation is increasing at the breakout level, not declining.</li>
+    <li><strong>OI:</strong> Is OI rising at the break? Rising OI means new positions are being opened in the direction of the break. Flat or falling OI on a pullback break long means it may be driven by short covering rather than new longs entering — a weaker signal.</li>
+    <li><strong>Funding:</strong> Is funding neutral to slightly positive for longs, or neutral to slightly negative for shorts? Extreme funding readings (deeply positive for a long setup, deeply negative for a short setup) indicate crowded positioning that creates reversal risk.</li>
+    <li><strong>BTC context:</strong> For altcoin perp trades, is BTC helping or fighting? A pullback break long on SOLUSDT while BTC is turning bearish is lower conviction than the same setup with BTC neutral or rising.</li>
+  </ul>
+  <p>Here's a multi-factor pullback break long with all four confluence factors present:</p>
+
+  <div class="signal-demo reveal">
+    <div class="signal-demo-bar"></div>
+    <div class="signal-demo-body">
+      <div class="signal-demo-tier">Pullback Break Long · 15m</div>
+      <div class="signal-demo-header">
+        <div>
+          <div class="signal-demo-sym">SOLUSDT</div>
+          <div class="signal-demo-price">$162.40</div>
+        </div>
+        <div class="type-badge badge-g">LONG</div>
+      </div>
+      <div class="signal-demo-msg">Strong 5-candle impulse up, 3-candle pullback to 50% of impulse, break above pullback high with expanding volume.</div>
+      <div class="signal-demo-ctx">
+        <div class="ctx-row"><span class="ctx-k">Volume</span><span class="ctx-v cv-up">2.7× ↑</span></div>
+        <div class="ctx-row"><span class="ctx-k">OI 15m</span><span class="ctx-v cv-up">+4.2% ↑</span></div>
+        <div class="ctx-row"><span class="ctx-k">Funding</span><span class="ctx-v cv-n">+0.018%</span></div>
+        <div class="ctx-row"><span class="ctx-k">BTC Trend</span><span class="ctx-v cv-n">Neutral</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>How DexSeer Detects This Automatically</h2>
+  <p>Scanning for pullback breaks manually across 48+ pairs in real time isn't feasible — the pattern plays out on 5m and 15m timeframes where the window between "pullback in progress" and "break complete" can be a single candle close. DexSeer's detection algorithm runs continuously against all Binance perp pairs:</p>
+
+  <div class="algo-steps reveal">
+    <div class="algo-step">
+      <div class="algo-step-num">01</div>
+      <div class="algo-step-text"><strong>Identifies impulse moves</strong> — consecutive directional candles where each candle body exceeds a minimum threshold. The impulse must meet a minimum count (typically 3) and minimum total move size.</div>
+    </div>
+    <div class="algo-step">
+      <div class="algo-step-num">02</div>
+      <div class="algo-step-text"><strong>Tracks the pullback</strong> — candles moving against the impulse direction, within an allowed retracement range. Too shallow and there's no meaningful pullback; too deep and the impulse structure is invalidated.</div>
+    </div>
+    <div class="algo-step">
+      <div class="algo-step-num">03</div>
+      <div class="algo-step-text"><strong>Detects the break</strong> — price closes above the pullback high (long) or below the pullback low (short) on a candle close. The alert fires at candle close, not intra-candle.</div>
+    </div>
+    <div class="algo-step">
+      <div class="algo-step-num">04</div>
+      <div class="algo-step-text"><strong>Adds context at trigger time</strong> — volume multiple, OI delta percentage, current funding rate, and BTC trend are all computed at the moment the alert fires and delivered with it.</div>
+    </div>
+    <div class="algo-step">
+      <div class="algo-step-num">05</div>
+      <div class="algo-step-text"><strong>Applies cooldown logic</strong> — prevents the same pattern from triggering multiple alerts on the same symbol within a defined cooldown window, keeping the feed actionable rather than noisy.</div>
+    </div>
+  </div>
+
+  <h2>What to Do When the Alert Fires</h2>
+  <p>The alert fires at the close of the break candle — it's a real-time detection of a pattern completion, not a forward prediction. By the time you receive it, the break has already happened. Your execution decision is whether the context justifies entering.</p>
+  <ul>
+    <li><strong>Entry:</strong> At the break level (candle close) or on a minor retest in the following candle if price pulls back to the break level briefly before continuing.</li>
+    <li><strong>Stop:</strong> Below the pullback low for longs (or above the pullback high for shorts). This is the structural invalidation point — if price returns there, the pattern has failed.</li>
+    <li><strong>Take profit:</strong> A measured move target — project the size of the initial impulse from the break level — gives a logical first target. Structural resistance or support levels are your secondary reference points.</li>
+    <li><strong>Context check:</strong> If volume at the break is not elevated and OI is flat, the break is weaker. Consider sizing down or skipping if confluence is absent.</li>
+  </ul>
+
+  <h2>Setting Up Pullback Break Alerts in DexSeer</h2>
+  <p>Pullback Break Long and Pullback Break Short are available in the Pro plan on 5m, 15m, and 1h timeframes. You can enable both, or just the direction you trade.</p>
+  <p>Once enabled, alerts deliver via the DexSeer live feed with the full context block attached. For notification delivery, connect Telegram, Discord, or email in your notification settings. If you're on the API plan, both alert types are included in webhook delivery with the full structured payload.</p>
+  <p>To reduce noise, use the watchlist filter to limit alerts to your active trading pairs — particularly useful if you trade a defined set of majors and don't want to be notified on every altcoin setup in the market.</p>
+
+  <div class="cta-banner reveal">
+    <div class="cta-banner-text">Never miss a clean pullback break again.</div>
+    <div class="cta-banner-actions">
+      <a href="#" class="btn btn-primary">Start Free</a>
+      <a href="#" class="btn btn-ghost">See Full Signal Library</a>
+    </div>
+  </div>
+
+  <div class="related-wrap reveal">
+    <div class="related-label">Related Articles</div>
+    <div class="related-grid">
+      <a href="short-squeeze-alerts.html" class="related-card">
+        <div class="related-card-tag">Strategy</div>
+        <div class="related-card-title">Short Squeeze Alerts on Binance Perps: What They Are and How to Catch Them</div>
+      </a>
+      <a href="open-interest-alerts.html" class="related-card">
+        <div class="related-card-tag">Education</div>
+        <div class="related-card-title">Open Interest Alerts: Why OI Context Turns Good Breakouts into Great Trades</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">Education</div>
+        <div class="related-card-title">Funding Rate Extremes: What They Mean and How DexSeer Flags Them</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">Strategy</div>
+        <div class="related-card-title">Compression Breakout: Detecting Volatility Expansions Before They Happen</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">API</div>
+        <div class="related-card-title">Building a Telegram Squeeze Alert Bot with DexSeer Webhooks</div>
+      </a>
+    </div>
+  </div>
+
+</article>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<div class="footer-wrap">
+  <div class="footer-top">
+    <a href="../index.html" class="nav-logo" style="font-size:0.82rem;"><div class="logo-dot"></div>DEXSEER ALPHA</a>
+    <div class="footer-links">
+      <a href="../index.html#signals">Features</a>
+      <a href="../index.html#pricing">Pricing</a>
+      <a href="#">API Docs</a>
+      <a href="#">Status</a>
+      <a href="../blog.html">Blog</a>
+    </div>
+  </div>
+  <div class="footer-disc">
+    DexSeer Alpha provides market alerts and analytics for informational purposes only. Nothing on this platform constitutes financial advice, investment advice, or trade recommendations. All alerts are generated algorithmically and may contain errors. Users are solely responsible for their own trading decisions and any resulting profits or losses. Trading perpetual futures involves substantial risk of loss and is not appropriate for all investors. Past alert performance does not guarantee future results.
+  </div>
+  <div class="footer-copy">&copy; 2026 DexSeer Alpha &middot; All rights reserved</div>
+</div>
+
+<script>
+  // Duplicate ticker for seamless loop
+  const track = document.getElementById('ticker');
+  track.innerHTML += track.innerHTML;
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

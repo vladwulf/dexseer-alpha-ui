@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Short Squeeze Alerts for Binance Perps: How to Detect Them Automatically | DexSeer Alpha</title>
+  <meta name="description" content="Learn the exact conditions that define a short squeeze on Binance perpetual futures, and how DexSeer's real-time alerts detect them automatically with OI, funding, and price confluence.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── PAGE-SPECIFIC: ARTICLE LAYOUT ───────────── */
+    .article-hero {
+      padding: 72px 48px 56px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .article-tag {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .article-tag::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 1px;
+      background: var(--electric);
+      opacity: 0.5;
+    }
+    .article-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 3.8vw, 2.85rem);
+      font-weight: 700;
+      letter-spacing: -0.022em;
+      line-height: 1.09;
+      margin-bottom: 22px;
+    }
+    .article-meta {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.07em;
+      color: var(--text-dim);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .article-meta span { color: var(--text-muted); }
+
+    /* ── ARTICLE BODY ─────────────────────────────── */
+    .article-body {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 48px 80px;
+    }
+    .article-body h2 {
+      font-family: var(--font-display);
+      font-size: 1.28rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      margin: 52px 0 16px;
+      color: var(--text);
+    }
+    .article-body p {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      line-height: 1.78;
+      margin-bottom: 18px;
+    }
+    .article-body ol, .article-body ul {
+      margin: 0 0 18px 0;
+      padding-left: 22px;
+    }
+    .article-body li {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      line-height: 1.72;
+      margin-bottom: 8px;
+    }
+    .article-body strong { color: var(--text); font-weight: 500; }
+    .article-body code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--electric);
+      background: var(--electric-dim);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    /* ── CALLOUT BOX ──────────────────────────────── */
+    .callout {
+      border-left: 2px solid var(--electric);
+      background: rgba(91,143,249,0.05);
+      border-radius: 0 6px 6px 0;
+      padding: 18px 22px;
+      margin: 28px 0;
+    }
+    .callout p {
+      margin: 0;
+      font-size: 0.94rem;
+      color: var(--text);
+      line-height: 1.68;
+    }
+    .callout-label {
+      font-family: var(--font-mono);
+      font-size: 0.56rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 10px;
+    }
+
+    /* ── INLINE SIGNAL CARD ───────────────────────── */
+    .signal-demo {
+      border: 1px solid var(--electric-border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      overflow: hidden;
+      margin: 32px 0;
+    }
+    .signal-demo-bar {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+    .signal-demo-body { padding: 20px; }
+    .signal-demo-tier {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 14px;
+    }
+    .signal-demo-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .signal-demo-sym {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .signal-demo-price {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+    .signal-demo-msg {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.62;
+      margin-bottom: 14px;
+    }
+    .signal-demo-ctx {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    .ctx-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ctx-k {
+      font-family: var(--font-mono);
+      font-size: 0.57rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .ctx-v {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 600;
+    }
+    .cv-up { color: var(--green); }
+    .cv-dn { color: var(--red); }
+    .cv-n  { color: var(--text-muted); }
+    .type-badge {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+    .badge-g { background: var(--green-dim); color: var(--green); border: 1px solid rgba(93,200,135,0.22); }
+    .badge-r { background: var(--red-dim); color: var(--red); border: 1px solid rgba(227,85,97,0.22); }
+    .badge-b { background: var(--electric-dim); color: var(--electric); border: 1px solid var(--electric-border); }
+
+    /* ── CTA BANNER ───────────────────────────────── */
+    .cta-banner {
+      background: rgba(91,143,249,0.06);
+      border: 1px solid var(--electric-border);
+      border-radius: 10px;
+      padding: 36px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      margin: 56px 0;
+      flex-wrap: wrap;
+    }
+    .cta-banner-text {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      max-width: 480px;
+      line-height: 1.38;
+    }
+    .cta-banner-actions { display: flex; gap: 10px; flex-shrink: 0; }
+
+    /* ── RELATED POSTS ────────────────────────────── */
+    .related-wrap {
+      border-top: 1px solid var(--border);
+      padding-top: 40px;
+      margin-top: 16px;
+    }
+    .related-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .related-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-card);
+      padding: 16px;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.16s, background 0.16s;
+    }
+    .related-card:hover {
+      border-color: var(--border-mid);
+      background: var(--bg-elevated);
+    }
+    .related-card-tag {
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 8px;
+    }
+    .related-card-title {
+      font-family: var(--font-display);
+      font-size: 0.83rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────── */
+    @media (max-width: 760px) {
+      .article-hero { padding: 48px 20px 36px; }
+      .article-body { padding: 0 20px 56px; }
+      .cta-banner { padding: 24px 20px; }
+      .related-grid { grid-template-columns: 1fr; }
+      .signal-demo-ctx { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker">
+    <div class="t-item"><span class="t-sym">DOGEUSDT</span><span class="t-badge tb-l">LONG</span>Short Squeeze Candidate · 15m<span style="color:var(--text-dim);">$0.1618</span></div>
+    <div class="t-item"><span class="t-sym">SOLUSDT</span><span class="t-badge tb-l">LONG</span>Pullback Break Long · 15m<span style="color:var(--text-dim);">$162.40</span></div>
+    <div class="t-item"><span class="t-sym">ETHUSDT</span><span class="t-badge tb-l">LONG</span>Breakout + OI Confirm · 15m<span style="color:var(--text-dim);">$3,512</span></div>
+    <div class="t-item"><span class="t-sym">BTCUSDT</span><span class="t-badge tb-n">SCAN</span>Volume Spike · 1h<span style="color:var(--text-dim);">$67,240</span></div>
+    <div class="t-item"><span class="t-sym">WIFUSDT</span><span class="t-badge tb-s">SHORT</span>Pullback Break Short · 15m<span style="color:var(--text-dim);">$2.31</span></div>
+    <div class="t-item"><span class="t-sym">ARBUSDT</span><span class="t-badge tb-l">LONG</span>VWAP Reclaim · 5m<span style="color:var(--text-dim);">$0.845</span></div>
+    <div class="t-item"><span class="t-sym">AVAXUSDT</span><span class="t-badge tb-s">SHORT</span>Crowded Longs Warning · 1h<span style="color:var(--text-dim);">$36.12</span></div>
+    <div class="t-item"><span class="t-sym">SUIUSDT</span><span class="t-badge tb-l">LONG</span>Compression Breakout · 5m<span style="color:var(--text-dim);">$1.084</span></div>
+    <div class="t-item"><span class="t-sym">BNBUSDT</span><span class="t-badge tb-n">SCAN</span>OI Build-Up · 1h<span style="color:var(--text-dim);">$584.20</span></div>
+    <div class="t-item"><span class="t-sym">LINKUSDT</span><span class="t-badge tb-l">LONG</span>BTC-Relative Strength · 15m<span style="color:var(--text-dim);">$14.62</span></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="logo-dot"></div>DEXSEER ALPHA</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#signals">Signals</a></li>
+    <li><a href="../index.html#pricing">Pricing</a></li>
+    <li><a href="../index.html#api">API</a></li>
+    <li><a href="../blog.html">Blog</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="#" class="btn btn-ghost">Log in</a>
+    <a href="#" class="btn btn-primary">Start Free</a>
+  </div>
+</nav>
+
+<!-- ARTICLE HERO -->
+<div class="article-hero reveal">
+  <div class="article-tag">Strategy</div>
+  <h1 class="article-h1">Short Squeeze Alerts on Binance Perps: What They Are and How to Catch Them</h1>
+  <div class="article-meta">
+    <span>May 2026</span>
+    <span>·</span>
+    <span>6 min read</span>
+    <span>·</span>
+    <span>By DexSeer Team</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ARTICLE BODY -->
+<article class="article-body">
+
+  <h2>What is a Short Squeeze in Crypto Futures?</h2>
+  <p>A short squeeze happens when price rises against a heavily short-sided market, forcing leveraged short positions to close — which means buying back the asset they shorted. That forced buying adds to the upward pressure, which pushes price higher, which forces more shorts to close. It becomes self-reinforcing.</p>
+  <p>On Binance perpetual futures, squeezes can happen fast and violently. The leverage involved means positions can hit their liquidation price within minutes of a move starting. By the time most traders notice a squeeze forming on their chart, it's often already 60–70% complete.</p>
+  <p>Understanding the mechanics isn't just academic — it's the foundation for knowing what to look for, what data confirms it, and how to act before the move exhausts itself.</p>
+
+  <h2>The Three Conditions of a Squeeze Setup</h2>
+  <p>A genuine short squeeze on Binance perps has three observable conditions, all of which need to align simultaneously.</p>
+
+  <ol>
+    <li><strong>Price rising</strong> — bullish price action: a break of a key level, an impulse move, or consecutive strong candles to the upside. Without price rising, there's nothing forcing shorts out.</li>
+    <li><strong>Open Interest falling</strong> — this is the critical distinction. OI falling on a price pump means existing short positions are being closed (liquidated or manually exited). It is emphatically <em>not</em> the same as new buyers entering. New buyers would <em>raise</em> OI.</li>
+    <li><strong>Negative funding rate</strong> — when funding is negative, shorts are paying longs to hold their positions. This tells you the market is short-biased: more shorts than longs are open. That's the fuel for the squeeze — a crowded short side that can be forced out.</li>
+  </ol>
+
+  <p>The OI distinction matters enormously and gets misread constantly. When you see price rising:</p>
+  <ul>
+    <li><strong>OI rising on a price pump</strong> means new longs are entering. This is a momentum continuation signal — real capital is buying the move.</li>
+    <li><strong>OI falling on a price pump</strong> means existing shorts are being forced out. That's the squeeze signal — it will run as long as there are shorts left to liquidate, then potentially reverse when they're exhausted.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-label">Key Signal</div>
+    <p>Price up + OI down + funding negative. When all three align, you're watching shorts get squeezed out of their positions. The move has a defined fuel source — the crowded short side — and will run until that fuel is spent.</p>
+  </div>
+
+  <h2>Why Manual Detection is Nearly Impossible</h2>
+  <p>Even if you understand short squeeze mechanics perfectly, catching them in real time is a different problem. Consider what manual detection actually requires:</p>
+  <ul>
+    <li><strong>Coverage:</strong> Binance lists 48+ actively traded perpetual pairs. You'd need to monitor every one of them continuously, including pairs you don't normally trade.</li>
+    <li><strong>Data layout:</strong> Open interest data is not on standard chart layouts. Most retail platforms don't show live OI by default, and even when they do, correlating OI changes with price moves in real time across 48 pairs isn't feasible.</li>
+    <li><strong>Speed:</strong> The window between "squeeze is starting" and "squeeze is complete" can be under 5 minutes on a 5m timeframe. By the time you spot the setup on a chart, review it, and decide to act, the move is typically 60–70% over.</li>
+    <li><strong>Funding rate context:</strong> Funding rates update every 8 hours on Binance, but the current in-period funding direction is readable from the mark price premium. Tracking this manually across dozens of pairs while watching price action is simply not realistic.</li>
+  </ul>
+  <p>This is the gap that automated detection fills — not intelligence, just coverage and speed that a human can't replicate manually.</p>
+
+  <h2>How DexSeer's Short Squeeze Candidate Alert Works</h2>
+  <p>DexSeer scans all Binance perpetual pairs continuously. The Short Squeeze Candidate alert triggers when three conditions are met within the same timeframe window: price rises above a threshold percentage, open interest falls by more than a threshold percentage, and the funding rate is below a negative threshold confirming short-side bias.</p>
+  <p>When it triggers, you receive the full context with the alert — not just "something happened on DOGEUSDT." You get the price change percentage, the OI delta percentage, the current funding rate, and the BTC trend at trigger time. Here's what a live alert looks like:</p>
+
+  <div class="signal-demo reveal">
+    <div class="signal-demo-bar"></div>
+    <div class="signal-demo-body">
+      <div class="signal-demo-tier">Short Squeeze Candidate · 15m</div>
+      <div class="signal-demo-header">
+        <div>
+          <div class="signal-demo-sym">DOGEUSDT</div>
+          <div class="signal-demo-price">$0.1618</div>
+        </div>
+        <div class="type-badge badge-g">LONG</div>
+      </div>
+      <div class="signal-demo-msg">Price rising while open interest falling — shorts are being liquidated. Funding rate deeply negative confirms heavy short positioning.</div>
+      <div class="signal-demo-ctx">
+        <div class="ctx-row"><span class="ctx-k">Price 15m</span><span class="ctx-v cv-up">+2.4% ↑</span></div>
+        <div class="ctx-row"><span class="ctx-k">OI 15m</span><span class="ctx-v cv-dn">−3.2% ↓</span></div>
+        <div class="ctx-row"><span class="ctx-k">Funding</span><span class="ctx-v cv-dn">−0.082%</span></div>
+        <div class="ctx-row"><span class="ctx-k">BTC Trend</span><span class="ctx-v cv-n">Neutral</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>How to Trade the Short Squeeze Signal</h2>
+  <p>The alert is a real-time detection, not a prediction. By the time it fires, the squeeze is already in progress. This shapes how you use it.</p>
+  <p>Treat it as a <strong>momentum continuation trade</strong>, not a reversal entry. You're joining a move that is already happening because it has a known fuel source — the short side — that hasn't fully exhausted yet. Size accordingly: these moves can extend significantly, but they can also reverse fast once the liquidations run dry.</p>
+  <p>The critical risk management point: watch OI as the trade progresses. If OI starts rising again while price is still up, new shorts may be entering at the higher level — which means the squeeze fuel is being replenished but also means you're now in a contested position. If OI starts rising on a pullback, that's a potential trend continuation. If price starts falling while OI rises, new shorts are winning — exit.</p>
+  <p>A tight stop below the trigger level is standard. The level that caused the squeeze to start is a logical invalidation point — if price returns there, the squeeze thesis has failed.</p>
+
+  <h2>The Long Squeeze Candidate — the Mirror Setup</h2>
+  <p>The same logic applies in reverse for crowded long markets. A Long Squeeze Candidate fires when price is falling, OI is falling (longs being liquidated or exiting), and funding is deeply positive — confirming a crowded long market. When longs get squeezed, the move can be equally fast and violent as shorts get squeezed to the upside.</p>
+  <p>Both squeeze types are covered by DexSeer Pro. If you trade in both directions, having both alerts active means you're covered for the most volatile liquidation-driven moves in both directions.</p>
+
+  <h2>Getting Squeeze Alerts in Your Workflow</h2>
+  <p>There are three ways to receive squeeze detection:</p>
+  <ul>
+    <li><strong>DexSeer Free:</strong> The basic alert feed is accessible, but squeeze candidates are a Pro alert type. You'll see that they're triggering but won't receive the full context or real-time delivery.</li>
+    <li><strong>DexSeer Pro:</strong> Real-time short and long squeeze detection across all 48+ Binance perp pairs, with full OI, funding, and BTC context on every alert. Delivered via the live feed, Telegram, Discord, or email.</li>
+    <li><strong>DexSeer API:</strong> Webhook delivery for automation — pipe squeeze alerts directly into your Telegram bot, Discord server, or execution system. Every webhook payload includes the full structured data so you can build logic on top of it.</li>
+  </ul>
+
+  <div class="cta-banner reveal">
+    <div class="cta-banner-text">Stop watching charts manually. Get squeeze alerts the moment they trigger.</div>
+    <div class="cta-banner-actions">
+      <a href="#" class="btn btn-primary">Start Free</a>
+      <a href="#" class="btn btn-ghost">View Pro Signals</a>
+    </div>
+  </div>
+
+  <div class="related-wrap reveal">
+    <div class="related-label">Related Articles</div>
+    <div class="related-grid">
+      <a href="open-interest-alerts.html" class="related-card">
+        <div class="related-card-tag">Education</div>
+        <div class="related-card-title">Open Interest Alerts: Why OI Context Turns Good Breakouts into Great Trades</div>
+      </a>
+      <a href="pullback-break-strategy.html" class="related-card">
+        <div class="related-card-tag">Strategy</div>
+        <div class="related-card-title">The Pullback Break Setup: Continuation Signals for Binance Perp Traders</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">Education</div>
+        <div class="related-card-title">Funding Rate Extremes: What They Mean and How DexSeer Flags Them</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">Strategy</div>
+        <div class="related-card-title">Breakout + Volume Confirmation: Filtering Fakeouts on Binance Perps</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">API</div>
+        <div class="related-card-title">Building a Telegram Squeeze Alert Bot with DexSeer Webhooks</div>
+      </a>
+    </div>
+  </div>
+
+</article>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<div class="footer-wrap">
+  <div class="footer-top">
+    <a href="../index.html" class="nav-logo" style="font-size:0.82rem;"><div class="logo-dot"></div>DEXSEER ALPHA</a>
+    <div class="footer-links">
+      <a href="../index.html#signals">Features</a>
+      <a href="../index.html#pricing">Pricing</a>
+      <a href="#">API Docs</a>
+      <a href="#">Status</a>
+      <a href="../blog.html">Blog</a>
+    </div>
+  </div>
+  <div class="footer-disc">
+    DexSeer Alpha provides market alerts and analytics for informational purposes only. Nothing on this platform constitutes financial advice, investment advice, or trade recommendations. All alerts are generated algorithmically and may contain errors. Users are solely responsible for their own trading decisions and any resulting profits or losses. Trading perpetual futures involves substantial risk of loss and is not appropriate for all investors. Past alert performance does not guarantee future results.
+  </div>
+  <div class="footer-copy">&copy; 2026 DexSeer Alpha &middot; All rights reserved</div>
+</div>
+
+<script>
+  // Duplicate ticker for seamless loop
+  const track = document.getElementById('ticker');
+  track.innerHTML += track.innerHTML;
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

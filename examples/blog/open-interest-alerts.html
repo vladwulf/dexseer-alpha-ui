@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Interest Alerts for Crypto Futures: Why OI Context Makes Breakouts More Reliable | DexSeer Alpha</title>
+  <meta name="description" content="Open interest alerts for Binance perpetual futures. Learn how OI direction during a breakout confirms whether real capital is entering the move — or whether it's a fakeout.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── PAGE-SPECIFIC: ARTICLE LAYOUT ───────────── */
+    .article-hero {
+      padding: 72px 48px 56px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .article-tag {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .article-tag::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 1px;
+      background: var(--electric);
+      opacity: 0.5;
+    }
+    .article-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 3.8vw, 2.85rem);
+      font-weight: 700;
+      letter-spacing: -0.022em;
+      line-height: 1.09;
+      margin-bottom: 22px;
+    }
+    .article-meta {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.07em;
+      color: var(--text-dim);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .article-meta span { color: var(--text-muted); }
+
+    /* ── ARTICLE BODY ─────────────────────────────── */
+    .article-body {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 48px 80px;
+    }
+    .article-body h2 {
+      font-family: var(--font-display);
+      font-size: 1.28rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      margin: 52px 0 16px;
+      color: var(--text);
+    }
+    .article-body p {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      line-height: 1.78;
+      margin-bottom: 18px;
+    }
+    .article-body ol, .article-body ul {
+      margin: 0 0 18px 0;
+      padding-left: 22px;
+    }
+    .article-body li {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      line-height: 1.72;
+      margin-bottom: 8px;
+    }
+    .article-body strong { color: var(--text); font-weight: 500; }
+    .article-body code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--electric);
+      background: var(--electric-dim);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    /* ── CALLOUT BOX ──────────────────────────────── */
+    .callout {
+      border-left: 2px solid var(--electric);
+      background: rgba(91,143,249,0.05);
+      border-radius: 0 6px 6px 0;
+      padding: 18px 22px;
+      margin: 28px 0;
+    }
+    .callout p {
+      margin: 0;
+      font-size: 0.94rem;
+      color: var(--text);
+      line-height: 1.68;
+    }
+    .callout-label {
+      font-family: var(--font-mono);
+      font-size: 0.56rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 10px;
+    }
+
+    /* ── 2x2 SCENARIO TABLE ───────────────────────── */
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 28px 0;
+    }
+    .scenario-cell {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-card);
+      padding: 16px 18px;
+    }
+    .scenario-cell.bullish { border-color: rgba(93,200,135,0.22); background: rgba(93,200,135,0.04); }
+    .scenario-cell.bearish { border-color: rgba(227,85,97,0.22); background: rgba(227,85,97,0.04); }
+    .scenario-cell.squeeze { border-color: rgba(91,143,249,0.22); background: rgba(91,143,249,0.04); }
+    .scenario-cell.weak    { border-color: var(--border); background: var(--bg-card); }
+    .scenario-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .scenario-label.sl-bull { color: var(--green); }
+    .scenario-label.sl-bear { color: var(--red); }
+    .scenario-label.sl-squeeze { color: var(--electric); }
+    .scenario-label.sl-weak { color: var(--text-dim); }
+    .scenario-title {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .scenario-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ── INLINE SIGNAL CARD ───────────────────────── */
+    .signal-demo {
+      border: 1px solid var(--electric-border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      overflow: hidden;
+      margin: 32px 0;
+    }
+    .signal-demo-bar {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+    .signal-demo-body { padding: 20px; }
+    .signal-demo-tier {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 14px;
+    }
+    .signal-demo-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .signal-demo-sym {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .signal-demo-price {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+    .signal-demo-msg {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.62;
+      margin-bottom: 14px;
+    }
+    .signal-demo-ctx {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    .ctx-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ctx-k {
+      font-family: var(--font-mono);
+      font-size: 0.57rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .ctx-v {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 600;
+    }
+    .cv-up { color: var(--green); }
+    .cv-dn { color: var(--red); }
+    .cv-n  { color: var(--text-muted); }
+    .type-badge {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+    .badge-g { background: var(--green-dim); color: var(--green); border: 1px solid rgba(93,200,135,0.22); }
+    .badge-r { background: var(--red-dim); color: var(--red); border: 1px solid rgba(227,85,97,0.22); }
+    .badge-b { background: var(--electric-dim); color: var(--electric); border: 1px solid var(--electric-border); }
+
+    /* ── CTA BANNER ───────────────────────────────── */
+    .cta-banner {
+      background: rgba(91,143,249,0.06);
+      border: 1px solid var(--electric-border);
+      border-radius: 10px;
+      padding: 36px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      margin: 56px 0;
+      flex-wrap: wrap;
+    }
+    .cta-banner-text {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      max-width: 480px;
+      line-height: 1.38;
+    }
+    .cta-banner-actions { display: flex; gap: 10px; flex-shrink: 0; }
+
+    /* ── RELATED POSTS ────────────────────────────── */
+    .related-wrap {
+      border-top: 1px solid var(--border);
+      padding-top: 40px;
+      margin-top: 16px;
+    }
+    .related-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .related-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-card);
+      padding: 16px;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.16s, background 0.16s;
+    }
+    .related-card:hover {
+      border-color: var(--border-mid);
+      background: var(--bg-elevated);
+    }
+    .related-card-tag {
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--electric);
+      margin-bottom: 8px;
+    }
+    .related-card-title {
+      font-family: var(--font-display);
+      font-size: 0.83rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────── */
+    @media (max-width: 760px) {
+      .article-hero { padding: 48px 20px 36px; }
+      .article-body { padding: 0 20px 56px; }
+      .cta-banner { padding: 24px 20px; }
+      .related-grid { grid-template-columns: 1fr; }
+      .signal-demo-ctx { grid-template-columns: 1fr; }
+      .scenario-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker">
+    <div class="t-item"><span class="t-sym">ETHUSDT</span><span class="t-badge tb-l">LONG</span>Breakout + OI Confirm · 15m<span style="color:var(--text-dim);">$3,512</span></div>
+    <div class="t-item"><span class="t-sym">BNBUSDT</span><span class="t-badge tb-n">SCAN</span>OI Build-Up · 1h<span style="color:var(--text-dim);">$584.20</span></div>
+    <div class="t-item"><span class="t-sym">SOLUSDT</span><span class="t-badge tb-l">LONG</span>Pullback Break Long · 15m<span style="color:var(--text-dim);">$162.40</span></div>
+    <div class="t-item"><span class="t-sym">BTCUSDT</span><span class="t-badge tb-n">SCAN</span>Volume Spike · 1h<span style="color:var(--text-dim);">$67,240</span></div>
+    <div class="t-item"><span class="t-sym">DOGEUSDT</span><span class="t-badge tb-l">LONG</span>Short Squeeze Candidate · 15m<span style="color:var(--text-dim);">$0.1618</span></div>
+    <div class="t-item"><span class="t-sym">SUIUSDT</span><span class="t-badge tb-l">LONG</span>Compression Breakout · 5m<span style="color:var(--text-dim);">$1.084</span></div>
+    <div class="t-item"><span class="t-sym">AVAXUSDT</span><span class="t-badge tb-s">SHORT</span>Crowded Longs Warning · 1h<span style="color:var(--text-dim);">$36.12</span></div>
+    <div class="t-item"><span class="t-sym">WIFUSDT</span><span class="t-badge tb-s">SHORT</span>Pullback Break Short · 15m<span style="color:var(--text-dim);">$2.31</span></div>
+    <div class="t-item"><span class="t-sym">ARBUSDT</span><span class="t-badge tb-l">LONG</span>VWAP Reclaim · 5m<span style="color:var(--text-dim);">$0.845</span></div>
+    <div class="t-item"><span class="t-sym">LINKUSDT</span><span class="t-badge tb-l">LONG</span>BTC-Relative Strength · 15m<span style="color:var(--text-dim);">$14.62</span></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="logo-dot"></div>DEXSEER ALPHA</a>
+  <ul class="nav-links">
+    <li><a href="../index.html#signals">Signals</a></li>
+    <li><a href="../index.html#pricing">Pricing</a></li>
+    <li><a href="../index.html#api">API</a></li>
+    <li><a href="../blog.html">Blog</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="#" class="btn btn-ghost">Log in</a>
+    <a href="#" class="btn btn-primary">Start Free</a>
+  </div>
+</nav>
+
+<!-- ARTICLE HERO -->
+<div class="article-hero reveal">
+  <div class="article-tag">Education</div>
+  <h1 class="article-h1">Open Interest Alerts: Why OI Context Turns Good Breakouts into Great Trades</h1>
+  <div class="article-meta">
+    <span>May 2026</span>
+    <span>·</span>
+    <span>7 min read</span>
+    <span>·</span>
+    <span>By DexSeer Team</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ARTICLE BODY -->
+<article class="article-body">
+
+  <h2>What is Open Interest and Why Does It Matter?</h2>
+  <p>Open interest is the total number of open futures contracts on an exchange at any given moment. Every futures contract requires one buyer (long) and one seller (short) — so OI counts the total number of contracts that haven't yet been closed or settled.</p>
+  <p>When OI rises, new money is entering the market: either new long positions are being opened, new short positions are being opened, or both. When OI falls, existing positions are being closed — longs are exiting, shorts are covering, or both. OI doesn't tell you the direction of the new positions, but price action does.</p>
+  <p>This is the key insight: <strong>price direction tells you who is winning; OI direction tells you whether real capital is committed to that outcome.</strong> A breakout with rising OI means new money is entering behind the move. A breakout with falling OI means the move is being driven by existing positions closing — which is a fundamentally different and often less sustainable dynamic.</p>
+
+  <h2>The Four OI + Price Scenarios</h2>
+  <p>Combining price direction with OI direction gives you four distinct market conditions, each with a different interpretation and risk profile.</p>
+
+  <div class="scenario-grid reveal">
+    <div class="scenario-cell bullish">
+      <div class="scenario-label sl-bull">Price ↑ &nbsp;·&nbsp; OI ↑</div>
+      <div class="scenario-title">Strong Bullish Signal</div>
+      <div class="scenario-desc">New longs entering behind a rising price. Real capital committed to the move. Trend likely to continue while OI keeps rising.</div>
+    </div>
+    <div class="scenario-cell squeeze">
+      <div class="scenario-label sl-squeeze">Price ↑ &nbsp;·&nbsp; OI ↓</div>
+      <div class="scenario-title">Squeeze Signal</div>
+      <div class="scenario-desc">Shorts being forced out, not new buyers entering. Move may exhaust once short-side liquidations complete. Requires caution.</div>
+    </div>
+    <div class="scenario-cell bearish">
+      <div class="scenario-label sl-bear">Price ↓ &nbsp;·&nbsp; OI ↑</div>
+      <div class="scenario-title">Strong Bearish Signal</div>
+      <div class="scenario-desc">New shorts entering behind a falling price. Real capital committed to the downside. Downtrend likely to continue while OI keeps rising.</div>
+    </div>
+    <div class="scenario-cell weak">
+      <div class="scenario-label sl-weak">Price ↓ &nbsp;·&nbsp; OI ↓</div>
+      <div class="scenario-title">Longs Covering</div>
+      <div class="scenario-desc">Existing longs exiting. Weak sell signal — the downmove is driven by exits, not conviction. Potential for bounce after exhaustion.</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Professional Edge</div>
+    <p>Most retail traders only watch price. Professional traders also watch OI. The combination tells you whether the move has fuel behind it — or whether it's just existing positions unwinding. The same 2% price move carries completely different implications depending on what OI is doing.</p>
+  </div>
+
+  <h2>OI Build-Up: The Coiled Spring Setup</h2>
+  <p>One of the most useful pre-breakout signals is when price is flat but OI is rising. This is the "coiled spring" condition: new positions are being taken by both sides, but neither bulls nor bears have forced a directional resolution yet. The market is accumulating energy.</p>
+  <p>When OI builds while price compresses, it often precedes a volatile directional move. Both sides are committed to their positions, and when one side gets forced out — either by a catalyst or by gradual pressure — the resulting move tends to be larger than it would be in a low-OI environment.</p>
+  <p>DexSeer's OI Build-Up / Flat Price alert detects this automatically. It triggers when OI rises above a threshold percentage while price stays within a defined range. It doesn't predict which direction the eventual break goes — but it flags the compression so you're watching the right market when it moves.</p>
+
+  <h2>Breakout + OI Confirmation Alert</h2>
+  <p>The Breakout + OI Confirm alert combines two signals: a price break of a significant level with concurrent OI rising. This is specifically designed to filter fakeouts.</p>
+  <p>A breakout without OI rising is suspect. It could be the result of a thin-book stop hunt, a temporary lack of sell-side liquidity, or simply a noisy market. A breakout with OI rising means actual new capital is entering at the breakout level — traders are opening new long positions above the break, not just existing shorts covering.</p>
+  <p>Here's what that looks like in practice:</p>
+
+  <div class="signal-demo reveal">
+    <div class="signal-demo-bar"></div>
+    <div class="signal-demo-body">
+      <div class="signal-demo-tier">Breakout + OI Confirm · 15m</div>
+      <div class="signal-demo-header">
+        <div>
+          <div class="signal-demo-sym">ETHUSDT</div>
+          <div class="signal-demo-price">$3,512</div>
+        </div>
+        <div class="type-badge badge-g">LONG</div>
+      </div>
+      <div class="signal-demo-msg">Price broke 15m resistance with rising open interest — real capital entering the move, not just short covering.</div>
+      <div class="signal-demo-ctx">
+        <div class="ctx-row"><span class="ctx-k">Volume</span><span class="ctx-v cv-up">2.1× ↑</span></div>
+        <div class="ctx-row"><span class="ctx-k">OI 15m</span><span class="ctx-v cv-up">+3.8% ↑</span></div>
+        <div class="ctx-row"><span class="ctx-k">Funding</span><span class="ctx-v cv-n">+0.012%</span></div>
+        <div class="ctx-row"><span class="ctx-k">BTC 15m</span><span class="ctx-v cv-up">Up</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Funding Rate: OI's Partner Signal</h2>
+  <p>Funding rates on Binance perpetual futures are paid every 8 hours between longs and shorts. When funding is positive, longs pay shorts — which means the market is long-biased and longs are paying a premium to hold their positions. When funding is negative, shorts pay longs — the market is short-biased.</p>
+  <p>Funding rate extremes add a layer of context to OI signals:</p>
+  <ul>
+    <li><strong>Rising OI + extreme positive funding</strong> — a warning signal. The market is accumulating longs in an already crowded long environment. This is a setup for a long squeeze if price turns.</li>
+    <li><strong>Rising OI + neutral funding</strong> — a cleaner breakout confirmation. New positions are entering without the crowding risk that extreme funding implies.</li>
+    <li><strong>Falling OI + negative funding</strong> — classic short squeeze signal. Existing shorts are closing while the market was already short-biased.</li>
+  </ul>
+  <p>DexSeer includes funding rate context in every Pro alert, so you see this data point alongside OI and price action without needing to pull it from a separate tool.</p>
+
+  <h2>How to Use OI Alerts Without Being Overwhelmed</h2>
+  <p>The risk with adding OI monitoring to your workflow is data overload. Watching 48 pairs for OI changes while also tracking price action isn't feasible manually — which is precisely why automated alerts are the right approach.</p>
+  <p>The practical framework: use DexSeer's predefined alerts to surface the OI patterns that matter, rather than watching raw OI numbers yourself. The alert library includes six OI-sensitive alert types:</p>
+  <ul>
+    <li><strong>OI Build-Up / Flat Price</strong> — pre-breakout compression detection</li>
+    <li><strong>Breakout + OI Confirm</strong> — breakout with new capital confirmation</li>
+    <li><strong>Short Squeeze Candidate</strong> — price up, OI down, funding negative</li>
+    <li><strong>Long Squeeze Candidate</strong> — price down, OI down, funding positive</li>
+    <li><strong>Crowded Longs Warning</strong> — OI rising into extreme positive funding</li>
+    <li><strong>Crowded Shorts Warning</strong> — OI rising into extreme negative funding</li>
+  </ul>
+  <p>Each alert fires with the full context attached — you don't need to check a secondary screen or pull data from Binance directly.</p>
+
+  <h2>OI Alerts via API</h2>
+  <p>For teams and automated systems, DexSeer's API delivers OI context in every webhook payload. The <code>oi_change_15m_pct</code> field gives you the exact OI percentage change in the trigger window, letting you build logic that acts differently based on whether OI is rising or falling at the time of the alert.</p>
+  <p>For example: a pullback break long alert where OI is also rising is a higher-conviction entry than the same pattern with flat or falling OI. You can build that filter directly into your bot's execution logic using the structured payload data.</p>
+
+  <div class="cta-banner reveal">
+    <div class="cta-banner-text">Get OI-confirmed alerts in real time — not after you've missed the move.</div>
+    <div class="cta-banner-actions">
+      <a href="#" class="btn btn-primary">Start Free</a>
+      <a href="#" class="btn btn-ghost">View Pro Signals</a>
+    </div>
+  </div>
+
+  <div class="related-wrap reveal">
+    <div class="related-label">Related Articles</div>
+    <div class="related-grid">
+      <a href="short-squeeze-alerts.html" class="related-card">
+        <div class="related-card-tag">Strategy</div>
+        <div class="related-card-title">Short Squeeze Alerts on Binance Perps: What They Are and How to Catch Them</div>
+      </a>
+      <a href="pullback-break-strategy.html" class="related-card">
+        <div class="related-card-tag">Strategy</div>
+        <div class="related-card-title">The Pullback Break Setup: Continuation Signals for Binance Perp Traders</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">Education</div>
+        <div class="related-card-title">Funding Rate Extremes: What They Mean and How DexSeer Flags Them</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">API</div>
+        <div class="related-card-title">Using the DexSeer Webhook Payload: Full Field Reference</div>
+      </a>
+      <a href="#" class="related-card">
+        <div class="related-card-tag">Strategy</div>
+        <div class="related-card-title">Breakout + Volume Confirmation: Filtering Fakeouts on Binance Perps</div>
+      </a>
+    </div>
+  </div>
+
+</article>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<div class="footer-wrap">
+  <div class="footer-top">
+    <a href="../index.html" class="nav-logo" style="font-size:0.82rem;"><div class="logo-dot"></div>DEXSEER ALPHA</a>
+    <div class="footer-links">
+      <a href="../index.html#signals">Features</a>
+      <a href="../index.html#pricing">Pricing</a>
+      <a href="#">API Docs</a>
+      <a href="#">Status</a>
+      <a href="../blog.html">Blog</a>
+    </div>
+  </div>
+  <div class="footer-disc">
+    DexSeer Alpha provides market alerts and analytics for informational purposes only. Nothing on this platform constitutes financial advice, investment advice, or trade recommendations. All alerts are generated algorithmically and may contain errors. Users are solely responsible for their own trading decisions and any resulting profits or losses. Trading perpetual futures involves substantial risk of loss and is not appropriate for all investors. Past alert performance does not guarantee future results.
+  </div>
+  <div class="footer-copy">&copy; 2026 DexSeer Alpha &middot; All rights reserved</div>
+</div>
+
+<script>
+  // Duplicate ticker for seamless loop
+  const track = document.getElementById('ticker');
+  track.innerHTML += track.innerHTML;
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — DexSeer Alpha | Signals, Strategy, and Market Edge</title>
+  <meta name="description" content="Guides for active Binance perp traders, bot builders, and trading communities. Deep dives on signals, strategy, and the tools that give you edge.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="blog/styles.css">
+  <style>
+    /* Blog index–specific styles */
+    .blog-hero {
+      padding: 80px 48px 64px;
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+    .blog-eyebrow {
+      font-family: var(--font-mono); font-size: 0.6rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--electric); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .blog-eyebrow::before {
+      content: ''; display: block; width: 28px; height: 1px;
+      background: var(--electric); opacity: 0.45;
+    }
+    .blog-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 700; letter-spacing: -0.025em; line-height: 1.05;
+      color: var(--text); margin-bottom: 18px;
+    }
+    .blog-sub {
+      font-size: 1rem; color: var(--text-muted);
+      max-width: 520px; line-height: 1.7;
+    }
+    .blog-main {
+      max-width: 1140px; margin: 0 auto;
+      padding: 0 48px 96px;
+    }
+    .section-label {
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 16px;
+    }
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .featured-wrap { margin-bottom: 48px; }
+    .all-articles { margin-top: 48px; }
+
+    @media (max-width: 900px) {
+      .blog-hero { padding: 56px 20px 40px; }
+      .blog-main { padding: 0 20px 64px; }
+      .articles-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ticker">
+    <div class="t-item"><span class="t-sym">SOLUSDT</span><span class="t-badge tb-l">LONG</span>Pullback Break Long · 15m<span style="color:var(--text-dim);">$162.40</span></div>
+    <div class="t-item"><span class="t-sym">BTCUSDT</span><span class="t-badge tb-n">SCAN</span>Volume Spike · 1h<span style="color:var(--text-dim);">$67,240</span></div>
+    <div class="t-item"><span class="t-sym">ETHUSDT</span><span class="t-badge tb-l">LONG</span>Breakout + OI Confirm · 15m<span style="color:var(--text-dim);">$3,512</span></div>
+    <div class="t-item"><span class="t-sym">SUIUSDT</span><span class="t-badge tb-l">LONG</span>Compression Breakout · 5m<span style="color:var(--text-dim);">$1.084</span></div>
+    <div class="t-item"><span class="t-sym">WIFUSDT</span><span class="t-badge tb-s">SHORT</span>Pullback Break Short · 15m<span style="color:var(--text-dim);">$2.31</span></div>
+    <div class="t-item"><span class="t-sym">DOGEUSDT</span><span class="t-badge tb-l">LONG</span>Short Squeeze Candidate · 15m<span style="color:var(--text-dim);">$0.1618</span></div>
+    <div class="t-item"><span class="t-sym">ARBUSDT</span><span class="t-badge tb-l">LONG</span>VWAP Reclaim · 5m<span style="color:var(--text-dim);">$0.845</span></div>
+    <div class="t-item"><span class="t-sym">AVAXUSDT</span><span class="t-badge tb-s">SHORT</span>Crowded Longs Warning · 1h<span style="color:var(--text-dim);">$36.12</span></div>
+    <div class="t-item"><span class="t-sym">BNBUSDT</span><span class="t-badge tb-n">SCAN</span>OI Build-Up · 1h<span style="color:var(--text-dim);">$584.20</span></div>
+    <div class="t-item"><span class="t-sym">LINKUSDT</span><span class="t-badge tb-l">LONG</span>BTC-Relative Strength · 15m<span style="color:var(--text-dim);">$14.62</span></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="landing.html" class="nav-logo"><div class="logo-dot"></div>DEXSEER ALPHA</a>
+  <ul class="nav-links">
+    <li><a href="landing.html#signals">Signals</a></li>
+    <li><a href="landing.html#pricing">Pricing</a></li>
+    <li><a href="#">API</a></li>
+    <li><a href="blog.html" class="active">Blog</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="#" class="btn btn-ghost">Log in</a>
+    <a href="#" class="btn btn-primary">Start Free</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="blog-hero reveal">
+  <div class="blog-eyebrow">DEXSEER ALPHA · BLOG</div>
+  <h1 class="blog-h1">Signals, Strategy,<br>and Market Edge.</h1>
+  <p class="blog-sub">Guides for active Binance perp traders, bot builders, and trading communities.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- MAIN CONTENT -->
+<div class="blog-main">
+
+  <!-- FEATURED -->
+  <div class="featured-wrap reveal">
+    <div class="section-label">Featured</div>
+    <a href="blog/dexseer-vs-tradingview.html" class="article-card-featured">
+      <div class="acf-accent"></div>
+      <div class="acf-body">
+        <div class="acf-eyebrow">Featured &nbsp;·&nbsp; Comparison</div>
+        <div class="acf-title">DexSeer vs TradingView for Binance Perp Alerts</div>
+        <p class="acf-excerpt">TradingView is the world's most popular charting platform — but if you're trading Binance perpetual futures and relying on its alerts, you're missing the most valuable context. No open interest. No funding rate alerts. No squeeze detection. Here's how the two platforms actually compare for serious perp traders.</p>
+        <div class="acf-footer">
+          <div class="acf-meta">
+            <span>8 min read</span>
+            <span>&middot;</span>
+            <span>May 2026</span>
+          </div>
+          <span class="acf-link">Read Article &rarr;</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- ALL ARTICLES -->
+  <div class="all-articles">
+    <div class="section-label reveal">All Articles</div>
+    <div class="articles-grid">
+
+      <!-- 1: DexSeer vs TradingView -->
+      <a href="blog/dexseer-vs-tradingview.html" class="article-card reveal">
+        <div class="ac-accent ac-accent-blue"></div>
+        <div class="ac-body">
+          <div class="ac-tag ac-tag-blue">Comparison</div>
+          <div class="ac-title">DexSeer vs TradingView for Binance Perp Alerts</div>
+          <p class="ac-excerpt">A side-by-side breakdown of alert capabilities for crypto futures traders. OI, funding, and squeeze detection — what each platform actually supports.</p>
+          <div class="ac-meta">
+            <span>8 min read</span>
+            <div class="ac-meta-dot"></div>
+            <span>May 2026</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- 2: Short Squeeze Alerts -->
+      <a href="blog/short-squeeze-alerts.html" class="article-card reveal">
+        <div class="ac-accent ac-accent-green"></div>
+        <div class="ac-body">
+          <div class="ac-tag ac-tag-green">Strategy</div>
+          <div class="ac-title">Short Squeeze Alerts: How to Detect Squeeze Setups Automatically</div>
+          <p class="ac-excerpt">Short squeezes are high-velocity, high-conviction moves — but only if you catch them at the right moment. Learn the exact conditions that define a squeeze and how to automate detection.</p>
+          <div class="ac-meta">
+            <span>6 min read</span>
+            <div class="ac-meta-dot"></div>
+            <span>May 2026</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- 3: Best Crypto Futures Alert Tools -->
+      <a href="blog/best-crypto-futures-alert-tools.html" class="article-card reveal">
+        <div class="ac-accent ac-accent-blue"></div>
+        <div class="ac-body">
+          <div class="ac-tag ac-tag-blue">Comparison</div>
+          <div class="ac-title">Best Crypto Futures Alert Tools in 2026</div>
+          <p class="ac-excerpt">A comprehensive roundup of the tools serious perp traders actually use — from charting platforms to dedicated signal engines. What they cost, what they do, and where they fall short.</p>
+          <div class="ac-meta">
+            <span>10 min read</span>
+            <div class="ac-meta-dot"></div>
+            <span>May 2026</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- 4: Open Interest Alerts -->
+      <a href="blog/open-interest-alerts.html" class="article-card reveal">
+        <div class="ac-accent ac-accent-green"></div>
+        <div class="ac-body">
+          <div class="ac-tag" style="color:var(--text-dim);">Education</div>
+          <div class="ac-title">Open Interest Alerts: Why OI Context Changes Everything</div>
+          <p class="ac-excerpt">Price tells you what happened. Open interest tells you why it might continue — or reverse. Here's how OI-based alerts work and why every serious perp trader should be watching it.</p>
+          <div class="ac-meta">
+            <span>7 min read</span>
+            <div class="ac-meta-dot"></div>
+            <span>May 2026</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- 5: Pullback Break Strategy -->
+      <a href="blog/pullback-break-strategy.html" class="article-card reveal">
+        <div class="ac-accent ac-accent-green"></div>
+        <div class="ac-body">
+          <div class="ac-tag ac-tag-green">Strategy</div>
+          <div class="ac-title">The Pullback Break Setup: What It Is and How to Automate It</div>
+          <p class="ac-excerpt">One of the most reliable continuation setups in trending markets. Learn the exact structure of a pullback break — impulse, consolidation, reclaim — and how to get alerted the moment it triggers.</p>
+          <div class="ac-meta">
+            <span>5 min read</span>
+            <div class="ac-meta-dot"></div>
+            <span>May 2026</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- 6: TradingView Webhook Alternatives -->
+      <a href="blog/tradingview-webhook-alternatives.html" class="article-card reveal">
+        <div class="ac-accent ac-accent-blue"></div>
+        <div class="ac-body">
+          <div class="ac-tag ac-tag-blue">Comparison</div>
+          <div class="ac-title">TradingView Webhook Alternatives for Crypto Traders</div>
+          <p class="ac-excerpt">TradingView webhooks require a $59.95/month Premium subscription and still lack perp-specific data. Here are the better options for traders who need reliable, context-rich webhook delivery.</p>
+          <div class="ac-meta">
+            <span>6 min read</span>
+            <div class="ac-meta-dot"></div>
+            <span>May 2026</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<div class="footer-wrap">
+  <div class="footer-top">
+    <a href="landing.html" class="nav-logo" style="font-size:0.82rem;"><div class="logo-dot"></div>DEXSEER ALPHA</a>
+    <div class="footer-links">
+      <a href="landing.html#signals">Features</a>
+      <a href="landing.html#pricing">Pricing</a>
+      <a href="#">API Docs</a>
+      <a href="blog.html">Blog</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+  <div class="footer-disc">
+    DexSeer Alpha provides market alerts and analytics for informational purposes only. Nothing on this platform constitutes financial advice, investment advice, or trade recommendations. All alerts are generated algorithmically and may contain errors. Users are solely responsible for their own trading decisions and any resulting profits or losses. Trading perpetual futures involves substantial risk of loss and is not appropriate for all investors. Past alert performance does not guarantee future results.
+  </div>
+  <div class="footer-copy">&copy; 2026 DexSeer Alpha &middot; All rights reserved</div>
+</div>
+
+<script>
+  // Duplicate ticker for seamless loop
+  const track = document.getElementById('ticker');
+  track.innerHTML += track.innerHTML;
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        const delay = i * 60;
+        setTimeout(() => entry.target.classList.add('in'), delay);
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>
