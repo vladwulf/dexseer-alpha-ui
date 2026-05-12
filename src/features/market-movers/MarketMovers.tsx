@@ -144,7 +144,7 @@ const movers = [
 
 export function MarketMovers() {
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-5xl">
       {/* Section label */}
       <div className="mb-3 flex items-center gap-3">
         <p
