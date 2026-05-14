@@ -1,29 +1,60 @@
 import { AlertChart } from "../chart/AlertChart";
+import type { AlertTimeframe } from "./hooks/alerts.api";
 import { useGetAlertChart } from "./hooks/alerts.api";
 
 type Props = {
   alertTime: string;
-  alertId: number;
+  alertId: string;
+  timeframe: AlertTimeframe;
 };
+
 export function AlertsChartWrapper(props: Props) {
-  const chartData1s = useGetAlertChart(props.alertId, "1m");
-  const chartData1m = useGetAlertChart(props.alertId, "5m");
-  const chartData15m = useGetAlertChart(props.alertId, "15m");
+  const chartData = useGetAlertChart(props.alertId, props.timeframe);
 
   return (
-    <div className="grid h-full min-w-0 grid-cols-3 gap-3 overflow-hidden">
-      {/* <div className="min-w-0 h-full overflow-hidden">
-        <AlertChart alertTime={props.alertTime} series={chartData1s.data ?? []} />
-      </div>
-      <div className="min-w-0 h-full overflow-hidden">
-        <AlertChart alertTime={props.alertTime} series={chartData1m.data ?? []} />
-      </div> */}
-      <div className="min-w-0 h-full overflow-hidden col-span-3">
-        <AlertChart
-          alertTime={props.alertTime}
-          series={chartData15m.data ?? []}
-        />
-      </div>
+    <div className="h-full min-w-0 overflow-hidden">
+      {chartData.isLoading && (
+        <div
+          className="flex h-full items-center justify-center"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.7rem",
+            letterSpacing: "0.08em",
+            color: "oklch(0.45 0 0)",
+          }}
+        >
+          Loading chart...
+        </div>
+      )}
+      {chartData.isError && (
+        <div
+          className="flex h-full items-center justify-center"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.7rem",
+            letterSpacing: "0.08em",
+            color: "#e35561",
+          }}
+        >
+          Chart unavailable
+        </div>
+      )}
+      {!chartData.isLoading && !chartData.isError && chartData.data?.length === 0 && (
+        <div
+          className="flex h-full items-center justify-center"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.7rem",
+            letterSpacing: "0.08em",
+            color: "oklch(0.45 0 0)",
+          }}
+        >
+          No chart data
+        </div>
+      )}
+      {!chartData.isLoading && !chartData.isError && Boolean(chartData.data?.length) && (
+        <AlertChart alertTime={props.alertTime} series={chartData.data ?? []} />
+      )}
     </div>
   );
 }

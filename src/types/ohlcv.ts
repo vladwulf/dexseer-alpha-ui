@@ -1,6 +1,7 @@
 export type AlertType = "VOLUME_SURGE_SHORT" | string; // Add other alert types as needed
 
 export type Timeframe =
+  | "1s"
   | "1m"
   | "5m"
   | "15m"
@@ -30,17 +31,17 @@ export type OHLCVExtended = {
   analytics_updated_at: string | null;
   asset_volume: number;
   quote_volume: number;
-  rel_vol_16p: number;
-  rel_vol_96p: number;
+  rel_vol_16p: number | null;
+  rel_vol_96p: number | null;
   is_16p_breakout: boolean;
   is_16p_breakdown: boolean;
   is_96p_breakout: boolean;
   is_96p_breakdown: boolean;
-  ema9: number;
-  ema20: number;
-  macd_signal: number;
-  macd_line: number;
-  macd_histogram: number;
+  ema9: number | null;
+  ema20: number | null;
+  macd_signal: number | null;
+  macd_line: number | null;
+  macd_histogram: number | null;
 };
 
 export interface Alert {

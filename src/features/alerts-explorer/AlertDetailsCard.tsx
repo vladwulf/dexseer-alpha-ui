@@ -12,7 +12,7 @@ type Props = {
 };
 export const AlertDetailsCard: React.FC<Props> = (props) => {
   const { alertId, alertTime, alertType, assetId, symbol } = props;
-  const { data: charts } = useGetAlertChart(alertId);
+  const { data: chart } = useGetAlertChart(String(alertId), "15m");
 
   return (
     <Card className="p-3 bg-black transition-colors cursor-pointer rounded-md border-0 ">
@@ -39,10 +39,8 @@ export const AlertDetailsCard: React.FC<Props> = (props) => {
             </div>
           </div>
         </div>
-        <div className="h-[300px] w-full grid grid-cols-3 gap-5">
-          <AlertChart alertTime={alertTime} series={charts?.ohlc1min ?? []} />
-          <AlertChart alertTime={alertTime} series={charts?.ohlc5min ?? []} />
-          <AlertChart alertTime={alertTime} series={charts?.ohlc15min ?? []} />
+        <div className="h-[300px] w-full">
+          <AlertChart alertTime={alertTime} series={chart ?? []} />
         </div>
       </div>
     </Card>

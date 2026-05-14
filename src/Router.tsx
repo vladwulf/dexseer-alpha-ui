@@ -1,4 +1,4 @@
-import { RouterProvider, createBrowserRouter } from "react-router";
+import { Navigate, RouterProvider, createBrowserRouter } from "react-router";
 import { RootLayout } from "./components/layout/RootLayout";
 import { DashboardPage } from "./pages/Dashboard.page";
 import { PatternsPage } from "./pages/Patterns.page";
@@ -11,6 +11,7 @@ const routes = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { path: "/", element: <DashboardPage /> },
+      { path: "/alerts", element: <Navigate to="/alerts/explorer" replace /> },
       { path: "/alerts/explorer", element: <AlertsExplorerPage /> },
       { path: "/patterns", element: <PatternsPage /> },
       { path: "/chart", element: <ChartPage /> },
