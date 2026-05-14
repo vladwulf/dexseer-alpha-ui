@@ -124,13 +124,15 @@ export function AlertChart({
         },
       },
       handleScroll: {
-        mouseWheel: false,
-        pressedMouseMove: false,
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false,
       },
       handleScale: {
-        axisPressedMouseMove: false,
-        mouseWheel: false,
-        pinch: false,
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
       },
     });
 
