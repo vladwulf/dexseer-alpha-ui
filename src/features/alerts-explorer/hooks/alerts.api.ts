@@ -13,7 +13,22 @@ export type AlertTimeframe =
   | "4h"
   | "1d";
 
-export type AlertType = "15minHighBreak" | "15minLowBreak";
+export type AlertType =
+  | "dailyHighBreak"
+  | "dailyLowBreak"
+  | "previousDayHighBreak"
+  | "previousDayLowBreak"
+  | "percentUp10Today"
+  | "percentDown10Today"
+  | "runningUpNow"
+  | "runningDownNow"
+  | "dailyVolumeSpike4x"
+  | "4hHighBreak"
+  | "4hLowBreak"
+  | "15minHighBreak"
+  | "15minLowBreak"
+  | "1hHighBreak"
+  | "1hLowBreak";
 
 export type AlertListItem = {
   id: string;

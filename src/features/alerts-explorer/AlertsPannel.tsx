@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { ChevronDown } from "lucide-react";
 import { AlertsChartWrapper } from "./AlertChartWrapper";
 import {
   type AlertTimeframe,
@@ -20,8 +30,21 @@ const TIMEFRAMES: AlertTimeframe[] = [
 
 const ALERT_TYPES: Array<AlertType | "all"> = [
   "all",
+  "dailyHighBreak",
+  "dailyLowBreak",
+  "previousDayHighBreak",
+  "previousDayLowBreak",
+  "percentUp10Today",
+  "percentDown10Today",
+  "runningUpNow",
+  "runningDownNow",
+  "dailyVolumeSpike4x",
+  "4hHighBreak",
+  "4hLowBreak",
   "15minHighBreak",
   "15minLowBreak",
+  "1hHighBreak",
+  "1hLowBreak",
 ];
 
 const PAGE_SIZE = 50;
@@ -36,6 +59,9 @@ const formatType = (type: string) =>
   type
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/^./, (letter) => letter.toUpperCase());
+
+const alertTypeLabel = (type: AlertType | "all") =>
+  type === "all" ? "All Types" : formatType(type);
 
 const formatDateTime = (value: string) => {
   if (!value) return "N/A";
@@ -76,6 +102,7 @@ export function AlertsPannel() {
   const alerts = data?.pages.flatMap((p) => p.data) ?? [];
   const total = data?.pages[0]?.meta.total ?? 0;
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const selectedAlertTypeLabel = alertTypeLabel(alertType);
 
   useEffect(() => {
     if (!hasNextPage || isFetchingNextPage || !loadMoreRef.current) return;
@@ -147,19 +174,77 @@ export function AlertsPannel() {
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
-            {ALERT_TYPES.map((item) => (
-              <Button
-                key={item}
-                type="button"
-                size="sm"
-                variant={alertType === item ? "default" : "outline"}
-                onClick={() => setAlertType(item)}
-                className="h-8 rounded px-3 font-mono text-[0.7rem]"
-              >
-                {item === "all" ? "All Types" : formatType(item)}
-              </Button>
-            ))}
+          <div className="flex items-center gap-2">
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.62rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "oklch(0.45 0 0)",
+              }}
+            >
+              Type
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    height: 32,
+                    padding: "0 10px",
+                    borderRadius: 4,
+                    border: "1px solid oklch(1 0 0 / 8%)",
+                    background:
+                      alertType !== "all"
+                        ? "oklch(0.72 0.18 248 / 10%)"
+                        : "#0d0d0d",
+                    cursor: "pointer",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.68rem",
+                    fontWeight: 500,
+                    letterSpacing: "0.05em",
+                    color:
+                      alertType !== "all"
+                        ? "oklch(0.72 0.18 248)"
+                        : "oklch(0.48 0 0)",
+                    transition: "all 0.12s",
+                  }}
+                >
+                  {selectedAlertTypeLabel}
+                  <ChevronDown size={10} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.65rem",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  Alert Type
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={alertType}
+                  onValueChange={(value) => setAlertType(value as AlertType | "all")}
+                >
+                  {ALERT_TYPES.map((item) => (
+                    <DropdownMenuRadioItem
+                      key={item}
+                      value={item}
+                      style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}
+                    >
+                      {alertTypeLabel(item)}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Input
