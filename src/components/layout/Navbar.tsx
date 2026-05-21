@@ -6,6 +6,7 @@ const navLinks = [
   { to: "/alerts/explorer", label: "Alerts" },
   { to: "/patterns", label: "Patterns" },
   { to: "/chart", label: "Chart" },
+  { to: "/analytics", label: "Analytics" },
 ];
 
 const navLinkStyle = (isActive: boolean): React.CSSProperties => ({
