@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
+import {
+  createChart,
+  ColorType,
+  CandlestickSeries,
+  HistogramSeries,
+} from "lightweight-charts";
 import type { Time } from "lightweight-charts";
 import { MiniChart } from "./MiniChart";
 import type { OHLCVExtended } from "@/types/ohlcv";
@@ -11,6 +16,8 @@ const hexToRgba = (hex: string, opacity: number): string => {
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
+
+const VOLUME_OPACITY = 0.78;
 
 interface MicroChartProps {
   alertTimestamp: string;
@@ -90,6 +97,10 @@ export function MicroChart({
       rightPriceScale: {
         visible: false, // Hide price scale for micro chart
         borderVisible: false,
+        scaleMargins: {
+          top: 0.06,
+          bottom: 0.26,
+        },
       },
       leftPriceScale: {
         visible: false,
@@ -146,10 +157,15 @@ export function MicroChart({
     const alertTimestampUnix = (new Date(alertTimestamp).getTime() /
       1000) as Time;
 
-    candlestickSeries.setData(
-      klines.filter((kline) =>
-        kline.open != null && kline.high != null && kline.low != null && kline.close != null
-      ).map((kline) => {
+    const seriesData = klines
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
+      )
+      .map((kline) => {
         const time = (new Date(kline.time).getTime() / 1000) as Time;
         let candleColor = undefined;
         if (time === alertTimestampUnix) {
@@ -178,16 +194,45 @@ export function MicroChart({
           high: kline.high,
           low: kline.low,
           close: kline.close,
+          volume: Number(kline.asset_volume) || 0,
           color: candleColor,
           borderColor: candleColor,
           wickColor: candleColor,
         };
-      }),
-    );
+      });
+
+    candlestickSeries.setData(seriesData);
     candlestickSeries.applyOptions({
       lastValueVisible: false, // hides the price on the right scale
       priceLineVisible: false, // hides the horizontal last price line
     });
+
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      priceFormat: {
+        type: "volume",
+      },
+      priceScaleId: "",
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
+
+    volumeSeries.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    });
+
+    volumeSeries.setData(
+      seriesData.map((kline) => ({
+        time: kline.time,
+        value: kline.volume,
+        color:
+          kline.close >= kline.open
+            ? hexToRgba(upColor, VOLUME_OPACITY)
+            : hexToRgba(downColor, VOLUME_OPACITY),
+      })),
+    );
 
     // Remove all price lines (including the last price line)
     // Get all price lines and remove them

@@ -374,24 +374,24 @@ export const getCryptoColumns = (
                 height={74}
                 periods={100}
               />
-            <Link
-              to={`/chart?symbol=${row.original.symbol}&timeframe=1m`}
-              style={{
-                position: "absolute",
-                top: 7,
-                left: 7,
-                fontFamily: "var(--font-display)",
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                letterSpacing: "0.04em",
-                color: "oklch(0.96 0 0)",
-                textDecoration: "none",
-                lineHeight: 1,
-                textShadow: "0 1px 6px rgba(0,0,0,0.9)",
-              }}
-            >
-              {ticker}
-            </Link>
+              <Link
+                to={`/chart?symbol=${row.original.symbol}&timeframe=1m`}
+                style={{
+                  position: "absolute",
+                  top: 7,
+                  left: 7,
+                  fontFamily: "var(--font-display)",
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                  color: "oklch(0.96 0 0)",
+                  textDecoration: "none",
+                  lineHeight: 1,
+                  textShadow: "0 1px 6px rgba(0,0,0,0.9)",
+                }}
+              >
+                {ticker}
+              </Link>
             </div>
           </div>
         );
