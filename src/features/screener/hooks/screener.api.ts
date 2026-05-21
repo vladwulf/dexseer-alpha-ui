@@ -13,6 +13,7 @@ export const SortBy = {
   ONE_HOUR_PERFORMANCE: "1h_performance",
   FOUR_HOUR_PERFORMANCE: "4h_performance",
   ONE_DAY_PERFORMANCE: "1d_performance",
+  ONE_DAY_VOLUME: "1d_volume",
   ONE_MIN_VOLUME_DELTA: "1m_volume_delta",
   FIVE_MIN_VOLUME_DELTA: "5m_volume_delta",
   FIFTEEN_MIN_VOLUME_DELTA: "15m_volume_delta",

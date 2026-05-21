@@ -7,6 +7,7 @@ import { DataTable } from "./data-table";
 import {
   ScreenerConfigs,
   type ScreenerDensity,
+  type ScreenerProfile,
   type RefreshInterval,
   type Timeframe,
 } from "../screener-buttons/ScreenerConfigs";
@@ -21,10 +22,78 @@ const columnToSortByMap: Record<string, SortBy> = {
   change_15m: SortBy.FIFTEEN_MIN_PERFORMANCE,
   change_1h: SortBy.ONE_HOUR_PERFORMANCE,
   change_4h: SortBy.FOUR_HOUR_PERFORMANCE,
+  change_1d: SortBy.ONE_DAY_PERFORMANCE,
+  volume_1d: SortBy.ONE_DAY_VOLUME,
   volume_delta_1m: SortBy.ONE_MIN_VOLUME_DELTA,
   volume_delta_5m: SortBy.FIVE_MIN_VOLUME_DELTA,
   volume_delta_1h: SortBy.ONE_HOUR_VOLUME_DELTA,
   volume_delta_4h: SortBy.FOUR_HOUR_VOLUME_DELTA,
+  volume_delta_1d: SortBy.ONE_DAY_VOLUME_DELTA,
+};
+
+const DAY_PROFILE_SORTABLE_COLUMNS = new Set([
+  "price",
+  "change_1m",
+  "change_5m",
+  "change_15m",
+  "change_1h",
+  "volume_delta_1m",
+  "volume_delta_5m",
+  "volume_delta_1h",
+]);
+
+const SWING_PROFILE_SORTABLE_COLUMNS = new Set([
+  "price",
+  "change_1h",
+  "change_4h",
+  "change_1d",
+  "volume_1d",
+  "volume_delta_1h",
+  "volume_delta_4h",
+  "volume_delta_1d",
+]);
+
+const MULTI_TIMEFRAME_SORTABLE_COLUMNS = new Set([
+  "price",
+  "change_1m",
+  "change_5m",
+  "change_15m",
+  "change_1h",
+  "change_4h",
+  "change_1d",
+  "volume_1d",
+  "volume_delta_1m",
+  "volume_delta_5m",
+  "volume_delta_1h",
+  "volume_delta_4h",
+  "volume_delta_1d",
+]);
+
+const getDefaultSortingForProfile = (
+  profile: ScreenerProfile,
+): SortingState =>
+  profile === "swing-trading"
+    ? [{ id: "change_1d", desc: true }]
+    : profile === "day-trading"
+      ? [{ id: "change_15m", desc: true }]
+      : [{ id: "change_4h", desc: true }];
+
+const isSortingVisibleForProfile = (
+  sorting: SortingState,
+  profile: ScreenerProfile,
+) => {
+  if (sorting.length === 0) {
+    return false;
+  }
+
+  const visibleColumns =
+    profile === "swing-trading"
+      ? SWING_PROFILE_SORTABLE_COLUMNS
+      : profile === "day-trading"
+        ? DAY_PROFILE_SORTABLE_COLUMNS
+        : MULTI_TIMEFRAME_SORTABLE_COLUMNS;
+
+  return visibleColumns.has(sorting[0].id);
 };
 
 /**
@@ -48,16 +117,17 @@ const getSortParamsFromSorting = (
 
 export const ScreenerTable = () => {
   // Initialize with default sort: 4h performance descending
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "change_4h", desc: true },
-  ]);
+  const [sorting, setSorting] = useState<SortingState>(
+    getDefaultSortingForProfile("multi-timeframe"),
+  );
   const [timeframe, setTimeframe] = useState<Timeframe>("15m");
+  const [profile, setProfile] = useState<ScreenerProfile>("multi-timeframe");
   const [assetNameFilter, setAssetNameFilter] = useState("");
   const [refreshInterval, setRefreshInterval] =
     useState<RefreshInterval>("5s");
   const [density, setDensity] = useState<ScreenerDensity>("compact");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
-  const columns = getCryptoColumns(density);
+  const columns = getCryptoColumns(density, profile);
 
   const refreshIntervalMs: number | false =
     refreshInterval === "manual"
@@ -94,6 +164,15 @@ export const ScreenerTable = () => {
     });
   };
 
+  const handleProfileChange = (nextProfile: ScreenerProfile) => {
+    setProfile(nextProfile);
+    setSorting((currentSorting) =>
+      isSortingVisibleForProfile(currentSorting, nextProfile)
+        ? currentSorting
+        : getDefaultSortingForProfile(nextProfile),
+    );
+  };
+
   return (
     <div className="px-0 sm:px-4">
       {/* Section label */}
@@ -122,11 +201,13 @@ export const ScreenerTable = () => {
       >
         <ScreenerConfigs
           timeframe={timeframe}
+          profile={profile}
           refreshInterval={refreshInterval}
           density={density}
           assetNameFilter={assetNameFilter}
           isRefreshing={isFetching}
           onTimeframeChange={setTimeframe}
+          onProfileChange={handleProfileChange}
           onRefreshIntervalChange={setRefreshInterval}
           onDensityChange={setDensity}
           onAssetNameFilterChange={setAssetNameFilter}

@@ -12,7 +12,10 @@ import {
 import { RefreshCw, Search, ChevronDown } from "lucide-react";
 
 export type Timeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
-export type ScreenerProfile = "day-trading" | "swing-trading";
+export type ScreenerProfile =
+  | "multi-timeframe"
+  | "day-trading"
+  | "swing-trading";
 export type RefreshInterval = "manual" | "5s" | "10s" | "30s" | "1m" | "5m";
 export type ScreenerDensity = "compact" | "extended";
 export type SortPreset =
@@ -47,11 +50,13 @@ export type ColumnKey =
   | "change_15m"
   | "change_1h"
   | "change_4h"
+  | "change_1d"
   | "volume_1d"
   | "volume_delta_1m"
   | "volume_delta_5m"
   | "volume_delta_1h"
-  | "volume_delta_4h";
+  | "volume_delta_4h"
+  | "volume_delta_1d";
 
 export interface FilterValues {
   minPrice?: number;
@@ -111,7 +116,7 @@ const chipActive: React.CSSProperties = {
 
 export function ScreenerConfigs({
   timeframe = "15m",
-  profile = "day-trading",
+  profile = "multi-timeframe",
   refreshInterval = "manual",
   density = "compact",
   assetNameFilter = "",
@@ -238,8 +243,15 @@ export function ScreenerConfigs({
               gap: 2,
             }}
           >
-            {(["day-trading", "swing-trading"] as ScreenerProfile[]).map((p) => {
-              const label = p === "day-trading" ? "Day" : "Swing";
+            {(
+              ["multi-timeframe", "day-trading", "swing-trading"] as ScreenerProfile[]
+            ).map((p) => {
+              const label =
+                p === "multi-timeframe"
+                  ? "Multi"
+                  : p === "day-trading"
+                    ? "Day"
+                    : "Swing";
               const active = selectedProfile === p;
               return (
                 <button

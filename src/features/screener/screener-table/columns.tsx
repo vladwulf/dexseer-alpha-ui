@@ -1,12 +1,15 @@
 import type { ColumnDef, CellContext } from "@tanstack/react-table";
-import type { ReactElement } from "react";
+import { Fragment, type ReactElement } from "react";
 import { cn } from "@/lib/utils";
 import type { ScreenerAsset, ScreenerAssetWithChart } from "../types";
 import { MicroChart } from "@/features/chart/MicroChart";
 import { StandardChart } from "@/features/chart/StandardChart";
 import { Link } from "react-router";
 import { millify } from "millify";
-import type { ScreenerDensity } from "../screener-buttons/ScreenerConfigs";
+import type {
+  ScreenerDensity,
+  ScreenerProfile,
+} from "../screener-buttons/ScreenerConfigs";
 
 /**
  * Reusable cell renderer for percentage change values
@@ -133,7 +136,135 @@ const getVolumeDeltaClassName = (value: number | null | undefined) => {
   return "text-gray-300";
 };
 
-export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
+const DAY_TRADING_COMPACT_COLUMNS = new Set([
+  "symbol",
+  "price",
+  "change_1m",
+  "change_5m",
+  "change_15m",
+  "change_1h",
+  "volume_delta_1m",
+  "volume_delta_5m",
+  "volume_delta_1h",
+]);
+
+const SWING_TRADING_COMPACT_COLUMNS = new Set([
+  "symbol",
+  "price",
+  "change_1h",
+  "change_4h",
+  "change_1d",
+  "volume_1d",
+  "volume_delta_1h",
+  "volume_delta_4h",
+  "volume_delta_1d",
+]);
+
+const MULTI_TIMEFRAME_COMPACT_COLUMNS = new Set([
+  "symbol",
+  "price",
+  "change_1m",
+  "change_5m",
+  "change_15m",
+  "change_1h",
+  "change_4h",
+  "change_1d",
+  "volume_1d",
+  "volume_delta_1m",
+  "volume_delta_5m",
+  "volume_delta_1h",
+  "volume_delta_4h",
+  "volume_delta_1d",
+]);
+
+type ExtendedMetric = {
+  label: string;
+  kind: "percent" | "volume" | "volumeDelta";
+  value: number | null | undefined;
+};
+
+const renderExtendedMetricValue = (metric: ExtendedMetric) => {
+  if (metric.kind === "percent") {
+    return (
+      <div
+        className={cn(
+          "text-right font-medium",
+          getPercentClassName(metric.value),
+        )}
+      >
+        {formatPercent(metric.value)}
+      </div>
+    );
+  }
+
+  if (metric.kind === "volumeDelta") {
+    return (
+      <div
+        className={cn(
+          "text-right font-medium",
+          getVolumeDeltaClassName(metric.value),
+        )}
+      >
+        {formatVolumeDelta(metric.value)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-right font-medium">
+      {formatCompactNumber(metric.value)}
+    </div>
+  );
+};
+
+const getExtendedMetrics = (
+  asset: ScreenerAssetWithChart,
+  profile: ScreenerProfile,
+): ExtendedMetric[] => {
+  if (profile === "swing-trading") {
+    return [
+      { label: "1h %", kind: "percent", value: asset.change_1h },
+      { label: "4h %", kind: "percent", value: asset.change_4h },
+      { label: "1d %", kind: "percent", value: asset.change_1d },
+      { label: "Volume 1d", kind: "volume", value: asset.volume_1d },
+      { label: "Volume Δ 1h", kind: "volumeDelta", value: asset.volume_delta_1h },
+      { label: "Volume Δ 4h", kind: "volumeDelta", value: asset.volume_delta_4h },
+      { label: "Volume Δ 1d", kind: "volumeDelta", value: asset.volume_delta_1d },
+    ];
+  }
+
+  if (profile === "multi-timeframe") {
+    return [
+      { label: "1m %", kind: "percent", value: asset.change_1m },
+      { label: "5m %", kind: "percent", value: asset.change_5m },
+      { label: "15m %", kind: "percent", value: asset.change_15m },
+      { label: "1h %", kind: "percent", value: asset.change_1h },
+      { label: "4h %", kind: "percent", value: asset.change_4h },
+      { label: "1d %", kind: "percent", value: asset.change_1d },
+      { label: "Volume 1d", kind: "volume", value: asset.volume_1d },
+      { label: "Volume Δ 1m", kind: "volumeDelta", value: asset.volume_delta_1m },
+      { label: "Volume Δ 5m", kind: "volumeDelta", value: asset.volume_delta_5m },
+      { label: "Volume Δ 1h", kind: "volumeDelta", value: asset.volume_delta_1h },
+      { label: "Volume Δ 4h", kind: "volumeDelta", value: asset.volume_delta_4h },
+      { label: "Volume Δ 1d", kind: "volumeDelta", value: asset.volume_delta_1d },
+    ];
+  }
+
+  return [
+    { label: "1m %", kind: "percent", value: asset.change_1m },
+    { label: "5m %", kind: "percent", value: asset.change_5m },
+    { label: "15m %", kind: "percent", value: asset.change_15m },
+    { label: "1h %", kind: "percent", value: asset.change_1h },
+    { label: "Volume Δ 1m", kind: "volumeDelta", value: asset.volume_delta_1m },
+    { label: "Volume Δ 5m", kind: "volumeDelta", value: asset.volume_delta_5m },
+    { label: "Volume Δ 1h", kind: "volumeDelta", value: asset.volume_delta_1h },
+  ];
+};
+
+export const getCryptoColumns = (
+  density: ScreenerDensity = "compact",
+  profile: ScreenerProfile = "multi-timeframe",
+) => {
   if (density === "extended") {
     return [
       {
@@ -143,6 +274,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
         cell: ({ row }: CellContext<ScreenerAssetWithChart, unknown>) => {
           const asset = row.original;
           const shortSymbol = asset.symbol.replace("USDT", "");
+          const metrics = getExtendedMetrics(asset, profile);
           return (
             <div className="w-full px-1">
               <div className="flex flex-col gap-3 lg:flex-row">
@@ -186,101 +318,14 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
                     <div className="text-right font-medium">
                       {formatPrice(asset.price)}
                     </div>
-
-                    <div className="text-muted-foreground">1m %</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getPercentClassName(asset.change_1m),
-                      )}
-                    >
-                      {formatPercent(asset.change_1m)}
-                    </div>
-
-                    <div className="text-muted-foreground">5m %</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getPercentClassName(asset.change_5m),
-                      )}
-                    >
-                      {formatPercent(asset.change_5m)}
-                    </div>
-
-                    <div className="text-muted-foreground">15m %</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getPercentClassName(asset.change_15m),
-                      )}
-                    >
-                      {formatPercent(asset.change_15m)}
-                    </div>
-
-                    <div className="text-muted-foreground">1h %</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getPercentClassName(asset.change_1h),
-                      )}
-                    >
-                      {formatPercent(asset.change_1h)}
-                    </div>
-
-                    <div className="text-muted-foreground">4h %</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getPercentClassName(asset.change_4h),
-                      )}
-                    >
-                      {formatPercent(asset.change_4h)}
-                    </div>
-
-                    <div className="text-muted-foreground">Volume 1d</div>
-                    <div className="text-right font-medium">
-                      {formatCompactNumber(asset.volume_1d)}
-                    </div>
-
-                    <div className="text-muted-foreground">Volume Δ 1m</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getVolumeDeltaClassName(asset.volume_delta_1m),
-                      )}
-                    >
-                      {formatVolumeDelta(asset.volume_delta_1m)}
-                    </div>
-
-                    <div className="text-muted-foreground">Volume Δ 5m</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getVolumeDeltaClassName(asset.volume_delta_5m),
-                      )}
-                    >
-                      {formatVolumeDelta(asset.volume_delta_5m)}
-                    </div>
-
-                    <div className="text-muted-foreground">Volume Δ 1h</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getVolumeDeltaClassName(asset.volume_delta_1h),
-                      )}
-                    >
-                      {formatVolumeDelta(asset.volume_delta_1h)}
-                    </div>
-
-                    <div className="text-muted-foreground">Volume Δ 4h</div>
-                    <div
-                      className={cn(
-                        "text-right font-medium",
-                        getVolumeDeltaClassName(asset.volume_delta_4h),
-                      )}
-                    >
-                      {formatVolumeDelta(asset.volume_delta_4h)}
-                    </div>
+                    {metrics.map((metric) => (
+                      <Fragment key={metric.label}>
+                        <div className="text-muted-foreground">
+                          {metric.label}
+                        </div>
+                        {renderExtendedMetricValue(metric)}
+                      </Fragment>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -291,7 +336,7 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
     ];
   }
 
-  return [
+  const compactColumns = [
     {
       accessorKey: "symbol",
       header: "Asset",
@@ -382,9 +427,13 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
       cell: percentageChangeCell,
     },
     {
+      accessorKey: "change_1d",
+      header: "1d %",
+      cell: percentageChangeCell,
+    },
+    {
       accessorKey: "volume_1d",
       header: "Volume 1d",
-      enableSorting: false,
       cell: ({ row }) => {
         return <span>{formatCompactNumber(row.original.volume_1d)}</span>;
       },
@@ -409,7 +458,23 @@ export const getCryptoColumns = (density: ScreenerDensity = "compact") => {
       header: "Volume Δ 4h",
       cell: volumeDeltaChangeCell,
     },
+    {
+      accessorKey: "volume_delta_1d",
+      header: "Volume Δ 1d",
+      cell: volumeDeltaChangeCell,
+    },
   ];
+
+  const visibleColumns =
+    profile === "swing-trading"
+      ? SWING_TRADING_COMPACT_COLUMNS
+      : profile === "day-trading"
+        ? DAY_TRADING_COMPACT_COLUMNS
+        : MULTI_TIMEFRAME_COMPACT_COLUMNS;
+
+  return compactColumns.filter((column) =>
+    "accessorKey" in column ? visibleColumns.has(String(column.accessorKey)) : true,
+  );
 };
 
 export const cryptoExtendedColumns: ColumnDef<TrackedAssetExtended>[] = [
