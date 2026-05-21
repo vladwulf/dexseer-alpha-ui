@@ -4,8 +4,8 @@ import { NavLink, useLocation } from "react-router";
 const navLinks = [
   { to: "/", label: "Screener" },
   { to: "/alerts/explorer", label: "Alerts" },
-  { to: "/patterns", label: "Patterns" },
-  { to: "/chart", label: "Chart" },
+  // { to: "/patterns", label: "Patterns" },
+  // { to: "/chart", label: "Chart" },
   { to: "/analytics", label: "Analytics" },
 ];
 

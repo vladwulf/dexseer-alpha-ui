@@ -59,12 +59,15 @@ function SkeletonBars() {
   );
 }
 
+const LOOKBACK_OPTIONS = [7, 14, 30, 90] as const;
+
 export function AnalyticsVolume() {
   const [metric, setMetric] = useState<AnalyticsVolumeMetric>("quote_volume");
+  const [lookbackDays, setLookbackDays] = useState<(typeof LOOKBACK_OPTIONS)[number]>(14);
   const [activeHour, setActiveHour] = useState<number | null>(null);
   const currentHour = new Date().getUTCHours();
 
-  const { data, isLoading, isError } = useGetHourlyVolumeActivity({ metric });
+  const { data, isLoading, isError } = useGetHourlyVolumeActivity({ metric, lookbackDays });
 
   const hourlyData: HourlyData[] = data ? normalizeBuckets(data.buckets) : [];
 
@@ -263,7 +266,7 @@ export function AnalyticsVolume() {
           }}
         >
           {/* Chart header */}
-          <div className="mb-5 flex items-center justify-between gap-4">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <span
               style={{
                 fontFamily: "var(--font-mono)",
@@ -276,29 +279,56 @@ export function AnalyticsVolume() {
               Hourly Volume · {metricLabel}
             </span>
 
-            {activeData && activeData.volume > 0 ? (
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.62rem",
-                  color: "oklch(0.72 0.18 248)",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                {padH(activeData.hour)} UTC — ${millify(activeData.volume, { precision: 2 })}
-              </span>
-            ) : (
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.62rem",
-                  color: "oklch(0.32 0 0)",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                {isLoading ? "loading..." : isError ? "failed to load" : "hover a bar for details"}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {activeData && activeData.volume > 0 ? (
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.62rem",
+                    color: "oklch(0.72 0.18 248)",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {padH(activeData.hour)} UTC — ${millify(activeData.volume, { precision: 2 })}
+                </span>
+              ) : (
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.62rem",
+                    color: "oklch(0.32 0 0)",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {isLoading ? "loading..." : isError ? "failed to load" : "hover a bar for details"}
+                </span>
+              )}
+
+              <div style={{ width: 1, height: 14, background: "oklch(1 0 0 / 10%)" }} />
+
+              {LOOKBACK_OPTIONS.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setLookbackDays(d)}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.08em",
+                    cursor: "pointer",
+                    border: "1px solid",
+                    borderRadius: 4,
+                    padding: "4px 10px",
+                    transition: "color 0.15s, background 0.15s, border-color 0.15s",
+                    background: lookbackDays === d ? "oklch(0.72 0.18 248 / 12%)" : "transparent",
+                    borderColor: lookbackDays === d ? "oklch(0.72 0.18 248 / 35%)" : "oklch(1 0 0 / 10%)",
+                    color: lookbackDays === d ? "oklch(0.72 0.18 248)" : "oklch(0.48 0 0)",
+                  }}
+                >
+                  {d}D
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Chart area */}
