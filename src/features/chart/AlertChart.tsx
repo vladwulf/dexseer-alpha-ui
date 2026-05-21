@@ -80,6 +80,7 @@ export function AlertChart({
         timeVisible: true, // Show time in addition to date
         secondsVisible: false,
         shiftVisibleRangeOnNewBar: true,
+        rightOffset: 2,
         tickMarkFormatter: (time: number) => {
           const date = new Date(time * 1000);
           const hours = date.getHours().toString().padStart(2, "0");
