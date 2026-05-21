@@ -9,7 +9,6 @@ import {
 } from "./hooks/alerts.api";
 
 const TIMEFRAMES: AlertTimeframe[] = [
-  "1s",
   "1m",
   "5m",
   "15m",
@@ -122,7 +121,18 @@ export function AlertsPannel() {
         </div>
 
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.62rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "oklch(0.45 0 0)",
+              }}
+            >
+              Timeframe
+            </span>
             {TIMEFRAMES.map((item) => (
               <Button
                 key={item}
