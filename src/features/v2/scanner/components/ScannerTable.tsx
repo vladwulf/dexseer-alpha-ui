@@ -125,7 +125,7 @@ export function ScannerTable({
                     {asset.setupScore}
                   </span>
                 </DataCell>
-                <DataCell className="text-white/62">
+                <DataCell className="w-[96px] overflow-hidden text-white/62">
                   <Sparkline values={asset.sparkline} />
                 </DataCell>
               </TableRow>

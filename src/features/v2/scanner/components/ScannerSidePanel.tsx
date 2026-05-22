@@ -1,6 +1,5 @@
-import { BellPlus, BookmarkPlus, Circle, Clock3, Star, Volume2 } from "lucide-react";
+import { BellPlus, BookmarkPlus, Clock3, Star, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Sheet,
   SheetContent,
@@ -34,12 +33,9 @@ function ScannerSidePanelBody({
   timeframe: ScannerTimeframe;
 }) {
   return (
-    <Card className="gap-0 rounded-[24px] border-white/8 bg-[#0d0d0d] px-4 py-4 shadow-[0_10px_35px_rgba(0,0,0,0.35)]">
-      <CardContent className="px-0">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <Circle className="mt-1 h-5 w-5 text-white/32" />
-            <div>
+    <div className="px-4 py-4">
+      <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
               <div className="flex items-center gap-2">
                 <h2 className="[font-family:var(--font-display)] text-lg font-bold italic leading-none text-white">
                   {asset.symbol}
@@ -55,7 +51,6 @@ function ScannerSidePanelBody({
                 <Pill value={asset.change1h} label="1h" />
                 <Pill value={asset.change24h} label="1d" />
               </div>
-            </div>
           </div>
         </div>
 
@@ -83,7 +78,7 @@ function ScannerSidePanelBody({
             <span>Price · {timeframe}</span>
             <span>vol / OI / funding</span>
           </div>
-          <div className="rounded-[20px] border border-white/8 bg-[#090909] p-4">
+          <div className="rounded-[20px] border border-white/8 bg-black p-4">
             <div className="relative h-44 overflow-hidden rounded-[14px]">
               <div className="pointer-events-none absolute inset-y-0 left-[60%] z-10 border-l-2 border-dashed border-[rgba(91,143,249,0.75)]" />
               <span className="pointer-events-none absolute left-[58%] top-2 z-10 text-xs font-semibold text-[#5b8ff9]">
@@ -184,8 +179,7 @@ function ScannerSidePanelBody({
             Open full analysis
           </ActionButton>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
 
@@ -201,14 +195,14 @@ export function ScannerSidePanel({
 
   return (
     <>
-      <aside className="hidden bg-[#090909] p-3 md:p-4 xl:block xl:w-[380px] xl:shrink-0 2xl:w-[460px]">
+      <aside className="hidden overflow-y-auto bg-[#040404] xl:block xl:w-[380px] xl:shrink-0 2xl:w-[460px]">
         <ScannerSidePanelBody asset={asset} timeframe={timeframe} />
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent
           side="right"
-          className="w-full overflow-y-auto border-white/8 bg-[#090909] p-3 sm:max-w-[460px]"
+          className="w-full overflow-y-auto border-white/8 bg-[#040404] p-3 sm:max-w-[460px]"
         >
           <SheetTitle className="sr-only">{asset.symbol} details</SheetTitle>
           <SheetDescription className="sr-only">
