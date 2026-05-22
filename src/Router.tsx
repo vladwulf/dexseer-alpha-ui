@@ -1,11 +1,10 @@
 import { Navigate, RouterProvider, createBrowserRouter } from "react-router";
 import { RootLayout } from "./components/layout/RootLayout";
 import { DashboardPage } from "./pages/Dashboard.page";
-import { PatternsPage } from "./pages/Patterns.page";
 import { AnalyticsPage } from "./pages/Analytics.page";
-import ChartPage from "./pages/Chart.page";
 import Simulation from "./pages/simulations/longs.simulation";
 import AlertsExplorerPage from "./pages/AlertsExplorer.page";
+import { ScannerV2Page } from "./pages/v2/ScannerV2.page";
 
 const routes = createBrowserRouter([
   {
@@ -18,6 +17,7 @@ const routes = createBrowserRouter([
       // { path: "/chart", element: <ChartPage /> },
       { path: "/analytics", element: <AnalyticsPage /> },
       { path: "/simulation", element: <Simulation /> },
+      { path: "/v2/scanner", element: <ScannerV2Page /> },
     ],
   },
 ]);
