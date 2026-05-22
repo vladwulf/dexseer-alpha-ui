@@ -1,15 +1,70 @@
 import { useState, useEffect } from "react";
 import { useGetRunners, useGetRunnersReplay } from "./hooks/analytics.api";
-import type { RunnerEntry, RunnerMetric } from "./types";
+import type { RunnerBoard, RunnerEntry, RunnerMetric } from "./types";
 
 const PLAYBACK_MS = 350;
 
-function changeOf(entry: RunnerEntry, metric: RunnerMetric): number {
+type BoardOption = {
+  key: RunnerBoard;
+  label: string;
+  title: string;
+  subtitle: (metricLabel: string) => string;
+  panelLabel: (metricLabel: string) => string;
+  leaderLabel: string;
+  emptyLive: string;
+  valueTicks: string[];
+};
+
+const BOARD_OPTIONS: BoardOption[] = [
+  {
+    key: "long",
+    label: "LONG",
+    title: "Asset Race Runner",
+    subtitle: (metricLabel) => `Top 10 Gainers · ${metricLabel} % Change`,
+    panelLabel: (metricLabel) => `Race Track · ${metricLabel} Change`,
+    leaderLabel: "Leader",
+    emptyLive: "Waiting for live data",
+    valueTicks: ["0%", "25%", "50%", "75%", "100%"],
+  },
+  {
+    key: "short",
+    label: "SHORT",
+    title: "Asset Race Runner",
+    subtitle: (metricLabel) => `Top 10 Losers · ${metricLabel} % Change`,
+    panelLabel: (metricLabel) => `Race Track · ${metricLabel} Change`,
+    leaderLabel: "Leader",
+    emptyLive: "Waiting for live data",
+    valueTicks: ["0%", "25%", "50%", "75%", "100%"],
+  },
+  {
+    key: "volume",
+    label: "VOLUME",
+    title: "Asset Volume Runner",
+    subtitle: (metricLabel) => `Top 10 By Volume · ${metricLabel}`,
+    panelLabel: (metricLabel) => `Race Track · ${metricLabel} Volume`,
+    leaderLabel: "Volume Leader",
+    emptyLive: "Waiting for live data",
+    valueTicks: ["0", "25", "50", "75", "100"],
+  },
+];
+
+function metricValueOf(entry: RunnerEntry, board: RunnerBoard, metric: RunnerMetric): number {
+  if (board === "volume") {
+    return metric === "1d" ? (entry.volume_1d ?? 0) : (entry.volume_4h ?? 0);
+  }
   return metric === "1d" ? (entry.change_1d ?? 0) : (entry.change_4h ?? 0);
 }
 
 function fmtChange(val: number): string {
   return (val >= 0 ? "+" : "") + val.toFixed(2) + "%";
+}
+
+function fmtVolume(val: number): string {
+  return val.toLocaleString("en-US", { maximumFractionDigits: 0 });
+}
+
+function fmtMetricValue(val: number, board: RunnerBoard): string {
+  return board === "volume" ? fmtVolume(val) : fmtChange(val);
 }
 
 function fmtTime(iso: string | null): string {
@@ -114,17 +169,19 @@ function RankBadge({ rank }: { rank: number }) {
 
 function RaceLane({
   entry,
+  board,
   metric,
-  maxChange,
+  maxValue,
   isLast,
 }: {
   entry: RunnerEntry;
+  board: RunnerBoard;
   metric: RunnerMetric;
-  maxChange: number;
+  maxValue: number;
   isLast: boolean;
 }) {
-  const change = changeOf(entry, metric);
-  const pct = Math.max(3, (change / maxChange) * 100);
+  const value = Math.abs(metricValueOf(entry, board, metric));
+  const pct = Math.max(3, (value / maxValue) * 100);
   const colors = getRankColors(entry.rank);
   const isLeader = entry.rank === 1;
 
@@ -233,7 +290,7 @@ function RaceLane({
           letterSpacing: "0.01em",
         }}
       >
-        {fmtChange(change)}
+        {fmtMetricValue(metricValueOf(entry, board, metric), board)}
       </span>
     </div>
   );
@@ -300,13 +357,16 @@ function SkeletonLanes() {
 }
 
 export function AnalyticsRunners() {
+  const [board, setBoard] = useState<RunnerBoard>("long");
   const [metric, setMetric] = useState<RunnerMetric>("1d");
   const [mode, setMode] = useState<"live" | "replay">("live");
   const [frameIdx, setFrameIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const boardMeta = BOARD_OPTIONS.find((option) => option.key === board) ?? BOARD_OPTIONS[0];
 
-  const { data: liveData, isLoading: liveLoading, isError: liveError } = useGetRunners();
+  const { data: liveData, isLoading: liveLoading, isError: liveError } = useGetRunners(board);
   const { data: replayData, isLoading: replayLoading, isError: replayError } = useGetRunnersReplay(
+    board,
     metric,
     mode === "replay",
   );
@@ -338,8 +398,8 @@ export function AnalyticsRunners() {
 
   const sorted = [...entries].sort((a, b) => a.rank - b.rank);
   const leader = sorted[0] ?? null;
-  const leaderChange = leader ? changeOf(leader, metric) : 0;
-  const maxChange = Math.max(...sorted.map((e) => Math.abs(changeOf(e, metric))), 0.01);
+  const leaderValue = leader ? metricValueOf(leader, board, metric) : 0;
+  const maxValue = Math.max(...sorted.map((e) => Math.abs(metricValueOf(e, board, metric))), 0.01);
 
   const updatedAt =
     mode === "live" ? (liveData?.[metric]?.updatedAt ?? null) : (replayData?.[frameIdx]?.sampledAt ?? null);
@@ -387,7 +447,7 @@ export function AnalyticsRunners() {
                 marginBottom: 4,
               }}
             >
-              Asset Race Runner
+              {boardMeta.title}
             </h1>
             <p
               style={{
@@ -398,11 +458,36 @@ export function AnalyticsRunners() {
                 textTransform: "uppercase",
               }}
             >
-              Top 10 Gainers · {metricLabel} % Change
+              {boardMeta.subtitle(metricLabel)}
             </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {BOARD_OPTIONS.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setBoard(option.key)}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.6rem",
+                  letterSpacing: "0.08em",
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderRadius: 4,
+                  padding: "4px 10px",
+                  transition: "color 0.15s, background 0.15s, border-color 0.15s",
+                  background: board === option.key ? "oklch(0.72 0.18 248 / 12%)" : "transparent",
+                  borderColor: board === option.key ? "oklch(0.72 0.18 248 / 35%)" : "oklch(1 0 0 / 10%)",
+                  color: board === option.key ? "oklch(0.72 0.18 248)" : "oklch(0.48 0 0)",
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+
+            <div style={{ width: 1, height: 16, background: "oklch(1 0 0 / 10%)" }} />
+
             {(["1d", "4h"] as RunnerMetric[]).map((m) => (
               <button
                 key={m}
@@ -511,8 +596,8 @@ export function AnalyticsRunners() {
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
                   }}
-                >
-                  Race Track · {metricLabel} Change
+            >
+                  {boardMeta.panelLabel(metricLabel)}
                 </span>
               </div>
 
@@ -571,10 +656,10 @@ export function AnalyticsRunners() {
               >
                 <div style={{ width: 32, flexShrink: 0 }} />
                 <div style={{ width: 72, flexShrink: 0 }} />
-                <div style={{ flex: 1, display: "flex", justifyContent: "space-between", paddingLeft: 2, paddingRight: 2 }}>
-                  {[0, 25, 50, 75, 100].map((pct) => (
+                  <div style={{ flex: 1, display: "flex", justifyContent: "space-between", paddingLeft: 2, paddingRight: 2 }}>
+                  {boardMeta.valueTicks.map((tick) => (
                     <span
-                      key={pct}
+                      key={tick}
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: "0.44rem",
@@ -582,7 +667,7 @@ export function AnalyticsRunners() {
                         letterSpacing: "0.04em",
                       }}
                     >
-                      {pct}%
+                      {tick}
                     </span>
                   ))}
                 </div>
@@ -616,7 +701,7 @@ export function AnalyticsRunners() {
                   textAlign: "center",
                 }}
               >
-                {mode === "replay" ? "No replay data available" : "Waiting for live data"}
+                {mode === "replay" ? "No replay data available" : boardMeta.emptyLive}
               </div>
             ) : (
               <div>
@@ -624,8 +709,9 @@ export function AnalyticsRunners() {
                   <RaceLane
                     key={entry.asset_id}
                     entry={entry}
+                    board={board}
                     metric={metric}
-                    maxChange={maxChange}
+                    maxValue={maxValue}
                     isLast={i === sorted.length - 1}
                   />
                 ))}
@@ -705,7 +791,7 @@ export function AnalyticsRunners() {
                       textTransform: "uppercase",
                     }}
                   >
-                    Leader
+                    {boardMeta.leaderLabel}
                   </span>
                 </div>
 
@@ -768,7 +854,7 @@ export function AnalyticsRunners() {
                         textShadow: "0 0 40px oklch(0.72 0.22 75 / 55%), 0 0 80px oklch(0.72 0.22 75 / 25%)",
                       }}
                     >
-                      {fmtChange(leaderChange)}
+                      {fmtMetricValue(leaderValue, board)}
                     </div>
                     <div
                       style={{
@@ -832,8 +918,8 @@ export function AnalyticsRunners() {
                                   color: c.text,
                                   fontVariantNumeric: "tabular-nums",
                                 }}
-                              >
-                                {fmtChange(changeOf(e, metric))}
+                                >
+                                {fmtMetricValue(metricValueOf(e, board, metric), board)}
                               </span>
                             </div>
                           );

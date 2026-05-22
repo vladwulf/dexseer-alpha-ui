@@ -58,6 +58,7 @@ export type AnalyticsHourlyVolumeActivityResponse = {
 };
 
 export type RunnerMetric = "1d" | "4h";
+export type RunnerBoard = "long" | "short" | "volume";
 
 export type RunnerEntry = {
   asset_id: number;
@@ -65,10 +66,13 @@ export type RunnerEntry = {
   price: number;
   change_1d?: number;
   change_4h?: number;
+  volume_1d?: number;
+  volume_4h?: number;
   rank: number;
 };
 
 export type RunnerMetricData = {
+  board: RunnerBoard;
   metric: RunnerMetric;
   updatedAt: string | null;
   limit: number;

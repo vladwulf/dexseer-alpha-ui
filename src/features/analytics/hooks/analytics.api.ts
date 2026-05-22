@@ -8,6 +8,7 @@ import type {
   AnalyticsHourlyVolumeActivityResponse,
   AnalyticsMoversTimeframe,
   AnalyticsVolumeMetric,
+  RunnerBoard,
   ReplayFrame,
   RunnerMetric,
   RunnersResponse,
@@ -85,22 +86,34 @@ export const useGetBreakoutHours = ({ lookbackDays = 30 }: { lookbackDays?: numb
   });
 };
 
-export const useGetRunners = () => {
+function getRunnersBasePath(board: RunnerBoard) {
+  if (board === "short") return "short";
+  if (board === "volume") return "volume";
+  return "";
+}
+
+export const useGetRunners = (board: RunnerBoard) => {
   return useQuery({
-    queryKey: ["screener-runners"],
+    queryKey: ["screener-runners", board],
     queryFn: async () => {
-      const response = await axios.get<RunnersResponse>(`${API_URL}/screener/runners`);
+      const suffix = getRunnersBasePath(board);
+      const response = await axios.get<RunnersResponse>(
+        `${API_URL}/screener/runners${suffix ? `/${suffix}` : ""}`,
+      );
       return response.data;
     },
     refetchInterval: 5000,
   });
 };
 
-export const useGetRunnersReplay = (metric: RunnerMetric, enabled: boolean) => {
+export const useGetRunnersReplay = (board: RunnerBoard, metric: RunnerMetric, enabled: boolean) => {
   return useQuery({
-    queryKey: ["screener-runners-replay", metric],
+    queryKey: ["screener-runners-replay", board, metric],
     queryFn: async () => {
-      const response = await axios.get<ReplayFrame[]>(`${API_URL}/screener/runners/replay?metric=${metric}`);
+      const suffix = getRunnersBasePath(board);
+      const response = await axios.get<ReplayFrame[]>(
+        `${API_URL}/screener/runners${suffix ? `/${suffix}` : ""}/replay?metric=${metric}`,
+      );
       return response.data;
     },
     enabled,

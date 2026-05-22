@@ -475,6 +475,117 @@
       font-size: 0.56rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.12);
     }
 
+    /* ── ASSET RACE RUNNER ──────────────────────── */
+    .race-wrap {
+      background: rgba(255,255,255,0.01);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 48px;
+    }
+    .race-inner { max-width: 1200px; margin: 0 auto; }
+    .race-layout {
+      display: grid;
+      grid-template-columns: 1fr 268px;
+      gap: 16px;
+      align-items: start;
+    }
+    .race-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+    }
+    .race-panel-label {
+      font-family: var(--font-mono); font-size: 0.58rem;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim);
+    }
+    .race-ctrl-btn {
+      font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      cursor: pointer; border: 1px solid var(--border); border-radius: 4px;
+      padding: 7px 15px; transition: all 0.18s; background: transparent; color: var(--text-muted);
+    }
+    .race-ctrl-btn:hover { color: var(--text); border-color: var(--border-mid); }
+    .race-ctrl-btn.active-metric {
+      background: var(--electric-dim); border-color: var(--electric-border); color: var(--electric);
+    }
+    .race-ctrl-btn.active-live {
+      background: var(--green-dim); border-color: rgba(93,200,135,0.35); color: var(--green);
+    }
+    .race-ctrl-btn.active-replay {
+      background: var(--electric-dim); border-color: var(--electric-border); color: var(--electric);
+    }
+    .race-row { display: flex; align-items: center; gap: 10px; }
+    .race-rank {
+      font-family: var(--font-mono); font-size: 0.56rem;
+      width: 18px; text-align: right; flex-shrink: 0; color: var(--text-dim);
+    }
+    .race-rank.leader { color: var(--electric); font-weight: 600; }
+    .race-sym {
+      font-family: var(--font-mono); font-size: 0.68rem;
+      width: 86px; flex-shrink: 0; letter-spacing: 0.03em; color: var(--text-muted);
+    }
+    .race-sym.leader { color: var(--text); font-weight: 600; }
+    .race-bar-track {
+      flex: 1; background: rgba(255,255,255,0.05);
+      border-radius: 4px; overflow: hidden; position: relative;
+    }
+    .race-bar-fill {
+      position: absolute; left: 0; top: 0; height: 100%; border-radius: 4px;
+      transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .race-change {
+      font-family: var(--font-mono); font-size: 0.68rem;
+      width: 64px; text-align: right; flex-shrink: 0; letter-spacing: 0.01em;
+    }
+    .leader-card {
+      background: rgba(91,143,249,0.04); border: 1px solid var(--electric-border);
+      border-radius: 10px; padding: 24px; position: relative; overflow: hidden;
+    }
+    .leader-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--electric), transparent);
+    }
+    .leader-checkered {
+      position: absolute; inset: 0;
+      background-image: repeating-conic-gradient(var(--electric-dim) 0% 25%, transparent 0% 50%);
+      background-size: 22px 22px; pointer-events: none;
+    }
+    .leader-eyebrow {
+      font-family: var(--font-mono); font-size: 0.58rem; color: var(--electric);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 18px;
+    }
+    .leader-sym-text {
+      font-family: var(--font-display); font-size: 2rem; font-weight: 700;
+      color: var(--text); letter-spacing: -0.02em; line-height: 1; margin-bottom: 10px;
+    }
+    .leader-change-text {
+      font-family: var(--font-display); font-size: 2.6rem; font-weight: 700;
+      color: var(--electric); letter-spacing: -0.025em; line-height: 1; margin-bottom: 14px;
+      text-shadow: 0 0 40px var(--electric-glow);
+    }
+    .leader-price-text {
+      font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim); letter-spacing: 0.04em;
+    }
+    .replay-ctrl-panel {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px;
+    }
+    .replay-ctrl-label {
+      font-family: var(--font-mono); font-size: 0.58rem; color: var(--text-dim);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px;
+    }
+    .replay-play-btn {
+      font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.09em; text-transform: uppercase; cursor: pointer;
+      border: 1px solid var(--electric-border); border-radius: 4px; padding: 7px 15px;
+      background: var(--electric-dim); color: var(--electric); transition: all 0.18s; flex-shrink: 0;
+    }
+    .replay-play-btn:hover { box-shadow: 0 0 16px var(--electric-glow); }
+    .replay-counter { font-family: var(--font-mono); font-size: 0.56rem; color: var(--text-dim); }
+    .replay-slider { width: 100%; cursor: pointer; accent-color: var(--electric); margin-top: 14px; display: block; }
+    .replay-time-row { display: flex; justify-content: space-between; margin-top: 6px; }
+    .replay-time-label { font-family: var(--font-mono); font-size: 0.5rem; color: var(--text-dim); }
+
     /* ── REVEAL ─────────────────────────────────── */
     .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.55s ease, transform 0.55s ease; }
     .reveal.in { opacity: 1; transform: none; }
@@ -484,9 +595,9 @@
       nav { padding: 0 20px; }
       .nav-links { display: none; }
       section { padding: 64px 20px; }
-      .compare-grid, .lib-grid, .pricing-grid, .api-inner, .feed-inner, .persona-grid { grid-template-columns: 1fr; }
+      .compare-grid, .lib-grid, .pricing-grid, .api-inner, .feed-inner, .persona-grid, .race-layout { grid-template-columns: 1fr; }
       .hero h1 { font-size: clamp(2.2rem, 8vw, 3.5rem); }
-      .feed-wrap, .api-outer { padding: 64px 20px; }
+      .feed-wrap, .api-outer, .race-wrap { padding: 64px 20px; }
       .footer-wrap { padding: 40px 20px; }
       .footer-top { flex-direction: column; align-items: flex-start; gap: 20px; }
       .divider { margin: 0 20px; }
@@ -547,6 +658,74 @@
       <div class="hstat"><div class="hstat-dot"></div>48 assets scanned</div>
       <div class="hstat"><div class="hstat-dot"></div>&lt;0.3s detection latency</div>
       <div class="hstat"><div class="hstat-dot"></div>30 predefined signal types</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ASSET RACE RUNNER -->
+<div class="race-wrap">
+  <div class="race-inner">
+    <div class="reveal" style="text-align:center;max-width:580px;margin:0 auto 40px;">
+      <div class="s-label">Asset Race Runner</div>
+      <div class="s-title">Top gainers,<br>ranked live.</div>
+      <p class="s-sub" style="margin:0 auto;">Watch the top 10 movers race across 4h and 24h windows. Replay the session to see how the leaderboard evolved throughout the day.</p>
+    </div>
+
+    <div class="reveal">
+      <!-- Controls -->
+      <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-bottom:16px;flex-wrap:wrap;">
+        <button class="race-ctrl-btn active-metric" id="btn-1d" onclick="setMetric('1d')">1D</button>
+        <button class="race-ctrl-btn" id="btn-4h" onclick="setMetric('4h')">4H</button>
+        <div style="width:1px;height:16px;background:var(--border);"></div>
+        <button class="race-ctrl-btn active-live" id="btn-live" onclick="setMode('live')">&#9679; LIVE</button>
+        <button class="race-ctrl-btn" id="btn-replay" onclick="setMode('replay')">&#9654; REPLAY</button>
+      </div>
+
+      <!-- Race layout -->
+      <div class="race-layout">
+        <!-- Race bars panel -->
+        <div class="race-panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <span class="race-panel-label">Leaderboard &middot; <span id="race-metric-label">24h</span> Change</span>
+            <span id="race-live-badge" style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim);letter-spacing:0.05em;">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:live-beat 1.6s ease-in-out infinite;flex-shrink:0;"></span>
+              <span id="race-live-time">Connecting…</span>
+            </span>
+            <span id="race-replay-badge" style="display:none;font-family:var(--font-mono);font-size:0.58rem;color:var(--text-dim);letter-spacing:0.04em;"></span>
+          </div>
+          <div id="race-rows" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+
+        <!-- Right column -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <!-- Leader card -->
+          <div class="leader-card">
+            <div class="leader-checkered"></div>
+            <div style="position:relative;">
+              <div class="leader-eyebrow"># 1 &middot; Leader</div>
+              <div class="leader-sym-text" id="leader-sym">SOL</div>
+              <div class="leader-change-text" id="leader-change">+18.40%</div>
+              <div class="leader-price-text" id="leader-price">$162.40</div>
+            </div>
+          </div>
+
+          <!-- Replay controls -->
+          <div class="replay-ctrl-panel" id="replay-ctrl" style="display:none;">
+            <div class="replay-ctrl-label">Replay Controls</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="replay-play-btn" id="replay-play-btn" onclick="togglePlay()">&#9654; Play</button>
+              <span class="replay-counter" id="replay-counter">1 / 8</span>
+            </div>
+            <input type="range" class="replay-slider" id="replay-slider" min="0" max="7" value="0" oninput="onSlider(this.value)">
+            <div class="replay-time-row">
+              <span class="replay-time-label" id="replay-t-start">08:00</span>
+              <span class="replay-time-label" id="replay-t-end">14:25</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -976,6 +1155,269 @@
     });
   }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
   reveals.forEach(el => io.observe(el));
+
+  // ── ASSET RACE RUNNER ─────────────────────────────────────
+  (function() {
+    var API_BASE = 'http://localhost:5555';
+    var ELEC = '#5b8ff9', GREEN = '#5dc887', RED = '#e35561';
+
+    // State
+    var metric = '1d', mode = 'live', frameIdx = 0;
+    var isPlaying = false, playInterval = null, pollTimer = null;
+    var liveData = null, replayData = null;
+    var isLoadingLive = false, isErrorLive = false;
+    var isLoadingReplay = false, isErrorReplay = false;
+
+    // ── Helpers ──────────────────────────────────────────────
+
+    function changeOf(entry) {
+      return metric === '1d' ? (entry.change_1d || 0) : (entry.change_4h || 0);
+    }
+
+    function fmtChange(v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + '%'; }
+
+    function fmtPrice(p) {
+      return '$' + p.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: p < 1 ? 6 : p < 100 ? 4 : 2,
+      });
+    }
+
+    function fmtTime(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+
+    function fmtDateTime(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+
+    function makeEl(tag, cls, txt) {
+      var el = document.createElement(tag);
+      if (cls) el.className = cls;
+      if (txt !== undefined) el.textContent = txt;
+      return el;
+    }
+
+    // ── Fetch ─────────────────────────────────────────────────
+
+    function fetchLive() {
+      isLoadingLive = true; isErrorLive = false;
+      renderBody();
+      fetch(API_BASE + '/screener/runners')
+        .then(function(r) {
+          if (!r.ok) throw new Error(r.status);
+          return r.json();
+        })
+        .then(function(data) {
+          liveData = data;
+          isLoadingLive = false;
+          if (mode === 'live') renderBody();
+        })
+        .catch(function() {
+          isLoadingLive = false; isErrorLive = true;
+          if (mode === 'live') renderBody();
+        });
+    }
+
+    function fetchReplay() {
+      isLoadingReplay = true; isErrorReplay = false; replayData = null;
+      frameIdx = 0; stopPlay();
+      renderBody();
+      fetch(API_BASE + '/screener/runners/replay?metric=' + metric)
+        .then(function(r) {
+          if (!r.ok) throw new Error(r.status);
+          return r.json();
+        })
+        .then(function(data) {
+          replayData = data;
+          isLoadingReplay = false;
+          if (mode === 'replay') renderBody();
+        })
+        .catch(function() {
+          isLoadingReplay = false; isErrorReplay = true;
+          if (mode === 'replay') renderBody();
+        });
+    }
+
+    function startPolling() {
+      stopPolling();
+      fetchLive();
+      pollTimer = setInterval(fetchLive, 5000);
+    }
+
+    function stopPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    // ── Render ────────────────────────────────────────────────
+
+    function renderStatus(msg) {
+      var container = document.getElementById('race-rows');
+      while (container.firstChild) container.removeChild(container.firstChild);
+      var el = makeEl('div', null, msg);
+      el.style.cssText = 'font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim);letter-spacing:0.06em;padding:40px 0;text-align:center;';
+      container.appendChild(el);
+      // blank out leader card while no data
+      document.getElementById('leader-sym').textContent = '—';
+      document.getElementById('leader-change').textContent = '—';
+      document.getElementById('leader-price').textContent = '—';
+    }
+
+    function renderBody() {
+      document.getElementById('race-metric-label').textContent = metric === '1d' ? '24h' : '4h';
+
+      var isLoading = mode === 'live' ? isLoadingLive : isLoadingReplay;
+      var isError   = mode === 'live' ? isErrorLive   : isErrorReplay;
+
+      if (isLoading) { renderStatus('Loading…'); return; }
+      if (isError)   { renderStatus('Failed to load · check API connection'); return; }
+
+      var entries = [];
+      var updatedAt = null;
+
+      if (mode === 'live') {
+        if (!liveData || !liveData[metric]) { renderStatus('Waiting for live data'); return; }
+        entries = liveData[metric].entries || [];
+        updatedAt = liveData[metric].updatedAt;
+      } else {
+        if (!replayData) { renderStatus('No replay data available'); return; }
+        var frame = replayData[frameIdx];
+        if (!frame) { renderStatus('No replay data available'); return; }
+        entries = frame.entries || [];
+        updatedAt = frame.sampledAt;
+      }
+
+      if (entries.length === 0) {
+        renderStatus(mode === 'replay' ? 'No replay data available' : 'Waiting for live data');
+        return;
+      }
+
+      // Badges
+      var liveBadge = document.getElementById('race-live-badge');
+      var replayBadge = document.getElementById('race-replay-badge');
+      if (mode === 'live') {
+        liveBadge.style.display = 'flex';
+        replayBadge.style.display = 'none';
+        document.getElementById('race-live-time').textContent = updatedAt ? 'Updated ' + fmtTime(updatedAt) : 'Waiting for data';
+      } else {
+        liveBadge.style.display = 'none';
+        replayBadge.style.display = '';
+        replayBadge.textContent = updatedAt ? fmtDateTime(updatedAt) : '';
+      }
+
+      // Leader card
+      var leader = entries[0];
+      var leaderChange = changeOf(leader);
+      document.getElementById('leader-sym').textContent = leader.symbol.replace('USDT', '');
+      document.getElementById('leader-change').textContent = fmtChange(leaderChange);
+      document.getElementById('leader-price').textContent = fmtPrice(leader.price);
+
+      // Race rows
+      var maxChange = Math.max.apply(null, entries.map(function(e) { return Math.abs(changeOf(e)); }).concat([0.01]));
+      var container = document.getElementById('race-rows');
+      while (container.firstChild) container.removeChild(container.firstChild);
+
+      entries.forEach(function(entry) {
+        var val = changeOf(entry);
+        var pct = (Math.abs(val) / maxChange) * 100;
+        var isLeader = entry.rank === 1;
+        var isPos = val >= 0;
+        var barColor = isLeader
+          ? 'linear-gradient(to right,rgba(91,143,249,0.5),' + ELEC + ')'
+          : isPos
+            ? 'linear-gradient(to right,rgba(93,200,135,0.5),' + GREEN + ')'
+            : 'linear-gradient(to right,rgba(227,85,97,0.5),' + RED + ')';
+        var changeColor = isLeader ? ELEC : isPos ? GREEN : RED;
+
+        var row = makeEl('div', 'race-row');
+        var rankEl = makeEl('span', 'race-rank' + (isLeader ? ' leader' : ''), String(entry.rank));
+        var symEl = makeEl('span', 'race-sym' + (isLeader ? ' leader' : ''), entry.symbol.replace('USDT', ''));
+
+        var track = makeEl('div', 'race-bar-track');
+        track.style.height = (isLeader ? 10 : 7) + 'px';
+        var fill = makeEl('div', 'race-bar-fill');
+        fill.style.width = pct + '%';
+        fill.style.background = barColor;
+        if (isLeader) fill.style.boxShadow = '0 0 14px rgba(91,143,249,0.35)';
+        track.appendChild(fill);
+
+        var changeEl = makeEl('span', 'race-change', fmtChange(val));
+        changeEl.style.color = changeColor;
+        changeEl.style.fontWeight = isLeader ? '600' : '400';
+
+        row.appendChild(rankEl);
+        row.appendChild(symEl);
+        row.appendChild(track);
+        row.appendChild(changeEl);
+        container.appendChild(row);
+      });
+
+      // Replay controls
+      var ctrl = document.getElementById('replay-ctrl');
+      if (mode === 'replay' && replayData && replayData.length > 0) {
+        ctrl.style.display = '';
+        var slider = document.getElementById('replay-slider');
+        slider.max = replayData.length - 1;
+        slider.value = frameIdx;
+        document.getElementById('replay-counter').textContent = (frameIdx + 1) + ' / ' + replayData.length;
+        document.getElementById('replay-play-btn').textContent = isPlaying ? '⏸ Pause' : '▶ Play';
+        document.getElementById('replay-t-start').textContent = fmtTime(replayData[0].sampledAt);
+        document.getElementById('replay-t-end').textContent = fmtTime(replayData[replayData.length - 1].sampledAt);
+      } else {
+        ctrl.style.display = 'none';
+      }
+    }
+
+    // ── Controls ──────────────────────────────────────────────
+
+    function stopPlay() {
+      isPlaying = false;
+      if (playInterval) { clearInterval(playInterval); playInterval = null; }
+      var btn = document.getElementById('replay-play-btn');
+      if (btn) btn.textContent = '▶ Play';
+    }
+
+    window.setMetric = function(m) {
+      metric = m; frameIdx = 0; stopPlay();
+      document.getElementById('btn-1d').className = 'race-ctrl-btn' + (m === '1d' ? ' active-metric' : '');
+      document.getElementById('btn-4h').className = 'race-ctrl-btn' + (m === '4h' ? ' active-metric' : '');
+      if (mode === 'replay') fetchReplay();
+      else renderBody();
+    };
+
+    window.setMode = function(m) {
+      mode = m; frameIdx = 0; stopPlay();
+      document.getElementById('btn-live').className = 'race-ctrl-btn' + (m === 'live' ? ' active-live' : '');
+      document.getElementById('btn-replay').className = 'race-ctrl-btn' + (m === 'replay' ? ' active-replay' : '');
+      if (m === 'live') {
+        startPolling();
+      } else {
+        stopPolling();
+        fetchReplay();
+      }
+    };
+
+    window.togglePlay = function() {
+      if (isPlaying) { stopPlay(); renderBody(); return; }
+      if (!replayData || replayData.length === 0) return;
+      if (frameIdx >= replayData.length - 1) frameIdx = 0;
+      isPlaying = true;
+      renderBody();
+      playInterval = setInterval(function() {
+        if (!replayData || frameIdx >= replayData.length - 1) { stopPlay(); renderBody(); }
+        else { frameIdx++; renderBody(); }
+      }, 350);
+    };
+
+    window.onSlider = function(v) {
+      stopPlay(); frameIdx = parseInt(v, 10); renderBody();
+    };
+
+    // ── Init ──────────────────────────────────────────────────
+    startPolling();
+  })();
 </script>
 </body>
 </html>
