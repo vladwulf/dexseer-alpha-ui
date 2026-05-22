@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useGetBtcCorrelation } from "./hooks/analytics.api";
 
-const PERIODS = [7, 30, 90] as const;
+const PERIODS = [7, 14, 30, 90] as const;
 const PAGE_SIZE = 20;
 
 function corrColor(r: number): string {

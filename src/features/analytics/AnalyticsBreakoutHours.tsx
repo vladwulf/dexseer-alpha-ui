@@ -5,7 +5,7 @@ import type { AnalyticsBreakoutHourBucket } from "./types";
 const HEATMAP_H = 56;
 const AXIS_H = 22;
 
-const LOOKBACK_OPTIONS = [7, 30, 90] as const;
+const LOOKBACK_OPTIONS = [7, 14, 30, 90] as const;
 
 const SESSIONS = [
   { name: "Asia", start: 0, end: 9, hue: 300 },
