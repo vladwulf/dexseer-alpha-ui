@@ -2,6 +2,8 @@ import { API_URL } from "@/config";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import type {
+  AnalyticsDistributionMetric,
+  AnalyticsDistributionResponse,
   AnalyticsBreakoutHoursResponse,
   AnalyticsBtcCorrelationResponse,
   AnalyticsTimeframeMoversResponse,
@@ -83,6 +85,19 @@ export const useGetBreakoutHours = ({ lookbackDays = 30 }: { lookbackDays?: numb
       );
       return response.data;
     },
+  });
+};
+
+export const useGetPriceChangeDistribution = (metric: AnalyticsDistributionMetric) => {
+  return useQuery({
+    queryKey: ["screener-price-change-distribution", metric],
+    queryFn: async () => {
+      const response = await axios.get<AnalyticsDistributionResponse>(
+        `${API_URL}/screener/distribution/price-change?metric=${metric}`,
+      );
+      return response.data;
+    },
+    refetchInterval: 10000,
   });
 };
 
