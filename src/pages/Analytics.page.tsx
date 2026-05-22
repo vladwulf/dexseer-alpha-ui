@@ -1,5 +1,6 @@
 import { AnalyticsBreakoutHours } from "@/features/analytics/AnalyticsBreakoutHours";
 import { AnalyticsBtcCorrelation } from "@/features/analytics/AnalyticsBtcCorrelation";
+import { AnalyticsRunners } from "@/features/analytics/AnalyticsRunners";
 import { AnalyticsTimeframeMovers } from "@/features/analytics/AnalyticsTimeframeMovers";
 import { AnalyticsVolume } from "@/features/analytics/AnalyticsVolume";
 
@@ -10,6 +11,7 @@ export function AnalyticsPage() {
       <AnalyticsTimeframeMovers />
       <AnalyticsBtcCorrelation />
       <AnalyticsBreakoutHours />
+      <AnalyticsRunners />
     </div>
   );
 }

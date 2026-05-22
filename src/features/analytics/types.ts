@@ -56,3 +56,31 @@ export type AnalyticsHourlyVolumeActivityResponse = {
   assetLimit: number;
   buckets: AnalyticsHourlyVolumeBucket[];
 };
+
+export type RunnerMetric = "1d" | "4h";
+
+export type RunnerEntry = {
+  asset_id: number;
+  symbol: string;
+  price: number;
+  change_1d?: number;
+  change_4h?: number;
+  rank: number;
+};
+
+export type RunnerMetricData = {
+  metric: RunnerMetric;
+  updatedAt: string | null;
+  limit: number;
+  entries: RunnerEntry[];
+};
+
+export type RunnersResponse = {
+  "1d": RunnerMetricData;
+  "4h": RunnerMetricData;
+};
+
+export type ReplayFrame = {
+  sampledAt: string;
+  entries: RunnerEntry[];
+};

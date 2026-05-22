@@ -8,6 +8,9 @@ import type {
   AnalyticsHourlyVolumeActivityResponse,
   AnalyticsMoversTimeframe,
   AnalyticsVolumeMetric,
+  ReplayFrame,
+  RunnerMetric,
+  RunnersResponse,
 } from "../types";
 
 async function getHourlyVolumeActivity(metric: AnalyticsVolumeMetric, assetLimit: number, lookbackDays: number) {
@@ -79,5 +82,27 @@ export const useGetBreakoutHours = ({ lookbackDays = 30 }: { lookbackDays?: numb
       );
       return response.data;
     },
+  });
+};
+
+export const useGetRunners = () => {
+  return useQuery({
+    queryKey: ["screener-runners"],
+    queryFn: async () => {
+      const response = await axios.get<RunnersResponse>(`${API_URL}/screener/runners`);
+      return response.data;
+    },
+    refetchInterval: 5000,
+  });
+};
+
+export const useGetRunnersReplay = (metric: RunnerMetric, enabled: boolean) => {
+  return useQuery({
+    queryKey: ["screener-runners-replay", metric],
+    queryFn: async () => {
+      const response = await axios.get<ReplayFrame[]>(`${API_URL}/screener/runners/replay?metric=${metric}`);
+      return response.data;
+    },
+    enabled,
   });
 };
