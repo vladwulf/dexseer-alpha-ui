@@ -27,118 +27,158 @@ function fmtDateTime(iso: string): string {
   });
 }
 
-function SkeletonRows() {
+function fmtPrice(price: number): string {
+  return price.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: price < 1 ? 6 : price < 100 ? 4 : 2,
+  });
+}
+
+type RankColors = { bar: string; tip: string; glow: string; text: string; badgeBg: string; badgeText: string };
+
+function getRankColors(rank: number): RankColors {
+  if (rank === 1)
+    return {
+      bar: "linear-gradient(to right, oklch(0.28 0.14 75 / 50%), oklch(0.58 0.20 75 / 88%), oklch(0.82 0.22 75))",
+      tip: "oklch(0.90 0.22 75)",
+      glow: "0 0 24px oklch(0.72 0.22 75 / 80%), 0 0 48px oklch(0.72 0.22 75 / 35%)",
+      text: "oklch(0.88 0.22 75)",
+      badgeBg: "oklch(0.72 0.22 75)",
+      badgeText: "oklch(0.10 0 0)",
+    };
+  if (rank === 2)
+    return {
+      bar: "linear-gradient(to right, oklch(0.22 0.14 142 / 50%), oklch(0.48 0.20 142 / 88%), oklch(0.70 0.24 142))",
+      tip: "oklch(0.80 0.24 142)",
+      glow: "0 0 18px oklch(0.65 0.22 142 / 70%)",
+      text: "oklch(0.76 0.22 142)",
+      badgeBg: "oklch(0.60 0.22 142)",
+      badgeText: "oklch(0.10 0 0)",
+    };
+  if (rank === 3)
+    return {
+      bar: "linear-gradient(to right, oklch(0.18 0.08 142 / 50%), oklch(0.36 0.12 142 / 88%), oklch(0.52 0.16 142))",
+      tip: "oklch(0.62 0.16 142)",
+      glow: "0 0 12px oklch(0.50 0.14 142 / 55%)",
+      text: "oklch(0.58 0.14 142)",
+      badgeBg: "oklch(0.44 0.13 142)",
+      badgeText: "oklch(0.96 0 0)",
+    };
+  const fade = Math.max(0, 1 - (rank - 4) / 7);
+  const l = 0.38 + fade * 0.14;
+  const c = 0.10 + fade * 0.06;
+  return {
+    bar: `linear-gradient(to right, oklch(0.18 0.08 248 / 45%), oklch(${(l - 0.08).toFixed(2)} ${c} 248 / 80%), oklch(${l.toFixed(2)} ${c} 248))`,
+    tip: `oklch(${(l + 0.12).toFixed(2)} ${(c + 0.04).toFixed(2)} 248)`,
+    glow: `0 0 10px oklch(${l.toFixed(2)} ${c} 248 / ${Math.round(30 + fade * 20)}%)`,
+    text: `oklch(${(l + 0.10).toFixed(2)} ${c} 248)`,
+    badgeBg: "transparent",
+    badgeText: "oklch(0.28 0 0)",
+  };
+}
+
+function RankBadge({ rank }: { rank: number }) {
+  const colors = getRankColors(rank);
+  const label = rank === 1 ? "1ST" : rank === 2 ? "2ND" : rank === 3 ? "3RD" : String(rank);
+  const hasColor = rank <= 3;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 18,
-              height: 10,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 2,
-              flexShrink: 0,
-              animation: "pulse 1.6s ease-in-out infinite",
-              animationDelay: `${i * 60}ms`,
-            }}
-          />
-          <div
-            style={{
-              width: 80,
-              height: 10,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 2,
-              flexShrink: 0,
-              animation: "pulse 1.6s ease-in-out infinite",
-              animationDelay: `${i * 60}ms`,
-            }}
-          />
-          <div
-            style={{
-              flex: 1,
-              height: 8,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 4,
-              animation: "pulse 1.6s ease-in-out infinite",
-              animationDelay: `${i * 60 + 30}ms`,
-            }}
-          />
-          <div
-            style={{
-              width: 56,
-              height: 10,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 2,
-              flexShrink: 0,
-              animation: "pulse 1.6s ease-in-out infinite",
-              animationDelay: `${i * 60}ms`,
-            }}
-          />
-        </div>
-      ))}
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: 6,
+        background: hasColor ? colors.badgeBg : "transparent",
+        boxShadow: hasColor ? `0 0 10px ${colors.badgeBg} / 40%)` : "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        border: hasColor ? "none" : "1px solid oklch(1 0 0 / 6%)",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: rank <= 3 ? "0.58rem" : "0.62rem",
+          fontWeight: 700,
+          color: hasColor ? colors.badgeText : "oklch(0.26 0 0)",
+          letterSpacing: rank <= 3 ? "-0.01em" : "0",
+        }}
+      >
+        {label}
+      </span>
     </div>
   );
 }
 
-function RaceRow({ entry, metric, maxChange }: { entry: RunnerEntry; metric: RunnerMetric; maxChange: number }) {
+function RaceLane({
+  entry,
+  metric,
+  maxChange,
+  isLast,
+}: {
+  entry: RunnerEntry;
+  metric: RunnerMetric;
+  maxChange: number;
+  isLast: boolean;
+}) {
   const change = changeOf(entry, metric);
-  const pct = (Math.abs(change) / maxChange) * 100;
+  const pct = Math.max(3, (change / maxChange) * 100);
+  const colors = getRankColors(entry.rank);
   const isLeader = entry.rank === 1;
-  const isPositive = change >= 0;
-
-  const barColor = isLeader
-    ? "linear-gradient(to right, oklch(0.62 0.20 75 / 80%), oklch(0.88 0.24 75))"
-    : isPositive
-      ? "linear-gradient(to right, oklch(0.50 0.18 142 / 70%), oklch(0.72 0.20 142))"
-      : "linear-gradient(to right, oklch(0.48 0.18 20 / 70%), oklch(0.68 0.20 20))";
-
-  const changeColor = isLeader
-    ? "oklch(0.88 0.24 75)"
-    : isPositive
-      ? "oklch(0.72 0.20 142)"
-      : "oklch(0.68 0.20 20)";
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <span
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.56rem",
-          color: isLeader ? "oklch(0.82 0.22 75)" : "oklch(0.28 0 0)",
-          width: 18,
-          textAlign: "right",
-          flexShrink: 0,
-          fontWeight: isLeader ? 600 : 400,
-        }}
-      >
-        {entry.rank}
-      </span>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        paddingTop: 9,
+        paddingBottom: 9,
+        borderBottom: isLast ? "none" : "1px solid oklch(1 0 0 / 4%)",
+        position: "relative",
+      }}
+    >
+      <RankBadge rank={entry.rank} />
 
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.68rem",
-          color: isLeader ? "oklch(0.94 0 0)" : "oklch(0.66 0 0)",
-          width: 86,
+          fontSize: isLeader ? "0.78rem" : "0.66rem",
+          fontWeight: isLeader ? 700 : 400,
+          color: isLeader ? "oklch(0.95 0 0)" : `oklch(${0.46 + Math.max(0, (10 - entry.rank) / 14)} 0 0)`,
+          width: 72,
           flexShrink: 0,
           letterSpacing: "0.03em",
-          fontWeight: isLeader ? 600 : 400,
         }}
       >
         {entry.symbol.replace("USDT", "")}
       </span>
 
+      {/* Track */}
       <div
         style={{
           flex: 1,
-          height: isLeader ? 10 : 7,
-          background: "oklch(1 0 0 / 5%)",
+          height: isLeader ? 24 : 14,
+          background: "oklch(1 0 0 / 3%)",
           borderRadius: 4,
-          overflow: "hidden",
           position: "relative",
+          overflow: "hidden",
         }}
       >
+        {/* Subtle distance grid lines */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "repeating-linear-gradient(90deg, transparent 0px, transparent 24.75%, oklch(1 0 0 / 3%) 24.75%, oklch(1 0 0 / 3%) 25%, transparent 25%)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Fill bar */}
         <div
           style={{
             position: "absolute",
@@ -146,28 +186,115 @@ function RaceRow({ entry, metric, maxChange }: { entry: RunnerEntry; metric: Run
             top: 0,
             height: "100%",
             width: `${pct}%`,
+            background: colors.bar,
             borderRadius: 4,
-            background: barColor,
-            boxShadow: isLeader ? "0 0 14px oklch(0.82 0.22 75 / 50%)" : "none",
-            transition: "width 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
+            transition: "width 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
-        />
+        >
+          {/* Shimmer sweep for leader */}
+          {isLeader && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                height: "100%",
+                width: "55%",
+                background: "linear-gradient(to right, transparent, oklch(1 0 0 / 22%), transparent)",
+                animation: "raceShimmer 2s ease-in-out infinite",
+              }}
+            />
+          )}
+          {/* Tip glow */}
+          <div
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+              width: isLeader ? 5 : 2,
+              height: "100%",
+              background: colors.tip,
+              boxShadow: colors.glow,
+            }}
+          />
+        </div>
       </div>
 
+      {/* Change */}
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.68rem",
-          color: changeColor,
-          width: 64,
+          fontSize: isLeader ? "0.78rem" : "0.62rem",
+          fontWeight: isLeader ? 700 : 400,
+          color: colors.text,
+          width: 70,
           textAlign: "right",
           flexShrink: 0,
-          fontWeight: isLeader ? 600 : 400,
+          fontVariantNumeric: "tabular-nums",
           letterSpacing: "0.01em",
         }}
       >
         {fmtChange(change)}
       </span>
+    </div>
+  );
+}
+
+function SkeletonLanes() {
+  return (
+    <div>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            paddingTop: 9,
+            paddingBottom: 9,
+            borderBottom: i < 7 ? "1px solid oklch(1 0 0 / 4%)" : "none",
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 6,
+              background: "oklch(1 0 0 / 5%)",
+              flexShrink: 0,
+              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
+            }}
+          />
+          <div
+            style={{
+              width: 72,
+              height: 10,
+              background: "oklch(1 0 0 / 5%)",
+              borderRadius: 2,
+              flexShrink: 0,
+              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
+            }}
+          />
+          <div
+            style={{
+              flex: 1,
+              height: 14,
+              background: "oklch(1 0 0 / 5%)",
+              borderRadius: 4,
+              animation: `pulse 1.6s ${i * 60 + 30}ms ease-in-out infinite`,
+            }}
+          />
+          <div
+            style={{
+              width: 70,
+              height: 10,
+              background: "oklch(1 0 0 / 5%)",
+              borderRadius: 2,
+              flexShrink: 0,
+              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
+            }}
+          />
+        </div>
+      ))}
     </div>
   );
 }
@@ -214,16 +341,35 @@ export function AnalyticsRunners() {
   const leaderChange = leader ? changeOf(leader, metric) : 0;
   const maxChange = Math.max(...sorted.map((e) => Math.abs(changeOf(e, metric))), 0.01);
 
-  const updatedAt = mode === "live" ? (liveData?.[metric]?.updatedAt ?? null) : (replayData?.[frameIdx]?.sampledAt ?? null);
+  const updatedAt =
+    mode === "live" ? (liveData?.[metric]?.updatedAt ?? null) : (replayData?.[frameIdx]?.sampledAt ?? null);
   const totalFrames = replayData?.length ?? 0;
   const metricLabel = metric === "1d" ? "24h" : "4h";
 
   return (
     <>
       <style>{`
+        @keyframes raceShimmer {
+          0%   { left: -65%; }
+          100% { left: 165%; }
+        }
         @keyframes livePulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.25; }
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.2; transform: scale(0.85); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.4; }
+          50%       { opacity: 0.8; }
+        }
+        @keyframes leaderPulse {
+          0%, 100% { box-shadow: 0 0 0 1px oklch(0.72 0.22 75 / 20%), 0 0 24px oklch(0.82 0.22 75 / 18%); }
+          50%       { box-shadow: 0 0 0 1px oklch(0.72 0.22 75 / 40%), 0 0 48px oklch(0.72 0.22 75 / 35%); }
+        }
+        @keyframes scanLine {
+          0%   { top: -2px; opacity: 0; }
+          5%   { opacity: 1; }
+          95%  { opacity: 1; }
+          100% { top: 100%; opacity: 0; }
         }
       `}</style>
 
@@ -312,7 +458,7 @@ export function AnalyticsRunners() {
                     mode === md
                       ? md === "live"
                         ? "oklch(0.72 0.22 142)"
-                        : "oklch(0.82 0.22 75)"
+                        : "oklch(0.72 0.24 142)"
                       : "oklch(0.48 0 0)",
                 }}
               >
@@ -322,30 +468,53 @@ export function AnalyticsRunners() {
           </div>
         </div>
 
-        {/* Layout: race bars + leader panel */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_268px]">
-          {/* Race bars */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_252px]">
+          {/* Race track panel */}
           <div
             style={{
-              background: "oklch(0.12 0 0)",
-              border: "1px solid oklch(1 0 0 / 7%)",
+              background: "oklch(0.095 0 0)",
+              border: "1px solid oklch(1 0 0 / 6%)",
               borderRadius: 12,
-              padding: 24,
+              padding: "20px 22px",
+              position: "relative",
+              overflow: "hidden",
             }}
           >
+            {/* Subtle racing stripe accent top */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 2,
+                background:
+                  "linear-gradient(to right, transparent, oklch(0.72 0.22 75 / 0%), oklch(0.72 0.22 75 / 40%), oklch(0.72 0.22 75 / 0%), transparent)",
+              }}
+            />
+
             {/* Panel header */}
-            <div className="mb-5 flex items-center justify-between">
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.6rem",
-                  color: "oklch(0.42 0 0)",
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Leaderboard · {metricLabel} Change
-              </span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 18,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.58rem",
+                    color: "oklch(0.36 0 0)",
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Race Track · {metricLabel} Change
+                </span>
+              </div>
 
               {mode === "live" && (
                 <span
@@ -354,8 +523,8 @@ export function AnalyticsRunners() {
                     alignItems: "center",
                     gap: 6,
                     fontFamily: "var(--font-mono)",
-                    fontSize: "0.58rem",
-                    color: "oklch(0.50 0 0)",
+                    fontSize: "0.56rem",
+                    color: "oklch(0.46 0 0)",
                     letterSpacing: "0.05em",
                   }}
                 >
@@ -366,6 +535,7 @@ export function AnalyticsRunners() {
                       borderRadius: "50%",
                       background: "oklch(0.72 0.22 142)",
                       display: "inline-block",
+                      flexShrink: 0,
                       animation: "livePulse 1.8s ease-in-out infinite",
                     }}
                   />
@@ -377,8 +547,8 @@ export function AnalyticsRunners() {
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "0.58rem",
-                    color: "oklch(0.46 0 0)",
+                    fontSize: "0.56rem",
+                    color: "oklch(0.42 0 0)",
                     letterSpacing: "0.04em",
                   }}
                 >
@@ -387,102 +557,187 @@ export function AnalyticsRunners() {
               )}
             </div>
 
+            {/* Finish line column header */}
+            {!isLoading && !isError && sorted.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  paddingBottom: 8,
+                  marginBottom: 2,
+                  borderBottom: "1px solid oklch(1 0 0 / 6%)",
+                }}
+              >
+                <div style={{ width: 32, flexShrink: 0 }} />
+                <div style={{ width: 72, flexShrink: 0 }} />
+                <div style={{ flex: 1, display: "flex", justifyContent: "space-between", paddingLeft: 2, paddingRight: 2 }}>
+                  {[0, 25, 50, 75, 100].map((pct) => (
+                    <span
+                      key={pct}
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.44rem",
+                        color: "oklch(0.24 0 0)",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      {pct}%
+                    </span>
+                  ))}
+                </div>
+                <div style={{ width: 70, flexShrink: 0 }} />
+              </div>
+            )}
+
             {isError ? (
               <div
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.65rem",
-                  color: "oklch(0.40 0 0)",
+                  color: "oklch(0.38 0 0)",
                   letterSpacing: "0.06em",
-                  padding: "40px 0",
+                  padding: "44px 0",
                   textAlign: "center",
                 }}
               >
-                Failed to load data · check API connection
+                Failed to load · check API connection
               </div>
             ) : isLoading ? (
-              <SkeletonRows />
+              <SkeletonLanes />
             ) : sorted.length === 0 ? (
               <div
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.65rem",
-                  color: "oklch(0.32 0 0)",
+                  color: "oklch(0.30 0 0)",
                   letterSpacing: "0.06em",
-                  padding: "40px 0",
+                  padding: "44px 0",
                   textAlign: "center",
                 }}
               >
                 {mode === "replay" ? "No replay data available" : "Waiting for live data"}
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {sorted.map((entry) => (
-                  <RaceRow key={entry.asset_id} entry={entry} metric={metric} maxChange={maxChange} />
+              <div>
+                {sorted.map((entry, i) => (
+                  <RaceLane
+                    key={entry.asset_id}
+                    entry={entry}
+                    metric={metric}
+                    maxChange={maxChange}
+                    isLast={i === sorted.length - 1}
+                  />
                 ))}
               </div>
             )}
           </div>
 
-          {/* Right column: leader card + replay controls */}
+          {/* Right column */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {/* Leader card */}
+            {/* Leader podium */}
             <div
               style={{
-                background: "oklch(0.12 0 0)",
-                border: "1px solid oklch(0.82 0.22 75 / 18%)",
+                background: "oklch(0.10 0 0)",
                 borderRadius: 12,
-                padding: 24,
+                padding: 22,
                 position: "relative",
                 overflow: "hidden",
                 flex: 1,
+                animation: leader ? "leaderPulse 2.8s ease-in-out infinite" : "none",
               }}
             >
-              {/* Checkered pattern */}
+              {/* Checkered background */}
               <div
                 style={{
                   position: "absolute",
                   inset: 0,
                   backgroundImage:
-                    "repeating-conic-gradient(oklch(0.82 0.22 75 / 4%) 0% 25%, transparent 0% 50%)",
-                  backgroundSize: "22px 22px",
+                    "repeating-conic-gradient(oklch(0.72 0.22 75 / 4.5%) 0% 25%, transparent 0% 50%)",
+                  backgroundSize: "26px 26px",
                   pointerEvents: "none",
                 }}
               />
 
+              {/* Diagonal speed-line overlay */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage:
+                    "repeating-linear-gradient(135deg, transparent 0px, transparent 18px, oklch(0.72 0.22 75 / 2%) 18px, oklch(0.72 0.22 75 / 2%) 19px)",
+                  pointerEvents: "none",
+                }}
+              />
+
+              {/* Scan line effect */}
+              {leader && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    height: 1,
+                    background: "linear-gradient(to right, transparent, oklch(0.72 0.22 75 / 30%), transparent)",
+                    animation: "scanLine 4s linear infinite",
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+
               <div style={{ position: "relative" }}>
                 <div
                   style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.56rem",
-                    color: "oklch(0.50 0.14 75)",
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                    marginBottom: 18,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    marginBottom: 20,
                   }}
                 >
-                  # 1 · Leader
+                  {/* Checkered flag icons */}
+                  <span style={{ fontSize: "0.75rem" }}>🏁</span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.54rem",
+                      color: "oklch(0.50 0.18 75)",
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Leader
+                  </span>
                 </div>
 
                 {isLoading ? (
                   <>
                     <div
                       style={{
-                        height: 22,
+                        height: 24,
                         width: 110,
                         background: "oklch(1 0 0 / 5%)",
-                        borderRadius: 3,
-                        marginBottom: 14,
+                        borderRadius: 4,
+                        marginBottom: 12,
                         animation: "pulse 1.6s ease-in-out infinite",
                       }}
                     />
                     <div
                       style={{
-                        height: 42,
-                        width: 90,
+                        height: 46,
+                        width: 100,
+                        background: "oklch(1 0 0 / 5%)",
+                        borderRadius: 4,
+                        marginBottom: 14,
+                        animation: "pulse 1.6s 200ms ease-in-out infinite",
+                      }}
+                    />
+                    <div
+                      style={{
+                        height: 14,
+                        width: 80,
                         background: "oklch(1 0 0 / 5%)",
                         borderRadius: 3,
-                        animation: "pulse 1.6s ease-in-out infinite",
+                        animation: "pulse 1.6s 400ms ease-in-out infinite",
                       }}
                     />
                   </>
@@ -491,12 +746,12 @@ export function AnalyticsRunners() {
                     <div
                       style={{
                         fontFamily: "var(--font-display)",
-                        fontSize: "2rem",
+                        fontSize: "2.4rem",
                         fontWeight: 700,
-                        color: "oklch(0.94 0 0)",
-                        letterSpacing: "-0.02em",
+                        color: "oklch(0.96 0 0)",
+                        letterSpacing: "-0.035em",
                         lineHeight: 1,
-                        marginBottom: 10,
+                        marginBottom: 8,
                       }}
                     >
                       {leader.symbol.replace("USDT", "")}
@@ -504,13 +759,13 @@ export function AnalyticsRunners() {
                     <div
                       style={{
                         fontFamily: "var(--font-display)",
-                        fontSize: "2.6rem",
+                        fontSize: "2.9rem",
                         fontWeight: 700,
-                        color: "oklch(0.88 0.24 75)",
-                        letterSpacing: "-0.025em",
+                        color: "oklch(0.88 0.22 75)",
+                        letterSpacing: "-0.04em",
                         lineHeight: 1,
-                        marginBottom: 14,
-                        textShadow: "0 0 40px oklch(0.82 0.22 75 / 45%)",
+                        marginBottom: 16,
+                        textShadow: "0 0 40px oklch(0.72 0.22 75 / 55%), 0 0 80px oklch(0.72 0.22 75 / 25%)",
                       }}
                     >
                       {fmtChange(leaderChange)}
@@ -518,24 +773,80 @@ export function AnalyticsRunners() {
                     <div
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.62rem",
-                        color: "oklch(0.42 0 0)",
+                        fontSize: "0.64rem",
+                        color: "oklch(0.38 0 0)",
                         letterSpacing: "0.04em",
                       }}
                     >
-                      $
-                      {leader.price.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: leader.price < 1 ? 6 : leader.price < 100 ? 4 : 2,
-                      })}
+                      ${fmtPrice(leader.price)}
                     </div>
+
+                    {/* Mini rank badges for 2nd and 3rd */}
+                    {sorted.length > 1 && (
+                      <div
+                        style={{
+                          marginTop: 20,
+                          paddingTop: 16,
+                          borderTop: "1px solid oklch(1 0 0 / 7%)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 8,
+                        }}
+                      >
+                        {sorted.slice(1, 3).map((e) => {
+                          const c = getRankColors(e.rank);
+                          return (
+                            <div
+                              key={e.asset_id}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 8,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontFamily: "var(--font-mono)",
+                                  fontSize: "0.58rem",
+                                  color: "oklch(0.36 0 0)",
+                                }}
+                              >
+                                #{e.rank}
+                              </span>
+                              <span
+                                style={{
+                                  fontFamily: "var(--font-mono)",
+                                  fontSize: "0.62rem",
+                                  color: "oklch(0.58 0 0)",
+                                  letterSpacing: "0.03em",
+                                  flex: 1,
+                                }}
+                              >
+                                {e.symbol.replace("USDT", "")}
+                              </span>
+                              <span
+                                style={{
+                                  fontFamily: "var(--font-mono)",
+                                  fontSize: "0.62rem",
+                                  color: c.text,
+                                  fontVariantNumeric: "tabular-nums",
+                                }}
+                              >
+                                {fmtChange(changeOf(e, metric))}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: "0.65rem",
-                      color: "oklch(0.32 0 0)",
+                      fontSize: "0.62rem",
+                      color: "oklch(0.30 0 0)",
                       letterSpacing: "0.06em",
                     }}
                   >
@@ -549,18 +860,18 @@ export function AnalyticsRunners() {
             {mode === "replay" && (
               <div
                 style={{
-                  background: "oklch(0.12 0 0)",
-                  border: "1px solid oklch(1 0 0 / 7%)",
+                  background: "oklch(0.095 0 0)",
+                  border: "1px solid oklch(1 0 0 / 6%)",
                   borderRadius: 12,
-                  padding: 20,
+                  padding: 18,
                 }}
               >
                 <div
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "0.56rem",
-                    color: "oklch(0.40 0 0)",
-                    letterSpacing: "0.12em",
+                    fontSize: "0.54rem",
+                    color: "oklch(0.38 0 0)",
+                    letterSpacing: "0.14em",
                     textTransform: "uppercase",
                     marginBottom: 14,
                   }}
@@ -569,18 +880,12 @@ export function AnalyticsRunners() {
                 </div>
 
                 {replayLoading ? (
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.6rem",
-                      color: "oklch(0.35 0 0)",
-                    }}
-                  >
-                    Loading replay data…
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "oklch(0.32 0 0)" }}>
+                    Loading frames…
                   </div>
                 ) : replayData && replayData.length > 0 ? (
                   <>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                       <button
                         type="button"
                         onClick={() => {
@@ -591,11 +896,11 @@ export function AnalyticsRunners() {
                           fontFamily: "var(--font-mono)",
                           fontSize: "0.62rem",
                           cursor: "pointer",
-                          border: "1px solid oklch(0.72 0.18 75 / 28%)",
+                          border: "1px solid oklch(0.72 0.24 142 / 26%)",
                           borderRadius: 6,
                           padding: "6px 14px",
-                          background: "oklch(0.72 0.18 75 / 10%)",
-                          color: "oklch(0.82 0.22 75)",
+                          background: "oklch(0.72 0.24 142 / 10%)",
+                          color: "oklch(0.72 0.24 142)",
                           transition: "background 0.12s",
                           flexShrink: 0,
                         }}
@@ -605,8 +910,9 @@ export function AnalyticsRunners() {
                       <span
                         style={{
                           fontFamily: "var(--font-mono)",
-                          fontSize: "0.56rem",
-                          color: "oklch(0.36 0 0)",
+                          fontSize: "0.54rem",
+                          color: "oklch(0.34 0 0)",
+                          fontVariantNumeric: "tabular-nums",
                         }}
                       >
                         {frameIdx + 1} / {totalFrames}
@@ -622,39 +928,21 @@ export function AnalyticsRunners() {
                         setIsPlaying(false);
                         setFrameIdx(Number(e.target.value));
                       }}
-                      style={{ width: "100%", cursor: "pointer", accentColor: "oklch(0.82 0.22 75)" }}
+                      style={{ width: "100%", cursor: "pointer", accentColor: "oklch(0.72 0.24 142)" }}
                     />
 
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.5rem",
-                          color: "oklch(0.28 0 0)",
-                        }}
-                      >
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.48rem", color: "oklch(0.26 0 0)" }}>
                         {fmtTime(replayData[0]?.sampledAt ?? null)}
                       </span>
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "0.5rem",
-                          color: "oklch(0.28 0 0)",
-                        }}
-                      >
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.48rem", color: "oklch(0.26 0 0)" }}>
                         {fmtTime(replayData[totalFrames - 1]?.sampledAt ?? null)}
                       </span>
                     </div>
                   </>
                 ) : (
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.6rem",
-                      color: "oklch(0.35 0 0)",
-                    }}
-                  >
-                    No replay data available
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "oklch(0.32 0 0)" }}>
+                    No replay data
                   </div>
                 )}
               </div>
