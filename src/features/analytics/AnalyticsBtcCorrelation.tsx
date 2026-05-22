@@ -72,9 +72,10 @@ export function AnalyticsBtcCorrelation() {
           background: "oklch(0.12 0 0)",
           border: "1px solid oklch(1 0 0 / 7%)",
           borderRadius: 12,
-          padding: 24,
+          padding: 16,
           marginBottom: 12,
         }}
+        className="sm:p-6"
       >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div />
@@ -170,9 +171,9 @@ export function AnalyticsBtcCorrelation() {
         <>
           {/* Column headers */}
           <div
+            className="hidden sm:grid"
             style={{
-              display: "grid",
-              gridTemplateColumns: "3rem 1fr 4rem 5rem 5rem",
+              gridTemplateColumns: "3rem minmax(0, 1fr) 4rem 5rem 5rem",
               gap: 8,
               paddingBottom: 8,
               borderBottom: "1px solid oklch(1 0 0 / 6%)",
@@ -205,60 +206,120 @@ export function AnalyticsBtcCorrelation() {
             const isNeg = r !== null && r < -0.1;
 
             return (
-              <div
-                key={asset.symbol}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "3rem 1fr 4rem 5rem 5rem",
-                  gap: 8,
-                  alignItems: "center",
-                  padding: "7px 0",
-                  borderBottom: "1px solid oklch(1 0 0 / 4%)",
-                }}
-              >
-                <span
-                  style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "oklch(0.30 0 0)" }}
-                >
-                  {i + 1}
-                </span>
-                <span
-                  style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "oklch(0.72 0 0)", letterSpacing: "0.04em" }}
-                >
-                  {asset.symbol}
-                </span>
-                <span
-                  style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color, letterSpacing: "0.02em" }}
-                >
-                  {r === null ? "—" : `${r >= 0 ? "+" : ""}${r.toFixed(3)}`}
-                </span>
-                <span
+              <div key={asset.symbol} style={{ borderBottom: "1px solid oklch(1 0 0 / 4%)" }}>
+                <div className="sm:hidden" style={{ padding: "10px 0" }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "oklch(0.30 0 0)" }}
+                        >
+                          {i + 1}
+                        </span>
+                        <span
+                          className="min-w-0 truncate"
+                          style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "oklch(0.72 0 0)", letterSpacing: "0.04em" }}
+                        >
+                          {asset.symbol}
+                        </span>
+                      </div>
+                      <div className="mt-2">
+                        <div
+                          style={{ height: 4, background: "oklch(1 0 0 / 5%)", borderRadius: 2, position: "relative", overflow: "hidden" }}
+                        >
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              bottom: 0,
+                              width: `${barWidth / 2}%`,
+                              background: color,
+                              borderRadius: 2,
+                              ...(isNeg ? { right: "50%" } : { left: "50%" }),
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div
+                        style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color, letterSpacing: "0.02em" }}
+                      >
+                        {r === null ? "—" : `${r >= 0 ? "+" : ""}${r.toFixed(3)}`}
+                      </div>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.54rem",
+                          color,
+                          letterSpacing: "0.06em",
+                          padding: "2px 6px",
+                          background: `${color.replace(")", " / 10%)")}`,
+                          borderRadius: 3,
+                          display: "inline-block",
+                          marginTop: 6,
+                        }}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className="hidden sm:grid"
                   style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.54rem",
-                    color,
-                    letterSpacing: "0.06em",
-                    padding: "2px 6px",
-                    background: `${color.replace(")", " / 10%)")}`,
-                    borderRadius: 3,
-                    display: "inline-block",
+                    gridTemplateColumns: "3rem minmax(0, 1fr) 4rem 5rem 5rem",
+                    gap: 8,
+                    alignItems: "center",
+                    padding: "7px 0",
                   }}
                 >
-                  {label}
-                </span>
-                <div
-                  style={{ height: 4, background: "oklch(1 0 0 / 5%)", borderRadius: 2, position: "relative", overflow: "hidden" }}
-                >
-                  <div
+                  <span
+                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "oklch(0.30 0 0)" }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span
+                    className="min-w-0 truncate"
+                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "oklch(0.72 0 0)", letterSpacing: "0.04em" }}
+                  >
+                    {asset.symbol}
+                  </span>
+                  <span
+                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color, letterSpacing: "0.02em" }}
+                  >
+                    {r === null ? "—" : `${r >= 0 ? "+" : ""}${r.toFixed(3)}`}
+                  </span>
+                  <span
                     style={{
-                      position: "absolute",
-                      top: 0,
-                      bottom: 0,
-                      width: `${barWidth / 2}%`,
-                      background: color,
-                      borderRadius: 2,
-                      ...(isNeg ? { right: "50%" } : { left: "50%" }),
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.54rem",
+                      color,
+                      letterSpacing: "0.06em",
+                      padding: "2px 6px",
+                      background: `${color.replace(")", " / 10%)")}`,
+                      borderRadius: 3,
+                      display: "inline-block",
                     }}
-                  />
+                  >
+                    {label}
+                  </span>
+                  <div
+                    style={{ height: 4, background: "oklch(1 0 0 / 5%)", borderRadius: 2, position: "relative", overflow: "hidden" }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        bottom: 0,
+                        width: `${barWidth / 2}%`,
+                        background: color,
+                        borderRadius: 2,
+                        ...(isNeg ? { right: "50%" } : { left: "50%" }),
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             );
