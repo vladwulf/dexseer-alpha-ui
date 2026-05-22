@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useGetHourlyMovers } from "./hooks/analytics.api";
-import type { AnalyticsHourlyMoversBucket } from "./types";
+import { useGetTimeframeMovers } from "./hooks/analytics.api";
+import type { AnalyticsMoversTimeframe, AnalyticsTimeframeMoversBucket } from "./types";
 
 const CHART_H = 180;
 const AXIS_H = 28;
@@ -15,7 +15,7 @@ function padH(h: number) {
   return String(h).padStart(2, "0") + ":00";
 }
 
-function normalizeMovers(buckets: AnalyticsHourlyMoversBucket[]) {
+function normalizeMovers(buckets: AnalyticsTimeframeMoversBucket[]) {
   const byHour = new Map(buckets.map((b) => [b.hour, b]));
   return Array.from({ length: 24 }, (_, hour) => {
     const b = byHour.get(hour);
@@ -32,14 +32,20 @@ function normalizeMovers(buckets: AnalyticsHourlyMoversBucket[]) {
 
 const THRESHOLDS = [1, 2, 3, 5, 7, 10, 15, 20] as const;
 const LOOKBACK_OPTIONS = [7, 14, 30, 90] as const;
+const TIMEFRAME_OPTIONS: AnalyticsMoversTimeframe[] = ["m", "15m", "30m", "1h", "4h", "1d"];
 
-export function AnalyticsHourlyMovers() {
+function formatTimeframeLabel(timeframe: AnalyticsMoversTimeframe) {
+  return timeframe === "m" ? "1m" : timeframe;
+}
+
+export function AnalyticsTimeframeMovers() {
   const [threshold, setThreshold] = useState<(typeof THRESHOLDS)[number]>(2);
   const [lookbackDays, setLookbackDays] = useState<(typeof LOOKBACK_OPTIONS)[number]>(14);
+  const [timeframe, setTimeframe] = useState<AnalyticsMoversTimeframe>("1h");
   const [activeHour, setActiveHour] = useState<number | null>(null);
   const currentHour = new Date().getUTCHours();
 
-  const { data, isLoading, isError } = useGetHourlyMovers({ threshold, lookbackDays });
+  const { data, isLoading, isError } = useGetTimeframeMovers({ threshold, lookbackDays, timeframe });
 
   const hourlyData = normalizeMovers(data?.buckets ?? []);
   const maxGainers = Math.max(...hourlyData.map((d) => d.gainers), 1);
@@ -67,7 +73,7 @@ export function AnalyticsHourlyMovers() {
             marginBottom: 4,
           }}
         >
-          Hourly Winners vs Losers
+          Movers By Timeframe
         </h2>
         <p
           style={{
@@ -78,7 +84,7 @@ export function AnalyticsHourlyMovers() {
             textTransform: "uppercase",
           }}
         >
-          Assets moving ±{threshold}% per hour · rolling avg
+          Assets moving ±{threshold}% on {formatTimeframeLabel(timeframe)} candles · hourly distribution
         </p>
       </div>
       <div
@@ -93,6 +99,37 @@ export function AnalyticsHourlyMovers() {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div />
         <div className="flex items-center gap-2 shrink-0">
+          <select
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value as AnalyticsMoversTimeframe)}
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.6rem",
+              letterSpacing: "0.08em",
+              cursor: "pointer",
+              border: "1px solid oklch(0.72 0.18 248 / 35%)",
+              borderRadius: 4,
+              padding: "4px 10px",
+              background: "oklch(0.72 0.18 248 / 8%)",
+              color: "oklch(0.72 0.18 248)",
+              outline: "none",
+              appearance: "none",
+              paddingRight: 24,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236ba3d6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 8px center",
+            }}
+          >
+            {TIMEFRAME_OPTIONS.map((option) => (
+              <option
+                key={option}
+                value={option}
+                style={{ background: "oklch(0.14 0 0)", color: "oklch(0.86 0 0)" }}
+              >
+                {formatTimeframeLabel(option)}
+              </option>
+            ))}
+          </select>
           <select
             value={threshold}
             onChange={(e) => setThreshold(Number(e.target.value) as (typeof THRESHOLDS)[number])}
@@ -413,7 +450,7 @@ export function AnalyticsHourlyMovers() {
                         letterSpacing: "0.06em",
                       }}
                     >
-                      Top mover
+                      Top gainer
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span
@@ -451,7 +488,7 @@ export function AnalyticsHourlyMovers() {
               letterSpacing: "0.06em",
             }}
           >
-            Gainers ≥+{threshold}%
+            Gainers ≥+{threshold}% on {formatTimeframeLabel(timeframe)}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -466,7 +503,7 @@ export function AnalyticsHourlyMovers() {
               letterSpacing: "0.06em",
             }}
           >
-            Losers ≤−{threshold}%
+            Losers ≤−{threshold}% on {formatTimeframeLabel(timeframe)}
           </span>
         </div>
       </div>

@@ -4,8 +4,9 @@ import axios from "axios";
 import type {
   AnalyticsBreakoutHoursResponse,
   AnalyticsBtcCorrelationResponse,
-  AnalyticsHourlyMoversResponse,
+  AnalyticsTimeframeMoversResponse,
   AnalyticsHourlyVolumeActivityResponse,
+  AnalyticsMoversTimeframe,
   AnalyticsVolumeMetric,
 } from "../types";
 
@@ -30,13 +31,25 @@ export const useGetHourlyVolumeActivity = ({ metric, assetLimit = 25, lookbackDa
   });
 };
 
-export const useGetHourlyMovers = ({ threshold = 2, lookbackDays = 14 }: { threshold?: number; lookbackDays?: number } = {}) => {
+export const useGetTimeframeMovers = ({
+  threshold = 2,
+  lookbackDays = 14,
+  timeframe = "1h",
+}: {
+  threshold?: number;
+  lookbackDays?: number;
+  timeframe?: AnalyticsMoversTimeframe;
+} = {}) => {
   return useQuery({
-    queryKey: ["analytics-hourly-movers", threshold, lookbackDays],
+    queryKey: ["analytics-timeframe-movers", threshold, lookbackDays, timeframe],
     queryFn: async () => {
-      const params = new URLSearchParams({ threshold: String(threshold), lookbackDays: String(lookbackDays) });
-      const response = await axios.get<AnalyticsHourlyMoversResponse>(
-        `${API_URL}/analytics/hourly-movers?${params.toString()}`,
+      const params = new URLSearchParams({
+        threshold: String(threshold),
+        lookbackDays: String(lookbackDays),
+        timeframe,
+      });
+      const response = await axios.get<AnalyticsTimeframeMoversResponse>(
+        `${API_URL}/analytics/movers-by-timeframe?${params.toString()}`,
       );
       return response.data;
     },

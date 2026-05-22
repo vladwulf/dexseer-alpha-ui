@@ -1,6 +1,7 @@
 export type AnalyticsVolumeMetric = "asset_volume" | "quote_volume";
+export type AnalyticsMoversTimeframe = "m" | "15m" | "30m" | "1h" | "4h" | "1d";
 
-export type AnalyticsHourlyMoversBucket = {
+export type AnalyticsTimeframeMoversBucket = {
   hour: number;
   gainers: number;
   losers: number;
@@ -9,10 +10,11 @@ export type AnalyticsHourlyMoversBucket = {
   topLoser: { symbol: string; changePct: number } | null;
 };
 
-export type AnalyticsHourlyMoversResponse = {
+export type AnalyticsTimeframeMoversResponse = {
   threshold: number;
   lookbackDays: number;
-  buckets: AnalyticsHourlyMoversBucket[];
+  timeframe: AnalyticsMoversTimeframe;
+  buckets: AnalyticsTimeframeMoversBucket[];
 };
 
 export type AnalyticsBtcCorrelationAsset = {
