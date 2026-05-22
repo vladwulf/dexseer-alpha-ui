@@ -39,7 +39,7 @@ function padH(h: number) {
 
 function SkeletonBars() {
   // Approximate shape of a typical volume curve for the skeleton
-  const heights = [14,9,7,6,8,11,17,24,36,51,64,77,81,87,100,94,91,89,84,74,61,47,34,21];
+  const heights = [14, 9, 7, 6, 8, 11, 17, 24, 36, 51, 64, 77, 81, 87, 100, 94, 91, 89, 84, 74, 61, 47, 34, 21];
   return (
     <div style={{ display: "flex", alignItems: "flex-end", height: CHART_H, gap: 3 }}>
       {heights.map((h, i) => (
@@ -62,8 +62,8 @@ function SkeletonBars() {
 const LOOKBACK_OPTIONS = [7, 14, 30, 90] as const;
 
 export function AnalyticsVolume() {
-  const [metric, setMetric] = useState<AnalyticsVolumeMetric>("quote_volume");
-  const [lookbackDays, setLookbackDays] = useState<(typeof LOOKBACK_OPTIONS)[number]>(14);
+  const [metric, setMetric] = useState<AnalyticsVolumeMetric>("asset_volume");
+  const [lookbackDays, setLookbackDays] = useState<(typeof LOOKBACK_OPTIONS)[number]>(7);
   const [activeHour, setActiveHour] = useState<number | null>(null);
   const currentHour = new Date().getUTCHours();
 
