@@ -16,6 +16,9 @@ import { Pill } from "./Pill";
 import { SessionBars } from "./SessionBars";
 import { StatCard } from "./StatCard";
 
+const panelChipClassName =
+  "inline-flex h-7 items-center rounded-[4px] border px-[9px] py-0 font-[var(--font-mono)] text-[0.7rem] font-medium tracking-[0.05em]";
+
 type ScannerSidePanelProps = {
   asset?: ScannerAsset;
   mobileOpen: boolean;
@@ -41,7 +44,9 @@ function ScannerSidePanelBody({
                 <h2 className="[font-family:var(--font-display)] text-lg font-bold italic leading-none text-white">
                   {asset.symbol}
                 </h2>
-                <span className="rounded-md border border-white/10 px-2 py-0.5 text-[0.58rem] font-semibold uppercase tracking-widest text-white/40">
+                <span
+                  className={`${panelChipClassName} border-transparent bg-transparent text-white/40`}
+                >
                   {asset.market}
                 </span>
               </div>
@@ -54,15 +59,17 @@ function ScannerSidePanelBody({
           </div>
         </div>
 
-        <div className="mb-4 rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/40">
-              Active setup
-            </p>
-            <span className="rounded-xl bg-[#5b8ff9] px-3 py-1.5 text-sm font-bold text-white">
-              {asset.setupScore} / 100
-            </span>
-          </div>
+          <div className="mb-4 rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/40">
+                Active setup
+              </p>
+              <span
+                className={`${panelChipClassName} border-[oklch(0.72_0.18_248/0.30)] bg-[oklch(0.72_0.18_248/0.12)] text-[oklch(0.72_0.18_248)]`}
+              >
+                {asset.setupScore} / 100
+              </span>
+            </div>
           <p className="mb-2 [font-family:var(--font-display)] text-base font-semibold text-white">
             {asset.setupLabel}
           </p>
@@ -80,7 +87,11 @@ function ScannerSidePanelBody({
             <div className="relative h-44 overflow-hidden rounded-[14px]">
               <div className="pointer-events-none absolute inset-y-0 left-[60%] z-10 border-l-2 border-dashed border-[rgba(91,143,249,0.75)]" />
               <span className="pointer-events-none absolute left-[58%] top-2 z-10 text-xs font-semibold text-[#5b8ff9]">
-                brk 1h
+                <span
+                  className={`${panelChipClassName} h-6 border-[oklch(0.72_0.18_248/0.30)] bg-[oklch(0.72_0.18_248/0.12)] px-[7px] text-[oklch(0.72_0.18_248)]`}
+                >
+                  brk 1h
+                </span>
               </span>
               <IndexChart
                 symbol={asset.symbol}
@@ -113,14 +124,16 @@ function ScannerSidePanelBody({
         />
 
         <div className="my-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/40">
-              Recent alerts
-            </p>
-            <Badge className="bg-amber-300 px-2 py-1 text-xs font-bold text-stone-900">
-              {asset.alertCount}
-            </Badge>
-          </div>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/40">
+                Recent alerts
+              </p>
+              <Badge
+                className={`${panelChipClassName} border-[oklch(0.72_0.18_248/0.30)] bg-[oklch(0.72_0.18_248/0.12)] text-[oklch(0.72_0.18_248)]`}
+              >
+                {asset.alertCount}
+              </Badge>
+            </div>
           <div className="space-y-2">
             {asset.recentAlerts.map((alert) => (
               <div
@@ -130,7 +143,7 @@ function ScannerSidePanelBody({
                 <div className="flex items-center gap-3">
                   <Badge
                     variant="outline"
-                    className="rounded-md border-white/10 px-2 py-1 text-[0.72rem] font-semibold text-white/72"
+                    className={`${panelChipClassName} border-transparent bg-transparent text-white/55`}
                   >
                     {alert.timeframe}
                   </Badge>

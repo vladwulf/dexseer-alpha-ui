@@ -155,3 +155,12 @@
   /* Chrome, Safari, Opera */
   display: none;
 }
+
+.hide-scrollbar-x {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar-x::-webkit-scrollbar:horizontal {
+  display: none;
+}

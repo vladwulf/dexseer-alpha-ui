@@ -47,8 +47,8 @@ export function ScannerTable({
   onSelectSymbol,
 }: ScannerTableProps) {
   return (
-    <div className="min-w-0 overflow-hidden border-b border-white/8 xl:flex-1 xl:border-b-0 xl:border-r">
-      <Table className="w-full table-fixed border-collapse">
+    <div className="min-w-0 border-b border-white/8 xl:flex-1 xl:border-b-0 xl:border-r">
+      <Table className="w-full table-fixed border-collapse overflow-x-auto hide-scrollbar-x">
         <TableHeader className="bg-[#0d0d0d]">
           <TableRow className="border-white/8 text-left hover:bg-transparent">
             <HeaderCell>Symbol</HeaderCell>
@@ -65,7 +65,7 @@ export function ScannerTable({
             <HeaderCell>ATR %</HeaderCell>
             <HeaderCell>BTC corr</HeaderCell>
             <HeaderCell>Alerts</HeaderCell>
-            <HeaderCell>Setup label</HeaderCell>
+            {/* <HeaderCell>Setup label</HeaderCell> */}
             <HeaderCell>Score</HeaderCell>
             <HeaderCell>Sparkline</HeaderCell>
           </TableRow>
@@ -77,16 +77,14 @@ export function ScannerTable({
             return (
               <TableRow
                 key={asset.symbol}
-                className={`border-b border-white/6 transition hover:bg-white/[0.03] ${
-                  isSelected
-                    ? "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]"
-                    : ""
-                } ${density === "expanded" ? "h-20" : "h-14"}`}
+                className={`border-b border-white/6 transition hover:bg-white/[0.03] ${isSelected
+                  ? "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]"
+                  : ""
+                  } ${density === "expanded" ? "h-20" : "h-14"}`}
                 onClick={() => onSelectSymbol(asset.symbol)}
               >
                 <TableCell className="w-[128px] whitespace-nowrap px-3 py-3">
                   <div className="flex items-center gap-3">
-                    <Circle className="h-4 w-4 text-white/32" />
                     <div>
                       <div className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white">
                         {asset.symbol.replace("USDT", "")}
@@ -110,20 +108,19 @@ export function ScannerTable({
                 <DataCell>{numberFormat.format(asset.atrPercent)}</DataCell>
                 <DataCell>{asset.btcCorrelation.toFixed(2)}</DataCell>
                 <DataCell>{asset.alertCount}</DataCell>
-                <DataCell className="w-[170px]">
+                {/* <DataCell className="w-[170px]">
                   <span className="inline-block max-w-full truncate rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[0.74rem] font-medium text-white/76 align-middle">
                     {asset.setupLabel}
                   </span>
-                </DataCell>
+                </DataCell> */}
                 <DataCell>
                   <span
-                    className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${
-                      asset.setupScore >= 80
-                        ? "bg-[#5b8ff9] text-white"
-                        : asset.setupScore >= 60
-                          ? "bg-amber-300 text-black"
-                          : "bg-white/10 text-white/78"
-                    }`}
+                    className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${asset.setupScore >= 80
+                      ? "bg-[#5b8ff9] text-white"
+                      : asset.setupScore >= 60
+                        ? "bg-amber-300 text-black"
+                        : "bg-white/10 text-white/78"
+                      }`}
                   >
                     {asset.setupScore}
                   </span>
@@ -136,6 +133,6 @@ export function ScannerTable({
           })}
         </TableBody>
       </Table>
-    </div>
+    </div >
   );
 }
