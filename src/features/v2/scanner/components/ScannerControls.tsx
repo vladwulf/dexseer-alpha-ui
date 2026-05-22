@@ -1,5 +1,12 @@
-import { Filter, Search, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import type { CSSProperties } from "react";
+import { ChevronDown, Filter, Search, Star } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   MIN_VOLUME_OPTIONS,
@@ -9,6 +16,34 @@ import {
   WATCHLIST_OPTIONS,
 } from "../data/mockScannerData";
 import type { DensityMode, ScannerPreset, ScannerTimeframe, SortOption } from "../types";
+
+const chipBase: CSSProperties = {
+  fontFamily: "var(--font-mono)",
+  fontSize: "0.7rem",
+  fontWeight: 500,
+  letterSpacing: "0.05em",
+  padding: "3px 9px",
+  borderRadius: "4px",
+  cursor: "pointer",
+  border: "1px solid transparent",
+  transition: "all 0.12s",
+  background: "transparent",
+  color: "oklch(0.48 0 0)",
+};
+
+const chipActive: CSSProperties = {
+  ...chipBase,
+  color: "oklch(0.72 0.18 248)",
+  background: "oklch(0.72 0.18 248 / 12%)",
+  border: "1px solid oklch(0.72 0.18 248 / 30%)",
+};
+
+const chipDropdown: CSSProperties = {
+  ...chipBase,
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 5,
+};
 
 type ScannerControlsProps = {
   density: DensityMode;
@@ -59,119 +94,151 @@ export function ScannerControls(props: ScannerControlsProps) {
             />
           </label>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-0.5">
             {PRESET_OPTIONS.map((option) => (
-              <Button
+              <button
                 key={option}
+                type="button"
                 onClick={() => onPresetChange(option)}
-                variant="outline"
-                size="sm"
-                className={`rounded-full font-[var(--font-display)] text-[0.78rem] transition ${
-                  preset === option
-                    ? "border-[#5b8ff9] bg-[rgba(91,143,249,0.14)] text-white/90"
-                    : "border-white/10 bg-white/[0.03] text-white/72 hover:bg-white/[0.06]"
-                }`}
+                style={preset === option ? chipActive : chipBase}
               >
                 {option}
-              </Button>
+              </button>
             ))}
           </div>
         </div>
 
         <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            {TIMEFRAME_OPTIONS.map((option) => (
-              <Button
-                key={option}
-                onClick={() => onTimeframeChange(option)}
-                variant="outline"
-                size="sm"
-                className={`min-w-14 rounded-2xl text-[0.78rem] font-semibold ${
-                  timeframe === option
-                    ? "border-white/20 bg-white/10 text-white"
-                    : "border-white/10 bg-white/[0.03] text-white/72"
-                }`}
-              >
-                {option}
-              </Button>
-            ))}
-
-            <select
-              value={watchlistFilter}
-              onChange={(event) =>
-                onWatchlistFilterChange(event.target.value as (typeof WATCHLIST_OPTIONS)[number])
-              }
-              className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[0.78rem] text-white/80 outline-none"
-            >
-              {WATCHLIST_OPTIONS.map((option) => (
-                <option key={option}>{option}</option>
+          <div className="flex flex-wrap items-center gap-1">
+            <div className="flex items-center gap-0.5">
+              {TIMEFRAME_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => onTimeframeChange(option)}
+                  style={timeframe === option ? chipActive : chipBase}
+                >
+                  {option}
+                </button>
               ))}
-            </select>
+            </div>
 
-            <select
-              value={minVolume}
-              onChange={(event) =>
-                onMinVolumeChange(event.target.value as (typeof MIN_VOLUME_OPTIONS)[number])
-              }
-              className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[0.78rem] text-white/80 outline-none"
-            >
-              {MIN_VOLUME_OPTIONS.map((option) => (
-                <option key={option}>{option}</option>
-              ))}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" style={chipDropdown}>
+                  {watchlistFilter}
+                  <ChevronDown size={11} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuRadioGroup
+                  value={watchlistFilter}
+                  onValueChange={(v) => onWatchlistFilterChange(v as (typeof WATCHLIST_OPTIONS)[number])}
+                >
+                  {WATCHLIST_OPTIONS.map((option) => (
+                    <DropdownMenuRadioItem
+                      key={option}
+                      value={option}
+                      style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}
+                    >
+                      {option}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            <select
-              value={sortBy}
-              onChange={(event) => onSortByChange(event.target.value as SortOption)}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[0.78rem] text-white/80 outline-none"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option}>{option}</option>
-              ))}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" style={chipDropdown}>
+                  Vol {minVolume}
+                  <ChevronDown size={11} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuRadioGroup
+                  value={minVolume}
+                  onValueChange={(v) => onMinVolumeChange(v as (typeof MIN_VOLUME_OPTIONS)[number])}
+                >
+                  {MIN_VOLUME_OPTIONS.map((option) => (
+                    <DropdownMenuRadioItem
+                      key={option}
+                      value={option}
+                      style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}
+                    >
+                      {option}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" style={chipDropdown}>
+                  {sortBy}
+                  <ChevronDown size={11} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuRadioGroup
+                  value={sortBy}
+                  onValueChange={(v) => onSortByChange(v as SortOption)}
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <DropdownMenuRadioItem
+                      key={option}
+                      value={option}
+                      style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}
+                    >
+                      {option}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+          <div className="flex flex-wrap items-center gap-0.5">
+            <button
+              type="button"
               onClick={() => onDensityChange("compact")}
-              className={`rounded-full text-[0.78rem] font-semibold ${
-                density === "compact"
-                  ? "border-white/20 bg-white/10 text-white"
-                  : "border-white/10 bg-white/[0.03] text-white/72"
-              }`}
+              style={density === "compact" ? chipActive : chipBase}
             >
               Compact
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+            </button>
+            <button
+              type="button"
               onClick={() => onDensityChange("expanded")}
-              className={`rounded-full text-[0.78rem] font-semibold ${
-                density === "expanded"
-                  ? "border-white/20 bg-white/10 text-white"
-                  : "border-white/10 bg-white/[0.03] text-white/72"
-              }`}
+              style={density === "expanded" ? chipActive : chipBase}
             >
               Expanded
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full border-white/10 bg-white/[0.03] text-[0.78rem] text-white/78"
+            </button>
+            <button
+              type="button"
+              style={{
+                ...chipBase,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                border: "1px solid oklch(1 0 0 / 10%)",
+              }}
             >
-              <Filter className="h-4 w-4" />
+              <Filter size={12} />
               Filters
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full border-[rgba(91,143,249,0.35)] bg-[rgba(91,143,249,0.12)] text-[0.78rem] text-white/90"
+            </button>
+            <button
+              type="button"
+              style={{
+                ...chipActive,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+              }}
             >
-              <Star className="h-4 w-4" />
+              <Star size={12} />
               Save view
-            </Button>
+            </button>
           </div>
         </div>
       </div>

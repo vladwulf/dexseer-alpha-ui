@@ -13,7 +13,7 @@ import { Sparkline } from "./Sparkline";
 
 function HeaderCell({ children }: { children: React.ReactNode }) {
   return (
-    <TableHead className="px-4 py-4 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/35">
+    <TableHead className="px-3 py-4 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/35">
       {children}
     </TableHead>
   );
@@ -27,7 +27,7 @@ function DataCell({
   className?: string;
 }) {
   return (
-    <TableCell className={`whitespace-nowrap px-4 py-3 text-[0.78rem] ${className}`}>
+    <TableCell className={`whitespace-nowrap px-3 py-3 text-[0.78rem] ${className}`}>
       {children}
     </TableCell>
   );
@@ -47,8 +47,8 @@ export function ScannerTable({
   onSelectSymbol,
 }: ScannerTableProps) {
   return (
-    <div className="overflow-hidden border-b border-white/8 xl:border-b-0 xl:border-r">
-      <Table className="min-w-[1320px] border-collapse">
+    <div className="min-w-0 overflow-hidden border-b border-white/8 xl:flex-1 xl:border-b-0 xl:border-r">
+      <Table className="w-full table-fixed border-collapse">
         <TableHeader className="bg-[#0d0d0d]">
           <TableRow className="border-white/8 text-left hover:bg-transparent">
             <HeaderCell>Symbol</HeaderCell>
@@ -84,7 +84,7 @@ export function ScannerTable({
                 } ${density === "expanded" ? "h-20" : "h-14"}`}
                 onClick={() => onSelectSymbol(asset.symbol)}
               >
-                <TableCell className="whitespace-nowrap px-4 py-3">
+                <TableCell className="w-[128px] whitespace-nowrap px-3 py-3">
                   <div className="flex items-center gap-3">
                     <Circle className="h-4 w-4 text-white/32" />
                     <div>
@@ -110,8 +110,8 @@ export function ScannerTable({
                 <DataCell>{numberFormat.format(asset.atrPercent)}</DataCell>
                 <DataCell>{asset.btcCorrelation.toFixed(2)}</DataCell>
                 <DataCell>{asset.alertCount}</DataCell>
-                <DataCell>
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[0.74rem] font-medium text-white/76">
+                <DataCell className="w-[170px]">
+                  <span className="inline-block max-w-full truncate rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[0.74rem] font-medium text-white/76 align-middle">
                     {asset.setupLabel}
                   </span>
                 </DataCell>

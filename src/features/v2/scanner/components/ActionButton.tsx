@@ -12,10 +12,10 @@ export function ActionButton({
   return (
     <Button
       variant="outline"
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-[0.72rem] font-semibold tracking-[0.06em] transition ${
+      className={`inline-flex h-8 items-center justify-center gap-2 rounded-[4px] px-[10px] py-0 text-[0.7rem] font-medium tracking-[0.05em] shadow-none transition ${
         variant === "primary"
-          ? "bg-[#5b8ff9] text-white hover:bg-[#4a7fe8]"
-          : "border border-white/10 bg-white/3 text-white/78 hover:bg-white/6"
+          ? "border-[oklch(0.72_0.18_248/0.30)] bg-[oklch(0.72_0.18_248/0.12)] font-[var(--font-mono)] text-[oklch(0.72_0.18_248)] hover:bg-[oklch(0.72_0.18_248/0.14)]"
+          : "border-transparent bg-transparent font-[var(--font-mono)] text-white/55 hover:border-white/10 hover:bg-white/[0.03] hover:text-white/78"
       }`}
     >
       {icon}

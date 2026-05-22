@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { MARKET_STRIP } from "./data/mockScannerData";
+import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
 import { useScannerState } from "./hooks/useScannerState";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
@@ -6,6 +8,8 @@ import { ScannerSidePanel } from "./components/ScannerSidePanel";
 import { ScannerTable } from "./components/ScannerTable";
 
 export function ScannerV2Screen() {
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const isMobileScanner = useIsMobileScanner();
   const {
     density,
     filteredAssets,
@@ -26,6 +30,13 @@ export function ScannerV2Screen() {
     setTimeframe,
     setWatchlistFilter,
   } = useScannerState();
+
+  const handleSelectSymbol = (symbol: string) => {
+    setSelectedSymbol(symbol);
+    if (isMobileScanner) {
+      setMobilePanelOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
@@ -50,14 +61,19 @@ export function ScannerV2Screen() {
             onWatchlistFilterChange={setWatchlistFilter}
           />
 
-          <section className="grid min-h-[900px] grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1fr)_460px]">
+          <section className="min-h-[900px] xl:flex">
             <ScannerTable
               assets={filteredAssets}
               density={density}
               selectedSymbol={selectedSymbol}
-              onSelectSymbol={setSelectedSymbol}
+              onSelectSymbol={handleSelectSymbol}
             />
-            <ScannerSidePanel asset={selectedAsset} timeframe={timeframe} />
+            <ScannerSidePanel
+              asset={selectedAsset}
+              mobileOpen={isMobileScanner ? mobilePanelOpen : false}
+              onMobileOpenChange={setMobilePanelOpen}
+              timeframe={timeframe}
+            />
           </section>
         </div>
       </div>
