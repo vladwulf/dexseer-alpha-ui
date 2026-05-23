@@ -1,7 +1,7 @@
-import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { XIcon } from "lucide-react";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 const sheetVariants = cva(
@@ -126,12 +126,12 @@ function SheetDescription({
 
 export {
   Sheet,
-  SheetTrigger,
   SheetClose,
-  SheetPortal,
-  SheetOverlay,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
+  SheetHeader,
+  SheetOverlay,
+  SheetPortal,
+  SheetTitle,
+  SheetTrigger,
 };

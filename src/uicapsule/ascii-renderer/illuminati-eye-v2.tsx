@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
 
 export const IlluminatiEyeV2 = () => {
   return (
@@ -45,11 +45,11 @@ const IlluminatiEye = () => {
       if (time - lookDirectionRef.current > 3) {
         lookDirectionRef.current = time;
       }
-      
+
       const lookPhase = Math.floor((time - lookDirectionRef.current) / 3) % 3;
       let targetX = 0;
       let targetY = -0.1; // Always looking slightly down
-      
+
       if (lookPhase === 0) {
         // Look bottom left
         targetX = -0.15;
@@ -63,20 +63,22 @@ const IlluminatiEye = () => {
         targetX = 0;
         targetY = -0.1;
       }
-      
+
       // Smooth transition
-      pupilGroupRef.current.position.x += (targetX - pupilGroupRef.current.position.x) * 0.05;
-      pupilGroupRef.current.position.y += (targetY - pupilGroupRef.current.position.y) * 0.05;
+      pupilGroupRef.current.position.x +=
+        (targetX - pupilGroupRef.current.position.x) * 0.05;
+      pupilGroupRef.current.position.y +=
+        (targetY - pupilGroupRef.current.position.y) * 0.05;
     }
 
     // Blinking animation - blink every 4-5 seconds
     const blinkCycle = 5; // seconds between blinks
     const blinkPhase = (time % blinkCycle) / blinkCycle;
-    
+
     let blinkAmount = 0;
     if (blinkPhase > 0.9 && blinkPhase < 0.95) {
       // Quick blink
-      blinkAmount = Math.sin((blinkPhase - 0.9) / 0.05 * Math.PI);
+      blinkAmount = Math.sin(((blinkPhase - 0.9) / 0.05) * Math.PI);
     }
 
     if (eyeTopLidRef.current && eyeBottomLidRef.current) {
@@ -93,8 +95,8 @@ const IlluminatiEye = () => {
       {/* Pyramid Base */}
       <mesh position={[0, -1.5, 0]} rotation={[0, 0, 0]}>
         <coneGeometry args={[2.5, 3, 3]} />
-        <meshStandardMaterial 
-          color="#ffffff" 
+        <meshStandardMaterial
+          color="#ffffff"
           wireframe={false}
           emissive="#ffffff"
           emissiveIntensity={0.1}
@@ -104,13 +106,17 @@ const IlluminatiEye = () => {
       {/* Pyramid Edges (thicker wireframe) */}
       <mesh position={[0, -1.5, 0]} rotation={[0, 0, 0]}>
         <coneGeometry args={[2.52, 3.02, 3]} />
-        <meshBasicMaterial color="#ffffff" wireframe={true} wireframeLinewidth={2} />
+        <meshBasicMaterial
+          color="#ffffff"
+          wireframe={true}
+          wireframeLinewidth={2}
+        />
       </mesh>
 
       {/* Eye Background (white) */}
       <mesh position={[0, 0.5, 0]} scale={[1.8, 1, 1]}>
         <sphereGeometry args={[0.8, 32, 32]} />
-        <meshStandardMaterial 
+        <meshStandardMaterial
           color="#ffffff"
           emissive="#ffffff"
           emissiveIntensity={0.2}
@@ -120,8 +126,8 @@ const IlluminatiEye = () => {
       {/* Top Eyelid */}
       <mesh ref={eyeTopLidRef} position={[0, 0.5, 0]} scale={[1.8, 1, 1]}>
         <sphereGeometry args={[0.81, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial 
-          color="#ffffff" 
+        <meshStandardMaterial
+          color="#ffffff"
           side={THREE.DoubleSide}
           emissive="#ffffff"
           emissiveIntensity={0.1}
@@ -129,10 +135,15 @@ const IlluminatiEye = () => {
       </mesh>
 
       {/* Bottom Eyelid */}
-      <mesh ref={eyeBottomLidRef} position={[0, 0.5, 0]} rotation={[Math.PI, 0, 0]} scale={[1.8, 1, 1]}>
+      <mesh
+        ref={eyeBottomLidRef}
+        position={[0, 0.5, 0]}
+        rotation={[Math.PI, 0, 0]}
+        scale={[1.8, 1, 1]}
+      >
         <sphereGeometry args={[0.81, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial 
-          color="#ffffff" 
+        <meshStandardMaterial
+          color="#ffffff"
           side={THREE.DoubleSide}
           emissive="#ffffff"
           emissiveIntensity={0.1}
@@ -144,7 +155,7 @@ const IlluminatiEye = () => {
         {/* Iris */}
         <mesh>
           <circleGeometry args={[0.35, 32]} />
-          <meshStandardMaterial 
+          <meshStandardMaterial
             color="#333333"
             emissive="#000000"
             emissiveIntensity={0.2}
@@ -179,11 +190,7 @@ const IlluminatiEye = () => {
           <group key={i} position={[x, y, 0]} rotation={[0, 0, angle]}>
             <mesh>
               <coneGeometry args={[0.08, 0.5, 3]} />
-              <meshStandardMaterial
-                color="#ffffff"
-                transparent
-                opacity={0.3}
-              />
+              <meshStandardMaterial color="#ffffff" transparent opacity={0.3} />
             </mesh>
           </group>
         );
@@ -199,7 +206,7 @@ const Renderer = () => {
   useEffect(() => {
     const effect = new AsciiEffect(
       gl,
-      " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+      " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
     );
 
     effect.domElement.style.position = "absolute";
@@ -233,25 +240,3 @@ const Renderer = () => {
 
   return null;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

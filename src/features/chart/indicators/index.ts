@@ -55,7 +55,7 @@ export function getEMASeriesData(data: CandlestickData[], periods: number) {
  */
 export function calculateEMAFromValues(
   values: number[],
-  periods: number
+  periods: number,
 ): (number | null)[] {
   const emaData: (number | null)[] = [];
   const multiplier = 2 / (periods + 1);
@@ -109,7 +109,7 @@ export function getMACDSeriesData(
   slowPeriod: number = 26,
   signalPeriod: number = 9,
   positiveColor: string = "rgba(34, 197, 94, 0.5)",
-  negativeColor: string = "rgba(239, 68, 68, 0.5)"
+  negativeColor: string = "rgba(239, 68, 68, 0.5)",
 ): MACDResult {
   // Calculate fast and slow EMAs
   const fastEMA = getEMASeriesData(data, fastPeriod);

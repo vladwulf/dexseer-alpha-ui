@@ -39,7 +39,6 @@ export function ScannerControls({
 
         <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:gap-2">
           <div className="flex flex-wrap items-center gap-2 2xl:flex-nowrap">
-
             <FilterDropdowns
               minVolume={minVolume}
               sortBy={sortBy}
@@ -50,10 +49,7 @@ export function ScannerControls({
             />
           </div>
 
-          <ActionButtons
-            density={density}
-            onDensityChange={onDensityChange}
-          />
+          <ActionButtons density={density} onDensityChange={onDensityChange} />
         </div>
       </div>
     </section>

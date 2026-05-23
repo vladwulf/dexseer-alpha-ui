@@ -64,7 +64,11 @@ export function DataTable<TData, TValue>({
         {!hideHeader && (
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent" style={{ borderColor: "oklch(1 0 0 / 8%)" }}>
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent"
+                style={{ borderColor: "oklch(1 0 0 / 8%)" }}
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
@@ -77,18 +81,31 @@ export function DataTable<TData, TValue>({
                       onClick={header.column.getToggleSortingHandler()}
                       style={{ userSelect: "none" }}
                     >
-                      <div className={cn("flex items-center gap-2", !header.column.getCanSort() && "justify-center")}>
+                      <div
+                        className={cn(
+                          "flex items-center gap-2",
+                          !header.column.getCanSort() && "justify-center",
+                        )}
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
-                        {header.column.getCanSort() && header.column.getIsSorted() && (
-                          <span style={{ color: "oklch(0.72 0.18 248)", fontSize: "0.65rem" }}>
-                            {header.column.getIsSorted() === "asc" ? "↑" : "↓"}
-                          </span>
-                        )}
+                        {header.column.getCanSort() &&
+                          header.column.getIsSorted() && (
+                            <span
+                              style={{
+                                color: "oklch(0.72 0.18 248)",
+                                fontSize: "0.65rem",
+                              }}
+                            >
+                              {header.column.getIsSorted() === "asc"
+                                ? "↑"
+                                : "↓"}
+                            </span>
+                          )}
                       </div>
                     </TableHead>
                   );
@@ -103,13 +120,17 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className={cn(density === "extended" ? "h-[440px]" : "h-[88px]")}
+                className={cn(
+                  density === "extended" ? "h-[440px]" : "h-[88px]",
+                )}
                 style={{ transition: "background 0.1s" }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "oklch(1 0 0 / 2.5%)";
+                  (e.currentTarget as HTMLElement).style.background =
+                    "oklch(1 0 0 / 2.5%)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "transparent";
+                  (e.currentTarget as HTMLElement).style.background =
+                    "transparent";
                 }}
               >
                 {row.getVisibleCells().map((cell) => (

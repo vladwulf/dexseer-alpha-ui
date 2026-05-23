@@ -10,7 +10,7 @@ import type { ParsedKLine } from "@/patterns/types/binance.types";
 export function detectAllBosSignals(
   klines: ParsedKLine[],
   loopbackPeriod = 30,
-  minSpacing = 30
+  minSpacing = 30,
 ): number[] {
   const bosIndices: number[] = [];
   let lastBosIndex = -1;
@@ -23,7 +23,7 @@ export function detectAllBosSignals(
 
     const candle = klines[i];
     const previousCandle = klines[i - 1];
-    
+
     // BOS: Current high breaks previous high
     if (candle.high > previousCandle.high) {
       bosIndices.push(i);
@@ -39,14 +39,13 @@ export function detectAllBosSignals(
  */
 export function detectBosStart(
   klines: ParsedKLine[],
-  loopbackPeriod = 30
+  loopbackPeriod = 30,
 ): boolean {
   if (klines.length < 2) return false;
-  
+
   const lastIndex = klines.length - 1;
   const candle = klines[lastIndex];
   const previousCandle = klines[lastIndex - 1];
-  
+
   return candle.high > previousCandle.high;
 }
-

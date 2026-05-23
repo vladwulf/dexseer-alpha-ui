@@ -1,16 +1,16 @@
-import { useEffect, useRef } from "react";
-import {
-  createChart,
-  ColorType,
-  CandlestickSeries,
-  HistogramSeries,
-  createSeriesMarkers,
-} from "lightweight-charts";
 import type {
   CandlestickData,
-  Time,
   MouseEventParams,
+  Time,
 } from "lightweight-charts";
+import {
+  CandlestickSeries,
+  ColorType,
+  createChart,
+  createSeriesMarkers,
+  HistogramSeries,
+} from "lightweight-charts";
+import { useEffect, useRef } from "react";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { getEMASeriesData, getMACDSeriesData } from "./indicators";
 import { MARibbonIndicator } from "./indicators/ma-ribbon-plugin";
@@ -180,8 +180,12 @@ export function StandardChart({
 
     // Convert Binance K-line data to candlestick format
     const chartData: (CandlestickData & { volume: number })[] = dataToRender
-      .filter((kline) =>
-        kline.open != null && kline.high != null && kline.low != null && kline.close != null
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
       )
       .map((kline) => {
         const timestamp = new Date(kline.time).getTime() / 1000;
@@ -207,7 +211,7 @@ export function StandardChart({
             shape: "arrowDown",
             text: e.type,
           };
-        })
+        }),
       );
     }
 
@@ -281,7 +285,7 @@ export function StandardChart({
         time: kline.time,
         value: kline.volume,
         color: kline.close > kline.open ? upVolumeColor : downVolumeColor,
-      }))
+      })),
     );
 
     // Calculate relative volume data
@@ -593,8 +597,8 @@ export function StandardChart({
                   relativeVolumeData[barIndex]?.value > 2.0
                     ? "#22c55e"
                     : relativeVolumeData[barIndex]?.value > 1.0
-                    ? "rgba(34, 197, 94, 0.8)"
-                    : "#6b7280"
+                      ? "rgba(34, 197, 94, 0.8)"
+                      : "#6b7280"
                 }; font-weight: 600;">${relativeVolume}</span></span>`
               : ""
           }
@@ -610,31 +614,31 @@ export function StandardChart({
               Number(signalStrength) >= 5
                 ? "#22c55e"
                 : Number(signalStrength) >= 3
-                ? "rgba(34, 197, 94, 0.7)"
-                : Number(signalStrength) >= 1
-                ? "rgba(34, 197, 94, 0.4)"
-                : Number(signalStrength) <= -5
-                ? "#ef4444"
-                : Number(signalStrength) <= -3
-                ? "rgba(239, 68, 68, 0.7)"
-                : Number(signalStrength) <= -1
-                ? "rgba(239, 68, 68, 0.4)"
-                : "#6b7280"
+                  ? "rgba(34, 197, 94, 0.7)"
+                  : Number(signalStrength) >= 1
+                    ? "rgba(34, 197, 94, 0.4)"
+                    : Number(signalStrength) <= -5
+                      ? "#ef4444"
+                      : Number(signalStrength) <= -3
+                        ? "rgba(239, 68, 68, 0.7)"
+                        : Number(signalStrength) <= -1
+                          ? "rgba(239, 68, 68, 0.4)"
+                          : "#6b7280"
             }; font-weight: 700; font-size: 16px;">${signalStrength}</span>
             <span style="font-size: 11px; color: #9ca3af;">${
               Number(signalStrength) >= 5
                 ? "🟢 PERFECT SETUP"
                 : Number(signalStrength) >= 3
-                ? "🟢 Strong Signal"
-                : Number(signalStrength) >= 1
-                ? "🟡 Weak Signal"
-                : Number(signalStrength) <= -5
-                ? "🔴 PERFECT SETUP"
-                : Number(signalStrength) <= -3
-                ? "🔴 Strong Signal"
-                : Number(signalStrength) <= -1
-                ? "🟡 Weak Signal"
-                : "⚪ No Signal"
+                  ? "🟢 Strong Signal"
+                  : Number(signalStrength) >= 1
+                    ? "🟡 Weak Signal"
+                    : Number(signalStrength) <= -5
+                      ? "🔴 PERFECT SETUP"
+                      : Number(signalStrength) <= -3
+                        ? "🔴 Strong Signal"
+                        : Number(signalStrength) <= -1
+                          ? "🟡 Weak Signal"
+                          : "⚪ No Signal"
             }</span>
           </div>
           <div style="margin-top: 4px; font-size: 11px; color: #9ca3af;">

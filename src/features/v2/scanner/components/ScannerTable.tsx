@@ -7,7 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatPrice, formatSigned, getChangeTone, numberFormat } from "../lib/formatters";
+import {
+  formatPrice,
+  formatSigned,
+  getChangeTone,
+  numberFormat,
+} from "../lib/formatters";
 import type { DensityMode, ScannerAsset } from "../types";
 import { Sparkline } from "./Sparkline";
 
@@ -27,7 +32,9 @@ function DataCell({
   className?: string;
 }) {
   return (
-    <TableCell className={`whitespace-nowrap px-3 py-3 text-[0.78rem] ${className}`}>
+    <TableCell
+      className={`whitespace-nowrap px-3 py-3 text-[0.78rem] ${className}`}
+    >
       {children}
     </TableCell>
   );
@@ -77,10 +84,11 @@ export function ScannerTable({
             return (
               <TableRow
                 key={asset.symbol}
-                className={`border-b border-white/6 transition hover:bg-white/[0.03] ${isSelected
-                  ? "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]"
-                  : ""
-                  } ${density === "expanded" ? "h-20" : "h-14"}`}
+                className={`border-b border-white/6 transition hover:bg-white/[0.03] ${
+                  isSelected
+                    ? "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]"
+                    : ""
+                } ${density === "expanded" ? "h-20" : "h-14"}`}
                 onClick={() => onSelectSymbol(asset.symbol)}
               >
                 <TableCell className="w-[128px] whitespace-nowrap px-3 py-3">
@@ -95,16 +103,34 @@ export function ScannerTable({
                     </div>
                   </div>
                 </TableCell>
-                <DataCell className="font-[var(--font-mono)]">{formatPrice(asset.price)}</DataCell>
-                <DataCell className={getChangeTone(asset.change5m)}>{formatSigned(asset.change5m)}</DataCell>
-                <DataCell className={getChangeTone(asset.change15m)}>{formatSigned(asset.change15m)}</DataCell>
-                <DataCell className={getChangeTone(asset.change1h)}>{formatSigned(asset.change1h)}</DataCell>
-                <DataCell className={getChangeTone(asset.change4h)}>{formatSigned(asset.change4h)}</DataCell>
-                <DataCell className={getChangeTone(asset.change24h)}>{formatSigned(asset.change24h)}</DataCell>
+                <DataCell className="font-[var(--font-mono)]">
+                  {formatPrice(asset.price)}
+                </DataCell>
+                <DataCell className={getChangeTone(asset.change5m)}>
+                  {formatSigned(asset.change5m)}
+                </DataCell>
+                <DataCell className={getChangeTone(asset.change15m)}>
+                  {formatSigned(asset.change15m)}
+                </DataCell>
+                <DataCell className={getChangeTone(asset.change1h)}>
+                  {formatSigned(asset.change1h)}
+                </DataCell>
+                <DataCell className={getChangeTone(asset.change4h)}>
+                  {formatSigned(asset.change4h)}
+                </DataCell>
+                <DataCell className={getChangeTone(asset.change24h)}>
+                  {formatSigned(asset.change24h)}
+                </DataCell>
                 <DataCell>{asset.volume}</DataCell>
-                <DataCell className="font-semibold text-amber-300">{asset.rvol.toFixed(1)}x</DataCell>
-                <DataCell className={getChangeTone(asset.oiDelta)}>{formatSigned(asset.oiDelta)}</DataCell>
-                <DataCell className={getChangeTone(asset.funding)}>{formatSigned(asset.funding, "%")}</DataCell>
+                <DataCell className="font-semibold text-amber-300">
+                  {asset.rvol.toFixed(1)}x
+                </DataCell>
+                <DataCell className={getChangeTone(asset.oiDelta)}>
+                  {formatSigned(asset.oiDelta)}
+                </DataCell>
+                <DataCell className={getChangeTone(asset.funding)}>
+                  {formatSigned(asset.funding, "%")}
+                </DataCell>
                 <DataCell>{numberFormat.format(asset.atrPercent)}</DataCell>
                 <DataCell>{asset.btcCorrelation.toFixed(2)}</DataCell>
                 <DataCell>{asset.alertCount}</DataCell>
@@ -115,12 +141,13 @@ export function ScannerTable({
                 </DataCell> */}
                 <DataCell>
                   <span
-                    className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${asset.setupScore >= 80
-                      ? "bg-[#5b8ff9] text-white"
-                      : asset.setupScore >= 60
-                        ? "bg-amber-300 text-black"
-                        : "bg-white/10 text-white/78"
-                      }`}
+                    className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${
+                      asset.setupScore >= 80
+                        ? "bg-[#5b8ff9] text-white"
+                        : asset.setupScore >= 60
+                          ? "bg-amber-300 text-black"
+                          : "bg-white/10 text-white/78"
+                    }`}
                   >
                     {asset.setupScore}
                   </span>
@@ -133,6 +160,6 @@ export function ScannerTable({
           })}
         </TableBody>
       </Table>
-    </div >
+    </div>
   );
 }

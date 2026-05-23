@@ -1,16 +1,16 @@
-import { useState } from "react";
 import type { SortingState, Updater } from "@tanstack/react-table";
+import { useState } from "react";
 import { SortBy, useGetAssets } from "../hooks/screener.api";
-import type { ScreenerAssetWithChart } from "../types";
-import { getCryptoColumns } from "./columns";
-import { DataTable } from "./data-table";
 import {
+  type RefreshInterval,
   ScreenerConfigs,
   type ScreenerDensity,
   type ScreenerProfile,
-  type RefreshInterval,
   type Timeframe,
 } from "../screener-buttons/ScreenerConfigs";
+import type { ScreenerAssetWithChart } from "../types";
+import { getCryptoColumns } from "./columns";
+import { DataTable } from "./data-table";
 
 /**
  * Maps TanStack Table column accessor keys to backend SortBy values
@@ -69,9 +69,7 @@ const MULTI_TIMEFRAME_SORTABLE_COLUMNS = new Set([
   "volume_delta_1d",
 ]);
 
-const getDefaultSortingForProfile = (
-  profile: ScreenerProfile,
-): SortingState =>
+const getDefaultSortingForProfile = (profile: ScreenerProfile): SortingState =>
   profile === "swing-trading"
     ? [{ id: "change_1d", desc: true }]
     : profile === "day-trading"
@@ -123,8 +121,7 @@ export const ScreenerTable = () => {
   const [timeframe, setTimeframe] = useState<Timeframe>("15m");
   const [profile, setProfile] = useState<ScreenerProfile>("multi-timeframe");
   const [assetNameFilter, setAssetNameFilter] = useState("");
-  const [refreshInterval, setRefreshInterval] =
-    useState<RefreshInterval>("5s");
+  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>("5s");
   const [density, setDensity] = useState<ScreenerDensity>("compact");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
   const columns = getCryptoColumns(density, profile);
@@ -188,7 +185,10 @@ export const ScreenerTable = () => {
         >
           Asset Screener
         </p>
-        <div className="h-px flex-1" style={{ background: "oklch(1 0 0 / 6%)" }} />
+        <div
+          className="h-px flex-1"
+          style={{ background: "oklch(1 0 0 / 6%)" }}
+        />
       </div>
 
       <div

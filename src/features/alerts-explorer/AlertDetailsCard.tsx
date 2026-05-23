@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useGetAlertChart } from "./hooks/alerts.api";
 import { AlertChart } from "../chart/AlertChart";
+import { useGetAlertChart } from "./hooks/alerts.api";
 
 type Props = {
   symbol: string;

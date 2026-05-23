@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { BellRing, CandlestickChart, SearchIcon, Waves } from "lucide-react";
+import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import {
   CommandDialog,
@@ -23,18 +23,48 @@ const searchGroups = [
   {
     heading: "Assets",
     items: [
-      { label: "BTC", detail: "Bitcoin", meta: "$108.4K", icon: CandlestickChart },
-      { label: "ETH", detail: "Ethereum", meta: "$6.2B vol", icon: CandlestickChart },
+      {
+        label: "BTC",
+        detail: "Bitcoin",
+        meta: "$108.4K",
+        icon: CandlestickChart,
+      },
+      {
+        label: "ETH",
+        detail: "Ethereum",
+        meta: "$6.2B vol",
+        icon: CandlestickChart,
+      },
       { label: "SOL", detail: "Solana", meta: "Breakout setup", icon: Waves },
-      { label: "HYPE", detail: "Hyperliquid", meta: "Trend acceleration", icon: Waves },
+      {
+        label: "HYPE",
+        detail: "Hyperliquid",
+        meta: "Trend acceleration",
+        icon: Waves,
+      },
     ],
   },
   {
     heading: "Alerts",
     items: [
-      { label: "BTC LONG", detail: "15m continuation", meta: "2m ago", icon: BellRing },
-      { label: "ETH SHORT", detail: "4h rejection", meta: "11m ago", icon: BellRing },
-      { label: "SOL VOL SPIKE", detail: "1h volume anomaly", meta: "23m ago", icon: BellRing },
+      {
+        label: "BTC LONG",
+        detail: "15m continuation",
+        meta: "2m ago",
+        icon: BellRing,
+      },
+      {
+        label: "ETH SHORT",
+        detail: "4h rejection",
+        meta: "11m ago",
+        icon: BellRing,
+      },
+      {
+        label: "SOL VOL SPIKE",
+        detail: "1h volume anomaly",
+        meta: "23m ago",
+        icon: BellRing,
+      },
     ],
   },
 ] as const;
@@ -48,7 +78,9 @@ const navLinkStyle = (isActive: boolean): React.CSSProperties => ({
   padding: "2px 0",
   borderRadius: "0",
   color: isActive ? "oklch(0.96 0 0)" : "oklch(0.68 0 0)",
-  borderBottom: isActive ? "2px solid oklch(0.96 0 0)" : "2px solid transparent",
+  borderBottom: isActive
+    ? "2px solid oklch(0.96 0 0)"
+    : "2px solid transparent",
   transition: "color 0.15s, border-color 0.15s",
 });
 
@@ -62,7 +94,10 @@ export function Navbar() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== "k" || (!event.metaKey && !event.ctrlKey)) {
+      if (
+        event.key.toLowerCase() !== "k" ||
+        (!event.metaKey && !event.ctrlKey)
+      ) {
         return;
       }
 
@@ -79,7 +114,8 @@ export function Navbar() {
       <header
         className="sticky top-0 z-50 w-full"
         style={{
-          background: "linear-gradient(180deg, oklch(0.115 0 0 / 96%), oklch(0.095 0 0 / 96%))",
+          background:
+            "linear-gradient(180deg, oklch(0.115 0 0 / 96%), oklch(0.095 0 0 / 96%))",
           backdropFilter: "blur(10px)",
           WebkitBackdropFilter: "blur(10px)",
           borderBottom: "1px solid oklch(1 0 0 / 9%)",
@@ -87,74 +123,78 @@ export function Navbar() {
         }}
       >
         <div className="mx-auto flex h-11 max-w-[1700px] items-center gap-3 px-3 sm:px-4">
-        {/* Logo */}
-        <NavLink
-          to="/"
-          className="flex shrink-0 items-center gap-2 no-underline"
-          onClick={handleNavClick}
-        >
-          <img src="/dexseer-logo3.svg" className="h-5 w-5" alt="DexSeer logo" />
-          <span
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 700,
-              fontSize: "0.9rem",
-              letterSpacing: "0.02em",
-              color: "oklch(0.96 0 0)",
-            }}
+          {/* Logo */}
+          <NavLink
+            to="/"
+            className="flex shrink-0 items-center gap-2 no-underline"
+            onClick={handleNavClick}
           >
-            DEX<span style={{ color: "oklch(0.72 0.18 248)" }}>SEER</span>
-          </span>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.55rem",
-              fontWeight: 500,
-              color: "#5dc887",
-              background: "rgba(93,200,135,0.08)",
-              border: "1px solid rgba(93,200,135,0.22)",
-              borderRadius: "2px",
-              padding: "1px 4px",
-              letterSpacing: "0.06em",
-            }}
-          >
-            ALPHA
-          </span>
-        </NavLink>
+            <img
+              src="/dexseer-logo3.svg"
+              className="h-5 w-5"
+              alt="DexSeer logo"
+            />
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: "0.9rem",
+                letterSpacing: "0.02em",
+                color: "oklch(0.96 0 0)",
+              }}
+            >
+              DEX<span style={{ color: "oklch(0.72 0.18 248)" }}>SEER</span>
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.55rem",
+                fontWeight: 500,
+                color: "#5dc887",
+                background: "rgba(93,200,135,0.08)",
+                border: "1px solid rgba(93,200,135,0.22)",
+                borderRadius: "2px",
+                padding: "1px 4px",
+                letterSpacing: "0.06em",
+              }}
+            >
+              ALPHA
+            </span>
+          </NavLink>
 
-        {/* Desktop: divider + nav links */}
-        <div
-          className="hidden h-4 w-px shrink-0 md:block"
-          style={{ background: "oklch(1 0 0 / 10%)" }}
-        />
-        <nav className="hidden items-center gap-5 md:flex">
-          {navLinks.map(({ to, label }) =>
-            to ? (
-              <NavLink
-                key={label}
-                to={to}
-                end={to === "/"}
-                style={({ isActive }) => navLinkStyle(isActive)}
-              >
-                {label}
-              </NavLink>
-            ) : (
-              <span
-                key={label}
-                style={{
-                  ...navLinkStyle(false),
-                  cursor: "default",
-                  opacity: 0.75,
-                }}
-              >
-                {label}
-              </span>
-            ),
-          )}
-        </nav>
+          {/* Desktop: divider + nav links */}
+          <div
+            className="hidden h-4 w-px shrink-0 md:block"
+            style={{ background: "oklch(1 0 0 / 10%)" }}
+          />
+          <nav className="hidden items-center gap-5 md:flex">
+            {navLinks.map(({ to, label }) =>
+              to ? (
+                <NavLink
+                  key={label}
+                  to={to}
+                  end={to === "/"}
+                  style={({ isActive }) => navLinkStyle(isActive)}
+                >
+                  {label}
+                </NavLink>
+              ) : (
+                <span
+                  key={label}
+                  style={{
+                    ...navLinkStyle(false),
+                    cursor: "default",
+                    opacity: 0.75,
+                  }}
+                >
+                  {label}
+                </span>
+              ),
+            )}
+          </nav>
 
-        {/* Spacer */}
-        <div className="flex-1" />
+          {/* Spacer */}
+          <div className="flex-1" />
 
           <button
             type="button"
@@ -192,81 +232,89 @@ export function Navbar() {
             </span>
           </button>
 
-        {/* Live indicator */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex h-1.5 w-1.5">
+          {/* Live indicator */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex h-1.5 w-1.5">
+              <span
+                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+                style={{ background: "#5dc887" }}
+              />
+              <span
+                className="relative inline-flex h-1.5 w-1.5 rounded-full"
+                style={{ background: "#5dc887" }}
+              />
+            </div>
             <span
-              className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-              style={{ background: "#5dc887" }}
-            />
-            <span
-              className="relative inline-flex h-1.5 w-1.5 rounded-full"
-              style={{ background: "#5dc887" }}
-            />
+              className="hidden sm:block"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.58rem",
+                fontWeight: 500,
+                letterSpacing: "0.08em",
+                color: "oklch(0.5 0 0)",
+                textTransform: "uppercase",
+              }}
+            >
+              Live
+            </span>
           </div>
-          <span
-            className="hidden sm:block"
+
+          {/* Mobile: hamburger */}
+          <button
+            type="button"
+            className="flex md:hidden"
+            aria-label="Toggle menu"
+            onClick={() => setMenuOpen((o) => !o)}
             style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.58rem",
-              fontWeight: 500,
-              letterSpacing: "0.08em",
-              color: "oklch(0.5 0 0)",
-              textTransform: "uppercase",
+              flexDirection: "column",
+              gap: 4,
+              padding: "4px",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
             }}
           >
-            Live
-          </span>
-        </div>
-
-        {/* Mobile: hamburger */}
-        <button
-          type="button"
-          className="flex md:hidden"
-          aria-label="Toggle menu"
-          onClick={() => setMenuOpen((o) => !o)}
-          style={{
-            flexDirection: "column",
-            gap: 4,
-            padding: "4px",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <span
-            style={{
-              display: "block",
-              width: 18,
-              height: 1.5,
-              background: menuOpen ? "oklch(0.72 0.18 248)" : "oklch(0.65 0 0)",
-              borderRadius: 1,
-              transform: menuOpen ? "translateY(5.5px) rotate(45deg)" : "none",
-              transition: "transform 0.2s, background 0.2s",
-            }}
-          />
-          <span
-            style={{
-              display: "block",
-              width: 18,
-              height: 1.5,
-              background: menuOpen ? "transparent" : "oklch(0.65 0 0)",
-              borderRadius: 1,
-              transition: "background 0.2s",
-            }}
-          />
-          <span
-            style={{
-              display: "block",
-              width: 18,
-              height: 1.5,
-              background: menuOpen ? "oklch(0.72 0.18 248)" : "oklch(0.65 0 0)",
-              borderRadius: 1,
-              transform: menuOpen ? "translateY(-5.5px) rotate(-45deg)" : "none",
-              transition: "transform 0.2s, background 0.2s",
-            }}
-          />
-        </button>
+            <span
+              style={{
+                display: "block",
+                width: 18,
+                height: 1.5,
+                background: menuOpen
+                  ? "oklch(0.72 0.18 248)"
+                  : "oklch(0.65 0 0)",
+                borderRadius: 1,
+                transform: menuOpen
+                  ? "translateY(5.5px) rotate(45deg)"
+                  : "none",
+                transition: "transform 0.2s, background 0.2s",
+              }}
+            />
+            <span
+              style={{
+                display: "block",
+                width: 18,
+                height: 1.5,
+                background: menuOpen ? "transparent" : "oklch(0.65 0 0)",
+                borderRadius: 1,
+                transition: "background 0.2s",
+              }}
+            />
+            <span
+              style={{
+                display: "block",
+                width: 18,
+                height: 1.5,
+                background: menuOpen
+                  ? "oklch(0.72 0.18 248)"
+                  : "oklch(0.65 0 0)",
+                borderRadius: 1,
+                transform: menuOpen
+                  ? "translateY(-5.5px) rotate(-45deg)"
+                  : "none",
+                transition: "transform 0.2s, background 0.2s",
+              }}
+            />
+          </button>
         </div>
 
         {/* Mobile dropdown menu */}

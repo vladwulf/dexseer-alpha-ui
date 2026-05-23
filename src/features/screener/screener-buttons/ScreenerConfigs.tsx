@@ -1,5 +1,5 @@
+import { ChevronDown, RefreshCw, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RefreshCw, Search, ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export type Timeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 export type ScreenerProfile =
@@ -128,14 +128,24 @@ export function ScreenerConfigs({
   onAssetNameFilterChange,
   onManualRefresh,
 }: ScreenerConfigsProps) {
-  const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>(timeframe);
-  const [selectedProfile, setSelectedProfile] = useState<ScreenerProfile>(profile);
-  const [selectedRefreshInterval, setSelectedRefreshInterval] = useState<RefreshInterval>(refreshInterval);
-  const [selectedDensity, setSelectedDensity] = useState<ScreenerDensity>(density);
+  const [selectedTimeframe, setSelectedTimeframe] =
+    useState<Timeframe>(timeframe);
+  const [selectedProfile, setSelectedProfile] =
+    useState<ScreenerProfile>(profile);
+  const [selectedRefreshInterval, setSelectedRefreshInterval] =
+    useState<RefreshInterval>(refreshInterval);
+  const [selectedDensity, setSelectedDensity] =
+    useState<ScreenerDensity>(density);
 
-  useEffect(() => { setSelectedTimeframe(timeframe); }, [timeframe]);
-  useEffect(() => { setSelectedRefreshInterval(refreshInterval); }, [refreshInterval]);
-  useEffect(() => { setSelectedDensity(density); }, [density]);
+  useEffect(() => {
+    setSelectedTimeframe(timeframe);
+  }, [timeframe]);
+  useEffect(() => {
+    setSelectedRefreshInterval(refreshInterval);
+  }, [refreshInterval]);
+  useEffect(() => {
+    setSelectedDensity(density);
+  }, [density]);
 
   const handleTimeframeChange = (value: Timeframe) => {
     setSelectedTimeframe(value);
@@ -159,11 +169,19 @@ export function ScreenerConfigs({
   };
 
   const selectedRefreshLabel =
-    refreshIntervals.find((r) => r.value === selectedRefreshInterval)?.label ?? selectedRefreshInterval;
+    refreshIntervals.find((r) => r.value === selectedRefreshInterval)?.label ??
+    selectedRefreshInterval;
   const isExtended = selectedDensity === "extended";
 
   const divider = (
-    <div style={{ width: 1, height: 16, background: "oklch(1 0 0 / 8%)", flexShrink: 0 }} />
+    <div
+      style={{
+        width: 1,
+        height: 16,
+        background: "oklch(1 0 0 / 8%)",
+        flexShrink: 0,
+      }}
+    />
   );
 
   return (
@@ -174,7 +192,6 @@ export function ScreenerConfigs({
       }}
     >
       <div className="flex flex-wrap items-center gap-3">
-
         {/* Search */}
         <div className="flex items-center gap-2">
           <span style={monoLabel}>Search</span>
@@ -244,7 +261,11 @@ export function ScreenerConfigs({
             }}
           >
             {(
-              ["multi-timeframe", "day-trading", "swing-trading"] as ScreenerProfile[]
+              [
+                "multi-timeframe",
+                "day-trading",
+                "swing-trading",
+              ] as ScreenerProfile[]
             ).map((p) => {
               const label =
                 p === "multi-timeframe"
@@ -268,7 +289,9 @@ export function ScreenerConfigs({
                     cursor: "pointer",
                     border: "none",
                     transition: "all 0.12s",
-                    background: active ? "oklch(0.72 0.18 248 / 15%)" : "transparent",
+                    background: active
+                      ? "oklch(0.72 0.18 248 / 15%)"
+                      : "transparent",
                     color: active ? "oklch(0.72 0.18 248)" : "oklch(0.45 0 0)",
                   }}
                 >
@@ -302,7 +325,10 @@ export function ScreenerConfigs({
               transition: "color 0.12s, border-color 0.12s",
             }}
           >
-            <RefreshCw size={11} className={isRefreshing ? "animate-spin" : ""} />
+            <RefreshCw
+              size={11}
+              className={isRefreshing ? "animate-spin" : ""}
+            />
           </button>
 
           <DropdownMenu>
@@ -317,17 +343,19 @@ export function ScreenerConfigs({
                   padding: "0 8px",
                   borderRadius: 4,
                   border: "1px solid oklch(1 0 0 / 8%)",
-                  background: selectedRefreshInterval !== "manual"
-                    ? "oklch(0.72 0.18 248 / 10%)"
-                    : "#0d0d0d",
+                  background:
+                    selectedRefreshInterval !== "manual"
+                      ? "oklch(0.72 0.18 248 / 10%)"
+                      : "#0d0d0d",
                   cursor: "pointer",
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.68rem",
                   fontWeight: 500,
                   letterSpacing: "0.05em",
-                  color: selectedRefreshInterval !== "manual"
-                    ? "oklch(0.72 0.18 248)"
-                    : "oklch(0.48 0 0)",
+                  color:
+                    selectedRefreshInterval !== "manual"
+                      ? "oklch(0.72 0.18 248)"
+                      : "oklch(0.48 0 0)",
                   transition: "all 0.12s",
                 }}
               >
@@ -337,20 +365,29 @@ export function ScreenerConfigs({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-36">
               <DropdownMenuLabel
-                style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", letterSpacing: "0.1em" }}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.65rem",
+                  letterSpacing: "0.1em",
+                }}
               >
                 Auto Refresh
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup
                 value={selectedRefreshInterval}
-                onValueChange={(v) => handleRefreshIntervalChange(v as RefreshInterval)}
+                onValueChange={(v) =>
+                  handleRefreshIntervalChange(v as RefreshInterval)
+                }
               >
                 {refreshIntervals.map((r) => (
                   <DropdownMenuRadioItem
                     key={r.value}
                     value={r.value}
-                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.7rem",
+                    }}
                   >
                     {r.label}
                   </DropdownMenuRadioItem>
@@ -390,13 +427,14 @@ export function ScreenerConfigs({
                 width: 12,
                 borderRadius: "50%",
                 transform: isExtended ? "translateX(16px)" : "translateX(2px)",
-                background: isExtended ? "oklch(0.72 0.18 248)" : "oklch(0.35 0 0)",
+                background: isExtended
+                  ? "oklch(0.72 0.18 248)"
+                  : "oklch(0.35 0 0)",
                 transition: "transform 0.15s, background 0.15s",
               }}
             />
           </button>
         </div>
-
       </div>
     </div>
   );

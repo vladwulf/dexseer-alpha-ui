@@ -1,14 +1,14 @@
-import { CanvasRenderingTarget2D } from "fancy-canvas";
+import type { CanvasRenderingTarget2D } from "fancy-canvas";
 import type {
   AutoscaleInfo,
   Coordinate,
-  ISeriesPrimitive,
+  IChartApi,
   IPrimitivePaneRenderer,
   IPrimitivePaneView,
+  ISeriesApi,
+  ISeriesPrimitive,
   SeriesAttachedParameter,
   Time,
-  ISeriesApi,
-  IChartApi,
 } from "lightweight-charts";
 
 interface RibbonRendererData {

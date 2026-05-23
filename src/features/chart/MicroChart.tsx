@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { createPortal } from "react-dom";
+import type { Time } from "lightweight-charts";
 import {
-  createChart,
-  ColorType,
   CandlestickSeries,
+  ColorType,
+  createChart,
   HistogramSeries,
 } from "lightweight-charts";
-import type { Time } from "lightweight-charts";
-import { MiniChart } from "./MiniChart";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { OHLCVExtended } from "@/types/ohlcv";
+import { MiniChart } from "./MiniChart";
 
 const hexToRgba = (hex: string, opacity: number): string => {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -167,7 +167,7 @@ export function MicroChart({
       )
       .map((kline) => {
         const time = (new Date(kline.time).getTime() / 1000) as Time;
-        let candleColor = undefined;
+        let candleColor;
         if (time === alertTimestampUnix) {
           candleColor = "yellow";
         } else if (time > alertTimestampUnix) {

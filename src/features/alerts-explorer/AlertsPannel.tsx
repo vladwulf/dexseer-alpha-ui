@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { ChevronDown } from "lucide-react";
 import { AlertsChartWrapper } from "./AlertChartWrapper";
 import {
   type AlertTimeframe,
@@ -91,13 +91,19 @@ export function AlertsPannel() {
       : undefined;
   }, [assetIdInput]);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
-    useGetAlertsPaginated({
-      timeframe,
-      limit: PAGE_SIZE,
-      type: alertType === "all" ? undefined : alertType,
-      assetId,
-    });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+  } = useGetAlertsPaginated({
+    timeframe,
+    limit: PAGE_SIZE,
+    type: alertType === "all" ? undefined : alertType,
+    assetId,
+  });
 
   const alerts = data?.pages.flatMap((p) => p.data) ?? [];
   const total = data?.pages[0]?.meta.total ?? 0;
@@ -231,13 +237,18 @@ export function AlertsPannel() {
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup
                   value={alertType}
-                  onValueChange={(value) => setAlertType(value as AlertType | "all")}
+                  onValueChange={(value) =>
+                    setAlertType(value as AlertType | "all")
+                  }
                 >
                   {ALERT_TYPES.map((item) => (
                     <DropdownMenuRadioItem
                       key={item}
                       value={item}
-                      style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.7rem",
+                      }}
                     >
                       {alertTypeLabel(item)}
                     </DropdownMenuRadioItem>
@@ -258,7 +269,10 @@ export function AlertsPannel() {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="h-px flex-1" style={{ background: "oklch(1 0 0 / 6%)" }} />
+        <div
+          className="h-px flex-1"
+          style={{ background: "oklch(1 0 0 / 6%)" }}
+        />
         <span
           style={{
             fontFamily: "var(--font-mono)",

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { MARKET_STRIP } from "./data/mockScannerData";
-import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
-import { useScannerState } from "./hooks/useScannerState";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
 import { ScannerSidePanel } from "./components/ScannerSidePanel";
 import { ScannerTable } from "./components/ScannerTable";
+import { MARKET_STRIP } from "./data/mockScannerData";
+import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
+import { useScannerState } from "./hooks/useScannerState";
 
 export function ScannerV2Screen() {
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);

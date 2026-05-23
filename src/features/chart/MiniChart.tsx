@@ -1,8 +1,8 @@
+import type { CandlestickData, Time } from "lightweight-charts";
+import { CandlestickSeries, ColorType, createChart } from "lightweight-charts";
+import type { ReactElement } from "react";
 import { cloneElement, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { ReactElement } from "react";
-import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
-import type { CandlestickData, Time } from "lightweight-charts";
 import type { OHLCVExtended } from "@/types/ohlcv";
 
 interface MiniChartProps {
@@ -128,8 +128,12 @@ export function MiniChart({
 
     // Convert OHLCVExtended data to candlestick format (based on MicroChart)
     const chartData: CandlestickData[] = dataToRender
-      .filter((kline) =>
-        kline.open != null && kline.high != null && kline.low != null && kline.close != null
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
       )
       .map((kline) => {
         const time = (new Date(kline.time).getTime() / 1000) as Time;

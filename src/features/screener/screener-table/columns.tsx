@@ -1,15 +1,15 @@
-import type { ColumnDef, CellContext } from "@tanstack/react-table";
+import type { CellContext, ColumnDef } from "@tanstack/react-table";
+import { millify } from "millify";
 import { Fragment, type ReactElement } from "react";
-import { cn } from "@/lib/utils";
-import type { ScreenerAsset, ScreenerAssetWithChart } from "../types";
+import { Link } from "react-router";
 import { MicroChart } from "@/features/chart/MicroChart";
 import { StandardChart } from "@/features/chart/StandardChart";
-import { Link } from "react-router";
-import { millify } from "millify";
+import { cn } from "@/lib/utils";
 import type {
   ScreenerDensity,
   ScreenerProfile,
 } from "../screener-buttons/ScreenerConfigs";
+import type { ScreenerAsset, ScreenerAssetWithChart } from "../types";
 
 /**
  * Reusable cell renderer for percentage change values
@@ -227,9 +227,21 @@ const getExtendedMetrics = (
       { label: "4h %", kind: "percent", value: asset.change_4h },
       { label: "1d %", kind: "percent", value: asset.change_1d },
       { label: "Volume 1d", kind: "volume", value: asset.volume_1d },
-      { label: "Volume Δ 1h", kind: "volumeDelta", value: asset.volume_delta_1h },
-      { label: "Volume Δ 4h", kind: "volumeDelta", value: asset.volume_delta_4h },
-      { label: "Volume Δ 1d", kind: "volumeDelta", value: asset.volume_delta_1d },
+      {
+        label: "Volume Δ 1h",
+        kind: "volumeDelta",
+        value: asset.volume_delta_1h,
+      },
+      {
+        label: "Volume Δ 4h",
+        kind: "volumeDelta",
+        value: asset.volume_delta_4h,
+      },
+      {
+        label: "Volume Δ 1d",
+        kind: "volumeDelta",
+        value: asset.volume_delta_1d,
+      },
     ];
   }
 
@@ -242,11 +254,31 @@ const getExtendedMetrics = (
       { label: "4h %", kind: "percent", value: asset.change_4h },
       { label: "1d %", kind: "percent", value: asset.change_1d },
       { label: "Volume 1d", kind: "volume", value: asset.volume_1d },
-      { label: "Volume Δ 1m", kind: "volumeDelta", value: asset.volume_delta_1m },
-      { label: "Volume Δ 5m", kind: "volumeDelta", value: asset.volume_delta_5m },
-      { label: "Volume Δ 1h", kind: "volumeDelta", value: asset.volume_delta_1h },
-      { label: "Volume Δ 4h", kind: "volumeDelta", value: asset.volume_delta_4h },
-      { label: "Volume Δ 1d", kind: "volumeDelta", value: asset.volume_delta_1d },
+      {
+        label: "Volume Δ 1m",
+        kind: "volumeDelta",
+        value: asset.volume_delta_1m,
+      },
+      {
+        label: "Volume Δ 5m",
+        kind: "volumeDelta",
+        value: asset.volume_delta_5m,
+      },
+      {
+        label: "Volume Δ 1h",
+        kind: "volumeDelta",
+        value: asset.volume_delta_1h,
+      },
+      {
+        label: "Volume Δ 4h",
+        kind: "volumeDelta",
+        value: asset.volume_delta_4h,
+      },
+      {
+        label: "Volume Δ 1d",
+        kind: "volumeDelta",
+        value: asset.volume_delta_1d,
+      },
     ];
   }
 
@@ -278,7 +310,10 @@ export const getCryptoColumns = (
           return (
             <div className="w-full px-1">
               <div className="flex flex-col gap-3 lg:flex-row">
-                <div className="relative h-[400px] w-full overflow-hidden rounded-md border border-border/60 lg:flex-1" style={{ background: "#0a0a0a" }}>
+                <div
+                  className="relative h-[400px] w-full overflow-hidden rounded-md border border-border/60 lg:flex-1"
+                  style={{ background: "#0a0a0a" }}
+                >
                   <StandardChart
                     klines={asset.chart.data.slice(-120)}
                     width="100%"
@@ -300,7 +335,10 @@ export const getCryptoColumns = (
                   </div>
                 </div>
 
-                <div className="h-[400px] w-full rounded-md border border-border/60 p-3 lg:w-full lg:max-w-[350px] lg:flex-none" style={{ background: "#070707" }}>
+                <div
+                  className="h-[400px] w-full rounded-md border border-border/60 p-3 lg:w-full lg:max-w-[350px] lg:flex-none"
+                  style={{ background: "#070707" }}
+                >
                   <div className="mb-3 border-b border-border/60 pb-2">
                     <Link
                       to={`/chart?symbol=${asset.symbol}&timeframe=1m`}
@@ -473,7 +511,9 @@ export const getCryptoColumns = (
         : MULTI_TIMEFRAME_COMPACT_COLUMNS;
 
   return compactColumns.filter((column) =>
-    "accessorKey" in column ? visibleColumns.has(String(column.accessorKey)) : true,
+    "accessorKey" in column
+      ? visibleColumns.has(String(column.accessorKey))
+      : true,
   );
 };
 

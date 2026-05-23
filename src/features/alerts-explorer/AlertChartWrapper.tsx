@@ -39,22 +39,29 @@ export function AlertsChartWrapper(props: Props) {
           Chart unavailable
         </div>
       )}
-      {!chartData.isLoading && !chartData.isError && chartData.data?.length === 0 && (
-        <div
-          className="flex h-full items-center justify-center"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.7rem",
-            letterSpacing: "0.08em",
-            color: "oklch(0.45 0 0)",
-          }}
-        >
-          No chart data
-        </div>
-      )}
-      {!chartData.isLoading && !chartData.isError && Boolean(chartData.data?.length) && (
-        <AlertChart alertTime={props.alertTime} series={chartData.data ?? []} />
-      )}
+      {!chartData.isLoading &&
+        !chartData.isError &&
+        chartData.data?.length === 0 && (
+          <div
+            className="flex h-full items-center justify-center"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.7rem",
+              letterSpacing: "0.08em",
+              color: "oklch(0.45 0 0)",
+            }}
+          >
+            No chart data
+          </div>
+        )}
+      {!chartData.isLoading &&
+        !chartData.isError &&
+        Boolean(chartData.data?.length) && (
+          <AlertChart
+            alertTime={props.alertTime}
+            series={chartData.data ?? []}
+          />
+        )}
     </div>
   );
 }

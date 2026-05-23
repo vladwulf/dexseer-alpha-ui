@@ -32,8 +32,9 @@ export function ScannerMarketStrip({ items }: { items: MarketStripItem[] }) {
               {Array.from({ length: 10 }).map((_, index) => (
                 <span
                   key={index}
-                  className={`h-6 w-1.5 ${index < 6 ? "bg-[#79c68c]/80" : "bg-[#e35561]/65"
-                    }`}
+                  className={`h-6 w-1.5 ${
+                    index < 6 ? "bg-[#79c68c]/80" : "bg-[#e35561]/65"
+                  }`}
                 />
               ))}
             </div>
@@ -41,7 +42,6 @@ export function ScannerMarketStrip({ items }: { items: MarketStripItem[] }) {
               62 / 38
             </span>
           </div>
-
         </div>
 
         <div className="ml-auto flex flex-wrap items-center justify-end gap-3">

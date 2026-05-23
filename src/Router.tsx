@@ -1,9 +1,9 @@
-import { Navigate, RouterProvider, createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import { RootLayout } from "./components/layout/RootLayout";
-import { DashboardPage } from "./pages/Dashboard.page";
-import { AnalyticsPage } from "./pages/Analytics.page";
-import Simulation from "./pages/simulations/longs.simulation";
 import AlertsExplorerPage from "./pages/AlertsExplorer.page";
+import { AnalyticsPage } from "./pages/Analytics.page";
+import { DashboardPage } from "./pages/Dashboard.page";
+import Simulation from "./pages/simulations/longs.simulation";
 import { ScannerV2Page } from "./pages/v2/ScannerV2.page";
 
 const routes = createBrowserRouter([

@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
+import type { Time } from "lightweight-charts";
 import {
-  createChart,
-  ColorType,
   CandlestickSeries,
+  ColorType,
+  createChart,
   HistogramSeries,
 } from "lightweight-charts";
-import type { Time } from "lightweight-charts";
+import { useEffect, useRef } from "react";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { MARibbonIndicator } from "./indicators/ma-ribbon-plugin";
 
@@ -333,7 +333,10 @@ export function AlertChart({
 
   return (
     <div className="block h-full w-full min-w-0 overflow-hidden">
-      <div ref={chartContainerRef} className="h-full w-full min-w-0 overflow-hidden" />
+      <div
+        ref={chartContainerRef}
+        className="h-full w-full min-w-0 overflow-hidden"
+      />
     </div>
   );
 }

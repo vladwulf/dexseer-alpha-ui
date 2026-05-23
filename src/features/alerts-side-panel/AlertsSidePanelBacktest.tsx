@@ -1,7 +1,7 @@
-import { MicroChart } from "@/features/chart/MicroChart";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { MicroChart } from "@/features/chart/MicroChart";
 import { cn } from "@/lib/utils";
 import kLinesData from "@/patterns/abcd/data/k-lines.json";
 import type { KLine } from "@/patterns/types/binance.types";

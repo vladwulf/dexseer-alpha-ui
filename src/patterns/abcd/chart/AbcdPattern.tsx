@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Chart } from "./Chart";
-import type { PatternPriceLine, CandleColorOverride } from "./Chart";
 import { Button } from "@/components/ui/button";
+import { type KLine, parseKLine } from "@/patterns/types/binance.types";
 import kLinesData from "../data/k-lines.json";
-import { parseKLine, type KLine } from "@/patterns/types/binance.types";
 import {
   detectAllBosSignals,
   detectAllPullbacks,
 } from "../detection/primitives";
+import type { CandleColorOverride, PatternPriceLine } from "./Chart";
+import { Chart } from "./Chart";
 
 export function AbcdPattern() {
   const [showLevels, setShowLevels] = useState(false);
@@ -26,7 +26,7 @@ export function AbcdPattern() {
         max: Math.max(acc.max, high),
       };
     },
-    { min: Infinity, max: -Infinity }
+    { min: Infinity, max: -Infinity },
   );
 
   console.log("Price range:", priceRange);
@@ -61,7 +61,7 @@ export function AbcdPattern() {
     parsedKlines,
     cooldownPeriod,
     lookbackPeriod,
-    impulse
+    impulse,
   );
 
   // Detect pullbacks after BOS
@@ -71,7 +71,7 @@ export function AbcdPattern() {
     parsedKlines,
     bosSignals,
     pullbackThreshold,
-    maxBarsAfterBos
+    maxBarsAfterBos,
   );
 
   console.log(`BOS: ${bosSignals.length} events detected`, bosSignals);
@@ -83,7 +83,7 @@ export function AbcdPattern() {
       parsedKlines,
       cooldownPeriod,
       lookbackPeriod,
-      0
+      0,
     );
     console.log(`Test with impulse=0: ${testSignals.length} BOS found`);
   }

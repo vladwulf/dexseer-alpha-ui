@@ -1,6 +1,6 @@
-import { API_URL } from "@/config";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { API_URL } from "@/config";
 import type { ScreenerAssetWithChart } from "../types";
 
 export type ChartTimeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";

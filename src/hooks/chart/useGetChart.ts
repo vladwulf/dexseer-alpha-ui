@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import type { Asset, OHLCVExtended } from "@/types/ohlcv";
+import axios from "axios";
 import { API_URL } from "@/config";
+import type { Asset, OHLCVExtended } from "@/types/ohlcv";
 
 type GetChartResponse = {
   asset: Asset;

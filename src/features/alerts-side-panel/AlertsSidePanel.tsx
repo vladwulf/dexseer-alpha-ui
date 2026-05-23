@@ -1,8 +1,8 @@
 import ScrollContainer from "react-indiana-drag-scroll";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useGetAlerts } from "./hooks/useGetAlerts";
+import { Card } from "@/components/ui/card";
 import { AlertChart } from "../chart/AlertChart";
+import { useGetAlerts } from "./hooks/useGetAlerts";
 
 export function AlertsSidePanel() {
   const { data: alerts } = useGetAlerts();

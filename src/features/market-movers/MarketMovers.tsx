@@ -7,7 +7,11 @@ interface MarketMoverCardProps {
   ticker: string;
 }
 
-function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) {
+function MarketMoverCard({
+  symbol,
+  displayName,
+  ticker,
+}: MarketMoverCardProps) {
   const { data, isLoading } = useGetChartBySymbol(symbol, "15m", 500);
 
   const ohlc = data?.ohlcData ?? [];
@@ -18,7 +22,8 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
   const isPositive = priceChange >= 0;
 
   const formatPrice = (p: number) => {
-    if (p >= 1000) return p.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    if (p >= 1000)
+      return p.toLocaleString("en-US", { maximumFractionDigits: 2 });
     if (p >= 1) return p.toFixed(2);
     return p.toFixed(4);
   };
@@ -158,7 +163,10 @@ export function MarketMovers() {
         >
           Market Overview
         </p>
-        <div className="h-px flex-1" style={{ background: "oklch(1 0 0 / 6%)" }} />
+        <div
+          className="h-px flex-1"
+          style={{ background: "oklch(1 0 0 / 6%)" }}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">

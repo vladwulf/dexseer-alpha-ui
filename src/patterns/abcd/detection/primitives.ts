@@ -29,7 +29,7 @@ export interface PullbackSignal {
  */
 export function detectBosStart(
   klines: ParsedKLine[],
-  lookbackPeriod = 20
+  lookbackPeriod = 20,
 ): boolean {
   if (klines.length < lookbackPeriod + 1) return false;
 
@@ -61,7 +61,7 @@ export function detectAllBosSignals(
   klines: ParsedKLine[],
   cooldownPeriod = 30,
   lookbackPeriod = 20,
-  impulse = 0
+  impulse = 0,
 ): BosSignal[] {
   const bosSignals: BosSignal[] = [];
   let lastBosIndex = -1;
@@ -123,7 +123,7 @@ export function detectPullbackStart(
   klines: ParsedKLine[],
   bosSignal: BosSignal,
   pullbackThreshold = 0.3,
-  maxBarsAfterBos = 50
+  maxBarsAfterBos = 50,
 ): PullbackSignal | null {
   const startIndex = bosSignal.bosIndex + 1;
   const endIndex = Math.min(startIndex + maxBarsAfterBos, klines.length);
@@ -170,7 +170,7 @@ export function detectAllPullbacks(
   klines: ParsedKLine[],
   bosSignals: BosSignal[],
   pullbackThreshold = 0.3,
-  maxBarsAfterBos = 50
+  maxBarsAfterBos = 50,
 ): PullbackSignal[] {
   const pullbacks: PullbackSignal[] = [];
 
@@ -179,7 +179,7 @@ export function detectAllPullbacks(
       klines,
       bosSignal,
       pullbackThreshold,
-      maxBarsAfterBos
+      maxBarsAfterBos,
     );
     if (pullback) {
       pullbacks.push(pullback);

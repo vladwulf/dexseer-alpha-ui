@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
 
 export const IlluminatiEyeRenderer = () => {
   return (
@@ -132,7 +132,7 @@ const Renderer = () => {
     // Use different ASCII characters for more detail
     const effect = new AsciiEffect(
       gl,
-      " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+      " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
     );
 
     effect.domElement.style.position = "absolute";

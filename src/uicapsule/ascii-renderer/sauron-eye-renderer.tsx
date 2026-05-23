@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import type * as THREE from "three";
 import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
-import * as THREE from "three";
 
 export const SauronEyeRenderer = () => {
   return (
@@ -120,7 +120,11 @@ const SauronEye = () => {
           const rayWidth = 0.08;
 
           return (
-            <group key={i} position={[x, y, 0]} rotation={[0, 0, angle + Math.PI / 2]}>
+            <group
+              key={i}
+              position={[x, y, 0]}
+              rotation={[0, 0, angle + Math.PI / 2]}
+            >
               <mesh>
                 <boxGeometry args={[rayWidth, rayLength, 0.06]} />
                 <meshStandardMaterial color="#ffffff" />
@@ -144,7 +148,8 @@ const SauronEye = () => {
                 const segmentLength = 0.25;
                 const gapLength = 0.15;
                 const totalSegmentLength = segmentLength + gapLength;
-                const segmentDistance = baseDistance + segmentIndex * totalSegmentLength;
+                const segmentDistance =
+                  baseDistance + segmentIndex * totalSegmentLength;
                 const x = Math.cos(angle) * segmentDistance;
                 const y = Math.sin(angle) * segmentDistance;
 
@@ -184,10 +189,18 @@ const SauronEye = () => {
           const rayLength = 0.6;
 
           return (
-            <group key={i} position={[x, y, 0]} rotation={[0, 0, angle + Math.PI / 2]}>
+            <group
+              key={i}
+              position={[x, y, 0]}
+              rotation={[0, 0, angle + Math.PI / 2]}
+            >
               <mesh>
                 <boxGeometry args={[0.06, rayLength, 0.05]} />
-                <meshStandardMaterial color="#ffffff" transparent opacity={0.8} />
+                <meshStandardMaterial
+                  color="#ffffff"
+                  transparent
+                  opacity={0.8}
+                />
               </mesh>
             </group>
           );
@@ -205,7 +218,7 @@ const Renderer = () => {
     // Use different ASCII characters for fiery effect
     const effect = new AsciiEffect(
       gl,
-      " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+      " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
     );
 
     effect.domElement.style.position = "absolute";
@@ -239,4 +252,3 @@ const Renderer = () => {
 
   return null;
 };
-

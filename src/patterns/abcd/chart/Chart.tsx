@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
-import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
 import type {
   CandlestickData,
   CandlestickSeriesPartialOptions,
   Time,
 } from "lightweight-charts";
+import { CandlestickSeries, ColorType, createChart } from "lightweight-charts";
+import { useEffect, useRef } from "react";
 import type { KLine } from "@/patterns/types/binance.types";
 
 /**
@@ -245,7 +245,7 @@ export function Chart({
     customPriceLines.forEach((priceLine) => {
       const lineWidth = (priceLine.lineWidth ?? 2) as 1 | 2 | 3 | 4;
       console.log(
-        `Creating price line at ${priceLine.price} with title "${priceLine.title}"`
+        `Creating price line at ${priceLine.price} with title "${priceLine.title}"`,
       );
       candlestickSeries.createPriceLine({
         price: priceLine.price,

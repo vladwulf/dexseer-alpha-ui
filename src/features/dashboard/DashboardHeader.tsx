@@ -1,5 +1,5 @@
-import { Typewriter } from "react-simple-typewriter";
 import { ChevronsDownIcon } from "lucide-react";
+import { Typewriter } from "react-simple-typewriter";
 
 export function DashboardHeader() {
   return (

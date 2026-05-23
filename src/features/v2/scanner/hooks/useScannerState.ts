@@ -16,14 +16,14 @@ export function useScannerState() {
   const [search, setSearch] = useState("");
   const [timeframe, setTimeframe] = useState<ScannerTimeframe>("1h");
   const [preset, setPreset] = useState<ScannerPreset>("Breakouts");
-  const [watchlistFilter, setWatchlistFilter] = useState<(typeof WATCHLIST_OPTIONS)[number]>(
-    WATCHLIST_OPTIONS[0],
-  );
+  const [watchlistFilter, setWatchlistFilter] = useState<
+    (typeof WATCHLIST_OPTIONS)[number]
+  >(WATCHLIST_OPTIONS[0]);
   const [sortBy, setSortBy] = useState<SortOption>(SORT_OPTIONS[0]);
   const [density, setDensity] = useState<DensityMode>("compact");
-  const [minVolume, setMinVolume] = useState<(typeof MIN_VOLUME_OPTIONS)[number]>(
-    MIN_VOLUME_OPTIONS[1],
-  );
+  const [minVolume, setMinVolume] = useState<
+    (typeof MIN_VOLUME_OPTIONS)[number]
+  >(MIN_VOLUME_OPTIONS[1]);
   const [selectedSymbol, setSelectedSymbol] = useState("DOGEUSDT");
 
   const filteredAssets = useMemo(() => {
@@ -64,7 +64,8 @@ export function useScannerState() {
   }, [search, sortBy]);
 
   const selectedAsset =
-    filteredAssets.find((asset) => asset.symbol === selectedSymbol) ?? filteredAssets[0];
+    filteredAssets.find((asset) => asset.symbol === selectedSymbol) ??
+    filteredAssets[0];
 
   return {
     density,

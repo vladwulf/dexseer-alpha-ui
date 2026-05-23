@@ -18,8 +18,12 @@ export function StatCard({
 
   return (
     <Card className="gap-0 rounded-xl border-white/8 bg-white/3 px-3 py-2.5">
-      <p className="text-[0.58rem] uppercase tracking-widest text-white/38">{label}</p>
-      <p className={`mt-1 font-[var(--font-mono)] text-base ${toneClass}`}>{value}</p>
+      <p className="text-[0.58rem] uppercase tracking-widest text-white/38">
+        {label}
+      </p>
+      <p className={`mt-1 font-[var(--font-mono)] text-base ${toneClass}`}>
+        {value}
+      </p>
     </Card>
   );
 }
