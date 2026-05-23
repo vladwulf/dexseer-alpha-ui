@@ -20,10 +20,13 @@ export const AsciiRenderer = () => {
 const Torusknot = () => {
   const meshRef = useRef<THREE.Mesh>(null);
 
-  useFrame(
-    (_state, delta) =>
-      (meshRef.current.rotation.x = meshRef.current.rotation.y += delta / 2),
-  );
+  useFrame((_state, delta) => {
+    if (!meshRef.current) {
+      return;
+    }
+    meshRef.current.rotation.y += delta / 2;
+    meshRef.current.rotation.x = meshRef.current.rotation.y;
+  });
 
   return (
     <mesh ref={meshRef} scale={1.25}>

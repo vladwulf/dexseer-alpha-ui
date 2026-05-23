@@ -1,6 +1,32 @@
 import { useState } from "react";
 
-const strategies = [
+type Strategy = {
+  label: string;
+  sl: number;
+  tp: number;
+  rr: "1:1" | "1:2" | "1:3" | "1:4" | "1:5";
+  taken: number;
+  exp: number;
+  wr: number;
+};
+
+type ComputedStrategy = Strategy & {
+  posSize: number;
+  posSizePct: number;
+  capExp: number;
+  winOnCap: number;
+  lossOnCap: number;
+  totalSimple: number;
+};
+
+type AdjustedStrategy = ComputedStrategy & {
+  dollarReturn: number;
+};
+
+type SortKey = "totalSimple" | "capExp" | "exp" | "taken" | "wr";
+type RrFilter = "All" | Strategy["rr"];
+
+const strategies: Strategy[] = [
   {
     label: "5:5@15",
     sl: 5,
@@ -273,7 +299,7 @@ const strategies = [
   },
 ];
 
-const computed = strategies.map((s) => {
+const computed: ComputedStrategy[] = strategies.map((s) => {
   const posSize = 1 / s.sl; // fraction of capital per 1% risk
   const capExp = s.exp * posSize; // expectancy as % of capital
   const winOnCap = (s.tp / s.sl) * 1; // win in % of capital
@@ -291,7 +317,7 @@ const computed = strategies.map((s) => {
   };
 });
 
-const sortOptions = [
+const sortOptions: { key: SortKey; label: string }[] = [
   { key: "totalSimple", label: "Total Return on Capital" },
   { key: "capExp", label: "Per-Trade Capital Expectancy" },
   { key: "exp", label: "Per-Trade Position Expectancy" },
@@ -299,15 +325,15 @@ const sortOptions = [
   { key: "wr", label: "Win Rate" },
 ];
 
-const rrFilters = ["All", "1:1", "1:2", "1:3", "1:4", "1:5"];
+const rrFilters: RrFilter[] = ["All", "1:1", "1:2", "1:3", "1:4", "1:5"];
 
 export default function App() {
-  const [sortBy, setSortBy] = useState("totalSimple");
+  const [sortBy, setSortBy] = useState<SortKey>("totalSimple");
   const [riskPct, setRiskPct] = useState(1);
   const [startCap, setStartCap] = useState(100000);
-  const [rrFilter, setRrFilter] = useState("All");
+  const [rrFilter, setRrFilter] = useState<RrFilter>("All");
 
-  const adjusted = computed.map((s) => {
+  const adjusted: AdjustedStrategy[] = computed.map((s) => {
     const posSize = riskPct / s.sl;
     const capExp = (s.exp * posSize) / 100;
     const totalSimple = capExp * s.taken * 100;
@@ -332,8 +358,9 @@ export default function App() {
 
   const best = sorted[0];
 
-  const fmt = (n, d = 2) => (n >= 0 ? `+${n.toFixed(d)}` : n.toFixed(d));
-  const fmtD = (n) =>
+  const fmt = (n: number, d = 2) =>
+    n >= 0 ? `+${n.toFixed(d)}` : n.toFixed(d);
+  const fmtD = (n: number) =>
     n >= 0
       ? `+$${n.toLocaleString("en", { maximumFractionDigits: 0 })}`
       : `-$${Math.abs(n).toLocaleString("en", { maximumFractionDigits: 0 })}`;

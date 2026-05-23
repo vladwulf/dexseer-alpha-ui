@@ -7,6 +7,8 @@ import type { OHLCVExtended } from "@/types/ohlcv";
 
 interface MiniChartProps {
   klines: OHLCVExtended[];
+  width?: number;
+  height?: number;
   upColor?: string;
   downColor?: string;
   /**
@@ -34,6 +36,8 @@ interface MiniChartProps {
  */
 export function MiniChart({
   klines,
+  width = 400,
+  height = 200,
   upColor = "#22c55e", // Default green for up candles
   downColor = "#ef4444", // Default red for down candles
   periods,
@@ -62,7 +66,8 @@ export function MiniChart({
         vertLines: { visible: false },
         horzLines: { visible: false },
       },
-      autoSize: true,
+      width,
+      height,
       timeScale: {
         visible: true,
         borderVisible: false,
@@ -163,9 +168,9 @@ export function MiniChart({
     return () => {
       chart.remove();
     };
-  }, [klines, upColor, downColor, periods]);
+  }, [downColor, height, klines, periods, upColor, width]);
 
-  return <div ref={chartContainerRef} className="rounded-md h-full w-full" />;
+  return <div ref={chartContainerRef} className="rounded-md" style={{ width, height }} />;
 }
 
 interface MiniChartModalProps {

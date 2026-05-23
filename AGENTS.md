@@ -10,6 +10,7 @@ bun run build        # Production build
 bun run check        # Biome check
 bun run format       # Biome format + safe fixes
 bun run lint         # Biome lint --write (+ bun check)
+bunx tsc -b --pretty false  # Strict composite TypeScript check (app + node configs)
 bun run preview      # Preview production build
 bun run api          # Start local klines API server (port 5555)
 ```
@@ -72,6 +73,7 @@ src/
 - `bun.lock` present — use `bun install`, not `npm install`
 - ESLint has been removed; formatting and linting use Biome via Bun scripts
 - `tsc -b` is skipped in the main `build` script (uses `build:old` for type-checked builds)
+- Use `bunx tsc -b --pretty false` when you need the editor-equivalent strict TypeScript check across app and node configs
 - API types live in `src/features/analytics/types.ts` and `src/types/`
 
 ## Behavioral Guidelines

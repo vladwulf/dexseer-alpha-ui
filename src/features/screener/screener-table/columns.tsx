@@ -1,6 +1,6 @@
 import type { CellContext, ColumnDef } from "@tanstack/react-table";
 import { millify } from "millify";
-import { Fragment, type ReactElement } from "react";
+import { Fragment } from "react";
 import { Link } from "react-router";
 import { MicroChart } from "@/features/chart/MicroChart";
 import { StandardChart } from "@/features/chart/StandardChart";
@@ -9,7 +9,7 @@ import type {
   ScreenerDensity,
   ScreenerProfile,
 } from "../screener-buttons/ScreenerConfigs";
-import type { ScreenerAsset, ScreenerAssetWithChart } from "../types";
+import type { ScreenerAssetWithChart } from "../types";
 
 /**
  * Reusable cell renderer for percentage change values
@@ -78,9 +78,7 @@ export const columns: ColumnDef<Payment>[] = [
   },
 ];
 
-export type TrackedAssetExtended = ScreenerAsset & {
-  chart: ReactElement;
-};
+export type TrackedAssetExtended = ScreenerAssetWithChart;
 
 const formatPercent = (value: number | null | undefined) => {
   if (value === null || value === undefined || !Number.isFinite(value)) {
@@ -380,7 +378,7 @@ export const getCryptoColumns = (
       header: "Asset",
       enableSorting: false,
       size: 180,
-      cell: ({ row }) => {
+      cell: ({ row }: CellContext<TrackedAssetExtended, unknown>) => {
         const ticker = row.original.symbol.replace("USDT", "");
         const chartData = row.original.chart.data;
         const lastCandle = chartData[chartData.length - 1];
@@ -472,7 +470,7 @@ export const getCryptoColumns = (
     {
       accessorKey: "volume_1d",
       header: "Volume 1d",
-      cell: ({ row }) => {
+      cell: ({ row }: CellContext<TrackedAssetExtended, unknown>) => {
         return <span>{formatCompactNumber(row.original.volume_1d)}</span>;
       },
     },

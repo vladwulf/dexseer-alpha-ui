@@ -10,6 +10,7 @@
     "check": "bunx --bun @biomejs/biome check .",
     "format": "bunx --bun @biomejs/biome check --write .",
     "lint": "bun check && bunx --bun @biomejs/biome lint --write .",
+    "typecheck": "tsc -b --pretty false",
     "preview": "vite preview",
     "api": "bun ./src/data/klines-api-server.ts"
   },

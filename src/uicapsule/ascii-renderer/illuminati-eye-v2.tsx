@@ -28,7 +28,6 @@ const IlluminatiEye = () => {
   const eyeTopLidRef = useRef<THREE.Mesh>(null);
   const eyeBottomLidRef = useRef<THREE.Mesh>(null);
   const pupilGroupRef = useRef<THREE.Group>(null);
-  const _blinkTimeRef = useRef(0);
   const lookDirectionRef = useRef(0);
 
   useFrame((state) => {
