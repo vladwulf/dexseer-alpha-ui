@@ -7,7 +7,9 @@ Crypto market analytics & alerts dashboard. React + Vite + TypeScript + Tailwind
 ```bash
 bun run dev          # Start dev server (Vite)
 bun run build        # Production build
-bun run lint         # ESLint
+bun run check        # Biome check
+bun run format       # Biome format + safe fixes
+bun run lint         # Biome lint --write (+ bun check)
 bun run preview      # Preview production build
 bun run api          # Start local klines API server (port 5555)
 ```
@@ -68,6 +70,7 @@ src/
 
 - Tailwind v4: configured via `src/globals.css` / `src/index.css` using `@import "tailwindcss"`, not `tailwind.config.js`
 - `bun.lock` present — use `bun install`, not `npm install`
+- ESLint has been removed; formatting and linting use Biome via Bun scripts
 - `tsc -b` is skipped in the main `build` script (uses `build:old` for type-checked builds)
 - API types live in `src/features/analytics/types.ts` and `src/types/`
 
