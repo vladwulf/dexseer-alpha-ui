@@ -1,5 +1,4 @@
 import { ActionButtons } from "./components/ActionButtons";
-import { FilterDropdowns } from "./components/FilterDropdowns";
 import { PresetChips } from "./components/PresetChips";
 import { SearchField } from "./components/SearchField";
 import { TimeframeChips } from "./components/TimeframeChips";
@@ -7,38 +6,42 @@ import type { ScannerControlsProps } from "./types";
 
 export function ScannerControls({
   density,
-  minVolume,
+  minVolume: _minVolume,
   preset,
   search,
-  sortBy,
+  sortBy: _sortBy,
   timeframe,
-  watchlistFilter,
+  watchlistFilter: _watchlistFilter,
   onDensityChange,
-  onMinVolumeChange,
+  onMinVolumeChange: _onMinVolumeChange,
   onPresetChange,
   onSearchChange,
-  onSortByChange,
+  onSortByChange: _onSortByChange,
   onTimeframeChange,
-  onWatchlistFilterChange,
+  onWatchlistFilterChange: _onWatchlistFilterChange,
 }: ScannerControlsProps) {
   return (
-    <section className="sticky top-14 z-20 border-b border-white/8 bg-[#0a0a0a]/95 px-4 py-3 backdrop-blur md:px-6">
-      <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between 2xl:gap-4">
-        <div className="flex justify-between">
-          <div className="flex">
+    <section className="sticky top-14 z-20 border-b border-white/7 bg-[#0a0a0a]/95 px-4 py-2.5 backdrop-blur md:px-6">
+      <div className="flex flex-col gap-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
             <SearchField search={search} onSearchChange={onSearchChange} />
             <PresetChips preset={preset} onPresetChange={onPresetChange} />
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             <TimeframeChips
               timeframe={timeframe}
               onTimeframeChange={onTimeframeChange}
             />
+            <ActionButtons
+              density={density}
+              onDensityChange={onDensityChange}
+            />
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:gap-2">
-          <div className="flex flex-wrap items-center gap-2 2xl:flex-nowrap">
+        <div className="flex flex-col gap-2.5 2xl:flex-row 2xl:items-center 2xl:gap-2">
+          {/* <div className="flex flex-wrap items-center gap-2 2xl:flex-nowrap">
             <FilterDropdowns
               minVolume={minVolume}
               sortBy={sortBy}
@@ -47,9 +50,7 @@ export function ScannerControls({
               onSortByChange={onSortByChange}
               onWatchlistFilterChange={onWatchlistFilterChange}
             />
-          </div>
-
-          <ActionButtons density={density} onDensityChange={onDensityChange} />
+          </div> */}
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
+import { cn } from "@/lib/utils";
 import { TIMEFRAME_OPTIONS } from "../../../data/mockScannerData";
 import type { ScannerTimeframe } from "../../../types";
-import { chipActive, chipBase } from "./styles";
 
 type TimeframeChipsProps = {
   timeframe: ScannerTimeframe;
@@ -12,26 +12,26 @@ export function TimeframeChips({
   onTimeframeChange,
 }: TimeframeChipsProps) {
   return (
-    <div
-      className="flex items-center overflow-hidden rounded-[12px]"
-      style={{ border: "1px solid oklch(1 0 0 / 10%)" }}
-    >
-      {TIMEFRAME_OPTIONS.map((option) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onTimeframeChange(option)}
-          style={{
-            ...(timeframe === option ? chipActive : chipBase),
-            borderRadius: 0,
-            minWidth: "48px",
-            border: "none",
-            justifyContent: "center",
-          }}
-        >
-          {option}
-        </button>
-      ))}
+    <div className="flex items-center gap-2">
+      <span className="shrink-0 whitespace-nowrap font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[oklch(0.42_0_0)]">
+        Timeframe
+      </span>
+      <div className="flex items-center gap-0.5">
+        {TIMEFRAME_OPTIONS.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onTimeframeChange(option)}
+            className={cn(
+              "flex min-w-[42px] cursor-pointer justify-center whitespace-nowrap rounded-[4px] border border-transparent bg-transparent px-[9px] py-[3px] font-mono text-[0.7rem] font-medium tracking-[0.05em] text-[oklch(0.48_0_0)] transition-all duration-150",
+              timeframe === option &&
+                "border-[oklch(0.72_0.18_248_/_30%)] bg-[oklch(0.72_0.18_248_/_12%)] text-[oklch(0.72_0.18_248)]",
+            )}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

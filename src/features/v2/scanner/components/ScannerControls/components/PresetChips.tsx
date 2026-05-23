@@ -1,6 +1,6 @@
 import { PRESET_OPTIONS } from "../../../data/mockScannerData";
 import type { ScannerPreset } from "../../../types";
-import { chipActive, chipBase } from "./styles";
+import { OptionDropdown } from "./OptionDropdown";
 
 type PresetChipsProps = {
   preset: ScannerPreset;
@@ -9,17 +9,16 @@ type PresetChipsProps = {
 
 export function PresetChips({ preset, onPresetChange }: PresetChipsProps) {
   return (
-    <div className="hide-scrollbar flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto">
-      {PRESET_OPTIONS.map((option) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onPresetChange(option)}
-          style={preset === option ? chipActive : chipBase}
-        >
-          {option}
-        </button>
-      ))}
+    <div className="flex min-w-0 items-center gap-2">
+      <span className="shrink-0 whitespace-nowrap font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[oklch(0.42_0_0)]">
+        Preset
+      </span>
+      <OptionDropdown
+        label={preset}
+        options={PRESET_OPTIONS}
+        value={preset}
+        onValueChange={onPresetChange}
+      />
     </div>
   );
 }

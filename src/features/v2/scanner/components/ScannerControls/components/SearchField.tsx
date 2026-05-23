@@ -8,14 +8,14 @@ type SearchFieldProps = {
 
 export function SearchField({ search, onSearchChange }: SearchFieldProps) {
   return (
-    <div className="flex w-full max-w-[320px] shrink-0 items-center gap-2 rounded-2xl">
-      <Search className="h-4 w-4 shrink-0 text-white/35" />
+    <div className="flex w-full min-w-0 items-center gap-2 sm:max-w-[200px]">
+      <Search className="h-3.5 w-3.5 shrink-0 text-[oklch(0.42_0_0)]" />
       <Input
         aria-label="Filter symbol"
         value={search}
         onChange={(event) => onSearchChange(event.target.value)}
         placeholder="filter symbol..."
-        className="border-white/10 bg-white/[0.03] text-white placeholder:text-white/30"
+        className="h-7 rounded-[4px] border-white/8 bg-[#0d0d0d] px-2.5 font-mono text-[0.7rem] text-[oklch(0.85_0_0)] placeholder:text-[oklch(0.42_0_0)]"
       />
     </div>
   );

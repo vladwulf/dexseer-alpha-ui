@@ -6,7 +6,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { chipDropdown } from "./styles";
+import { cn } from "@/lib/utils";
 
 type OptionDropdownProps<T extends string> = {
   label: string;
@@ -24,7 +24,12 @@ export function OptionDropdown<T extends string>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" style={chipDropdown}>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex cursor-pointer items-center gap-[5px] whitespace-nowrap rounded-[4px] border border-transparent bg-transparent px-[9px] py-[3px] font-mono text-[0.7rem] font-medium tracking-[0.05em] text-[oklch(0.48_0_0)] transition-all duration-150",
+          )}
+        >
           {label}
           <ChevronDown size={11} />
         </button>
@@ -38,7 +43,7 @@ export function OptionDropdown<T extends string>({
             <DropdownMenuRadioItem
               key={option}
               value={option}
-              style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem" }}
+              className="font-mono text-[0.7rem]"
             >
               {option}
             </DropdownMenuRadioItem>
