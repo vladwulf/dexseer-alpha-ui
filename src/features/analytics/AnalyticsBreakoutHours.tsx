@@ -137,16 +137,16 @@ export function AnalyticsBreakoutHours() {
           </div>
         ) : isLoading ? (
           <div style={{ display: "flex", gap: 3 }}>
-            {Array.from({ length: 24 }).map((_, i) => (
+            {Array.from({ length: 24 }, (_, hour) => hour).map((hour) => (
               <div
-                key={i}
+                key={`breakout-skeleton-${hour}`}
                 style={{
                   flex: 1,
                   height: HEATMAP_H,
                   background: "oklch(1 0 0 / 4%)",
                   borderRadius: 4,
                   animation: "pulse 1.6s ease-in-out infinite",
-                  animationDelay: `${i * 40}ms`,
+                  animationDelay: `${hour * 40}ms`,
                 }}
               />
             ))}
@@ -213,8 +213,8 @@ export function AnalyticsBreakoutHours() {
                         transition: "border-color 0.12s",
                         position: "relative",
                       }}
-                      onMouseEnter={() => setActiveHour(d.hour)}
-                      onMouseLeave={() => setActiveHour(null)}
+                      onPointerEnter={() => setActiveHour(d.hour)}
+                      onPointerLeave={() => setActiveHour(null)}
                     />
                   );
                 })}

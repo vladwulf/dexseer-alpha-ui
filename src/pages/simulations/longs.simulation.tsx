@@ -442,12 +442,14 @@ export default function Dashboard() {
         {/* View toggle */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           <button
+            type="button"
             onClick={() => setView("heatmaps")}
             style={btn(view === "heatmaps")}
           >
             Heatmaps
           </button>
           <button
+            type="button"
             onClick={() => setView("table")}
             style={btn(view === "table")}
           >

@@ -39,14 +39,36 @@ const CHART_H = 220;
 const AXIS_H = 28;
 
 function padH(h: number) {
-  return String(h).padStart(2, "0") + ":00";
+  return `${String(h).padStart(2, "0")}:00`;
 }
 
 function SkeletonBars() {
   // Approximate shape of a typical volume curve for the skeleton
   const heights = [
-    14, 9, 7, 6, 8, 11, 17, 24, 36, 51, 64, 77, 81, 87, 100, 94, 91, 89, 84, 74,
-    61, 47, 34, 21,
+    { key: "h00", value: 14 },
+    { key: "h01", value: 9 },
+    { key: "h02", value: 7 },
+    { key: "h03", value: 6 },
+    { key: "h04", value: 8 },
+    { key: "h05", value: 11 },
+    { key: "h06", value: 17 },
+    { key: "h07", value: 24 },
+    { key: "h08", value: 36 },
+    { key: "h09", value: 51 },
+    { key: "h10", value: 64 },
+    { key: "h11", value: 77 },
+    { key: "h12", value: 81 },
+    { key: "h13", value: 87 },
+    { key: "h14", value: 100 },
+    { key: "h15", value: 94 },
+    { key: "h16", value: 91 },
+    { key: "h17", value: 89 },
+    { key: "h18", value: 84 },
+    { key: "h19", value: 74 },
+    { key: "h20", value: 61 },
+    { key: "h21", value: 47 },
+    { key: "h22", value: 34 },
+    { key: "h23", value: 21 },
   ];
   return (
     <div
@@ -57,16 +79,16 @@ function SkeletonBars() {
         gap: 3,
       }}
     >
-      {heights.map((h, i) => (
+      {heights.map((bar, hour) => (
         <div
-          key={i}
+          key={bar.key}
           style={{
             flex: 1,
-            height: `${h}%`,
+            height: `${bar.value}%`,
             borderRadius: "2px 2px 0 0",
             background: "oklch(1 0 0 / 5%)",
             animation: "pulse 1.6s ease-in-out infinite",
-            animationDelay: `${i * 40}ms`,
+            animationDelay: `${hour * 40}ms`,
           }}
         />
       ))}
@@ -474,8 +496,8 @@ export function AnalyticsVolume() {
                           display: "flex",
                           alignItems: "flex-end",
                         }}
-                        onMouseEnter={() => setActiveHour(d.hour)}
-                        onMouseLeave={() => setActiveHour(null)}
+                        onPointerEnter={() => setActiveHour(d.hour)}
+                        onPointerLeave={() => setActiveHour(null)}
                       >
                         <div
                           style={{
@@ -708,28 +730,30 @@ export function AnalyticsVolume() {
 
           {isLoading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i}>
-                  <div
-                    style={{
-                      height: 10,
-                      background: "oklch(1 0 0 / 5%)",
-                      borderRadius: 3,
-                      marginBottom: 6,
-                      width: `${40 + i * 8}%`,
-                      animation: "pulse 1.6s ease-in-out infinite",
-                      animationDelay: `${i * 80}ms`,
-                    }}
-                  />
-                  <div
-                    style={{
-                      height: 5,
-                      background: "oklch(1 0 0 / 5%)",
-                      borderRadius: 3,
-                    }}
-                  />
-                </div>
-              ))}
+              {Array.from({ length: 6 }, (_, rowIndex) => rowIndex).map(
+                (rowIndex) => (
+                  <div key={`asset-skeleton-${rowIndex}`}>
+                    <div
+                      style={{
+                        height: 10,
+                        background: "oklch(1 0 0 / 5%)",
+                        borderRadius: 3,
+                        marginBottom: 6,
+                        width: `${40 + rowIndex * 8}%`,
+                        animation: "pulse 1.6s ease-in-out infinite",
+                        animationDelay: `${rowIndex * 80}ms`,
+                      }}
+                    />
+                    <div
+                      style={{
+                        height: 5,
+                        background: "oklch(1 0 0 / 5%)",
+                        borderRadius: 3,
+                      }}
+                    />
+                  </div>
+                ),
+              )}
             </div>
           ) : isError ? (
             <div

@@ -39,7 +39,7 @@ export function detectAllBosSignals(
  */
 export function detectBosStart(
   klines: ParsedKLine[],
-  loopbackPeriod = 30,
+  _loopbackPeriod = 30,
 ): boolean {
   if (klines.length < 2) return false;
 

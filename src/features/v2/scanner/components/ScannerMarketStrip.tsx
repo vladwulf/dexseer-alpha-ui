@@ -29,9 +29,9 @@ export function ScannerMarketStrip({ items }: { items: MarketStripItem[] }) {
               breadth
             </span>
             <div className="flex gap-1">
-              {Array.from({ length: 10 }).map((_, index) => (
+              {Array.from({ length: 10 }, (_, index) => index).map((index) => (
                 <span
-                  key={index}
+                  key={`breadth-${index < 6 ? "up" : "down"}-${index}`}
                   className={`h-6 w-1.5 ${
                     index < 6 ? "bg-[#79c68c]/80" : "bg-[#e35561]/65"
                   }`}

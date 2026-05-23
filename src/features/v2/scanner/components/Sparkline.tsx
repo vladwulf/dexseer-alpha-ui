@@ -15,9 +15,12 @@ export function Sparkline({ values }: { values: number[] }) {
 
   return (
     <svg
+      aria-label="Sparkline"
+      role="img"
       viewBox={`0 0 ${width} ${height}`}
       className="block h-7 w-[88px] overflow-hidden"
     >
+      <title>Sparkline</title>
       <polyline
         fill="none"
         points={points}

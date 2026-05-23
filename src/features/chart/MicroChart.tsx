@@ -167,7 +167,7 @@ export function MicroChart({
       )
       .map((kline) => {
         const time = (new Date(kline.time).getTime() / 1000) as Time;
-        let candleColor;
+        let candleColor: string | undefined;
         if (time === alertTimestampUnix) {
           candleColor = "yellow";
         } else if (time > alertTimestampUnix) {
@@ -258,8 +258,8 @@ export function MicroChart({
     <div
       className="inline-block"
       style={{ width, height }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onPointerEnter={onMouseEnter}
+      onPointerLeave={onMouseLeave}
     >
       <div ref={chartContainerRef} style={{ width, height }} />
     </div>
@@ -392,8 +392,8 @@ export function MicroChartWithModal({
         top: `${position.top}px`,
         left: `${position.left}px`,
       }}
-      onMouseEnter={handleModalMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onPointerEnter={handleModalMouseEnter}
+      onPointerLeave={handleMouseLeave}
     >
       <div className="pointer-events-auto shadow-lg rounded-lg border border-border bg-card p-2">
         <MiniChart
@@ -412,8 +412,8 @@ export function MicroChartWithModal({
     <>
       <div
         ref={containerRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onPointerEnter={handleMouseEnter}
+        onPointerLeave={handleMouseLeave}
         className="inline-block"
       >
         <MicroChart

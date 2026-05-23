@@ -28,7 +28,7 @@ const IlluminatiEye = () => {
   const eyeTopLidRef = useRef<THREE.Mesh>(null);
   const eyeBottomLidRef = useRef<THREE.Mesh>(null);
   const pupilGroupRef = useRef<THREE.Group>(null);
-  const blinkTimeRef = useRef(0);
+  const _blinkTimeRef = useRef(0);
   const lookDirectionRef = useRef(0);
 
   useFrame((state) => {
@@ -180,14 +180,18 @@ const IlluminatiEye = () => {
       </group>
 
       {/* Radiating light rays (subtle) */}
-      {[...Array(12)].map((_, i) => {
-        const angle = (i / 12) * Math.PI * 2;
+      {Array.from({ length: 12 }, (_, rayIndex) => rayIndex).map((rayIndex) => {
+        const angle = (rayIndex / 12) * Math.PI * 2;
         const distance = 3;
         const x = Math.cos(angle) * distance;
         const y = Math.sin(angle) * distance + 0.5;
 
         return (
-          <group key={i} position={[x, y, 0]} rotation={[0, 0, angle]}>
+          <group
+            key={`ray-${rayIndex}`}
+            position={[x, y, 0]}
+            rotation={[0, 0, angle]}
+          >
             <mesh>
               <coneGeometry args={[0.08, 0.5, 3]} />
               <meshStandardMaterial color="#ffffff" transparent opacity={0.3} />

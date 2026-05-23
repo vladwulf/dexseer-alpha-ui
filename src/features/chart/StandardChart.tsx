@@ -531,11 +531,11 @@ export function StandardChart({
         const vol = chartData[barIndex].volume;
         // Format volume with abbreviations (K, M, B)
         if (vol >= 1e9) {
-          volume = (vol / 1e9).toFixed(2) + "B";
+          volume = `${(vol / 1e9).toFixed(2)}B`;
         } else if (vol >= 1e6) {
-          volume = (vol / 1e6).toFixed(2) + "M";
+          volume = `${(vol / 1e6).toFixed(2)}M`;
         } else if (vol >= 1e3) {
-          volume = (vol / 1e3).toFixed(2) + "K";
+          volume = `${(vol / 1e3).toFixed(2)}K`;
         } else {
           volume = vol.toFixed(2);
         }
@@ -543,11 +543,11 @@ export function StandardChart({
         // Calculate and format average volume
         const avgVol = getAverageVolume(klines.slice(0, barIndex + 1), 10);
         if (avgVol >= 1e9) {
-          avgVolume = (avgVol / 1e9).toFixed(2) + "B";
+          avgVolume = `${(avgVol / 1e9).toFixed(2)}B`;
         } else if (avgVol >= 1e6) {
-          avgVolume = (avgVol / 1e6).toFixed(2) + "M";
+          avgVolume = `${(avgVol / 1e6).toFixed(2)}M`;
         } else if (avgVol >= 1e3) {
-          avgVolume = (avgVol / 1e3).toFixed(2) + "K";
+          avgVolume = `${(avgVol / 1e3).toFixed(2)}K`;
         } else {
           avgVolume = avgVol.toFixed(2);
         }
@@ -687,6 +687,8 @@ export function StandardChart({
     events,
     showLegend,
     backgroundColor,
+    upVolumeColor,
+    downVolumeColor,
   ]);
 
   return (

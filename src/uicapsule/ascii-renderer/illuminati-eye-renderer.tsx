@@ -101,14 +101,18 @@ const IlluminatiEye = () => {
       </mesh>
 
       {/* Rays around the eye (8 triangular rays) */}
-      {[...Array(8)].map((_, i) => {
-        const angle = (i / 8) * Math.PI * 2;
+      {Array.from({ length: 8 }, (_, rayIndex) => rayIndex).map((rayIndex) => {
+        const angle = (rayIndex / 8) * Math.PI * 2;
         const distance = 2.5;
         const x = Math.cos(angle) * distance;
         const y = Math.sin(angle) * distance + 0.5;
 
         return (
-          <group key={i} position={[x, y, 0]} rotation={[0, 0, angle]}>
+          <group
+            key={`ray-${rayIndex}`}
+            position={[x, y, 0]}
+            rotation={[0, 0, angle]}
+          >
             <mesh>
               <coneGeometry args={[0.15, 0.8, 3]} />
               <meshStandardMaterial

@@ -38,8 +38,8 @@ export function FaqAccordion() {
     <div className="w-full max-w-5xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
       <Accordion type="single" collapsible className="w-full">
-        {faqData.map((faq, index) => (
-          <AccordionItem key={index} value={`item-${index}`}>
+        {faqData.map((faq) => (
+          <AccordionItem key={faq.question} value={faq.question}>
             <AccordionTrigger className="text-left">
               {faq.question}
             </AccordionTrigger>

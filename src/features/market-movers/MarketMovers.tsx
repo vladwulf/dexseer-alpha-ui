@@ -125,7 +125,7 @@ function MarketMoverCard({
         <div className="h-28 w-full">
           {ohlc.length > 0 ? (
             <IndexChart
-              symbol={data!.asset.symbol}
+              symbol={data?.asset.symbol}
               klines={ohlc}
               upColor="#5dc887"
               downColor="#e35561"

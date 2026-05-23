@@ -372,7 +372,7 @@ export default function App() {
         }}
       >
         <div>
-          <label
+          <div
             style={{
               display: "block",
               fontSize: "11px",
@@ -383,11 +383,12 @@ export default function App() {
             }}
           >
             Risk per Trade
-          </label>
+          </div>
           <div style={{ display: "flex", gap: "6px" }}>
             {[0.5, 1, 1.5, 2, 3].map((r) => (
               <button
                 key={r}
+                type="button"
                 onClick={() => setRiskPct(r)}
                 style={{
                   padding: "6px 14px",
@@ -406,7 +407,7 @@ export default function App() {
           </div>
         </div>
         <div>
-          <label
+          <div
             style={{
               display: "block",
               fontSize: "11px",
@@ -417,11 +418,12 @@ export default function App() {
             }}
           >
             Starting Capital
-          </label>
+          </div>
           <div style={{ display: "flex", gap: "6px" }}>
             {[10000, 50000, 100000, 500000].map((c) => (
               <button
                 key={c}
+                type="button"
                 onClick={() => setStartCap(c)}
                 style={{
                   padding: "6px 14px",
@@ -440,7 +442,7 @@ export default function App() {
           </div>
         </div>
         <div>
-          <label
+          <div
             style={{
               display: "block",
               fontSize: "11px",
@@ -451,11 +453,12 @@ export default function App() {
             }}
           >
             R:R Filter
-          </label>
+          </div>
           <div style={{ display: "flex", gap: "6px" }}>
             {rrFilters.map((f) => (
               <button
                 key={f}
+                type="button"
                 onClick={() => setRrFilter(f)}
                 style={{
                   padding: "6px 12px",
@@ -563,6 +566,7 @@ export default function App() {
         {sortOptions.map((o) => (
           <button
             key={o.key}
+            type="button"
             onClick={() => setSortBy(o.key)}
             style={{
               padding: "4px 10px",

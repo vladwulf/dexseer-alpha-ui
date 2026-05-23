@@ -30,9 +30,11 @@ class MARibbonPaneRenderer implements IPrimitivePaneRenderer {
   drawBackground(target: CanvasRenderingTarget2D) {
     const points: RibbonRendererData[] = this._viewData.data;
 
-    if (points.length < 2) return;
-
+    // biome-ignore lint/correctness/useHookAtTopLevel: lightweight-charts renderer API method, not a React hook
     target.useBitmapCoordinateSpace((scope) => {
+      if (points.length < 2) {
+        return;
+      }
       const ctx = scope.context;
       ctx.scale(scope.horizontalPixelRatio, scope.verticalPixelRatio);
 
@@ -154,7 +156,9 @@ export class MARibbonIndicator implements ISeriesPrimitive<Time> {
   }
 
   updateAllViews() {
-    this._paneViews.forEach((pw) => pw.update());
+    this._paneViews.forEach((pw) => {
+      pw.update();
+    });
   }
 
   paneViews() {

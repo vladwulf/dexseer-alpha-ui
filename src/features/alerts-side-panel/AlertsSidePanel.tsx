@@ -1,4 +1,3 @@
-import ScrollContainer from "react-indiana-drag-scroll";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { AlertChart } from "../chart/AlertChart";
@@ -12,19 +11,31 @@ export function AlertsSidePanel() {
       <div className="p-4 border-b border-border h-26">
         <h2 className="text-xl font-semibold mb-2">Market Alerts</h2>
         <div className="flex gap-2 text-sm text-muted-foreground">
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             All
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Rally
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Pullback
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Breakout
           </button>
         </div>

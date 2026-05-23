@@ -15,7 +15,7 @@ const SESSIONS = [
 ];
 
 function padH(h: number) {
-  return String(h).padStart(2, "0") + ":00";
+  return `${String(h).padStart(2, "0")}:00`;
 }
 
 function normalizeMovers(buckets: AnalyticsTimeframeMoversBucket[]) {
@@ -249,16 +249,16 @@ export function AnalyticsTimeframeMovers() {
                 gap: 3,
               }}
             >
-              {Array.from({ length: 24 }).map((_, i) => (
+              {Array.from({ length: 24 }, (_, hour) => hour).map((hour) => (
                 <div
-                  key={i}
+                  key={`timeframe-skeleton-${hour}`}
                   style={{
                     flex: 1,
                     height: "35%",
                     background: "oklch(1 0 0 / 5%)",
                     borderRadius: 2,
                     animation: "pulse 1.6s ease-in-out infinite",
-                    animationDelay: `${i * 40}ms`,
+                    animationDelay: `${hour * 40}ms`,
                   }}
                 />
               ))}
@@ -328,8 +328,8 @@ export function AnalyticsTimeframeMovers() {
                         position: "relative",
                         cursor: "crosshair",
                       }}
-                      onMouseEnter={() => setActiveHour(d.hour)}
-                      onMouseLeave={() => setActiveHour(null)}
+                      onPointerEnter={() => setActiveHour(d.hour)}
+                      onPointerLeave={() => setActiveHour(null)}
                     >
                       {gH > 0 && (
                         <div

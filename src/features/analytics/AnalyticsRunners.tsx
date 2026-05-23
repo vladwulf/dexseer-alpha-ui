@@ -60,7 +60,7 @@ function metricValueOf(
 }
 
 function fmtChange(val: number): string {
-  return (val >= 0 ? "+" : "") + val.toFixed(2) + "%";
+  return `${(val >= 0 ? "+" : "") + val.toFixed(2)}%`;
 }
 
 function fmtVolume(val: number): string {
@@ -318,59 +318,62 @@ function RaceLane({
 function SkeletonLanes() {
   return (
     <div>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            paddingTop: 9,
-            paddingBottom: 9,
-            borderBottom: i < 7 ? "1px solid oklch(1 0 0 / 4%)" : "none",
-          }}
-        >
+      {Array.from({ length: 8 }, (_, laneIndex) => laneIndex).map(
+        (laneIndex) => (
           <div
+            key={`runner-skeleton-${laneIndex}`}
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 6,
-              background: "oklch(1 0 0 / 5%)",
-              flexShrink: 0,
-              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              paddingTop: 9,
+              paddingBottom: 9,
+              borderBottom:
+                laneIndex < 7 ? "1px solid oklch(1 0 0 / 4%)" : "none",
             }}
-          />
-          <div
-            style={{
-              width: 72,
-              height: 10,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 2,
-              flexShrink: 0,
-              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
-            }}
-          />
-          <div
-            style={{
-              flex: 1,
-              height: 14,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 4,
-              animation: `pulse 1.6s ${i * 60 + 30}ms ease-in-out infinite`,
-            }}
-          />
-          <div
-            style={{
-              width: 70,
-              height: 10,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 2,
-              flexShrink: 0,
-              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
-            }}
-          />
-        </div>
-      ))}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 6,
+                background: "oklch(1 0 0 / 5%)",
+                flexShrink: 0,
+                animation: `pulse 1.6s ${laneIndex * 60}ms ease-in-out infinite`,
+              }}
+            />
+            <div
+              style={{
+                width: 72,
+                height: 10,
+                background: "oklch(1 0 0 / 5%)",
+                borderRadius: 2,
+                flexShrink: 0,
+                animation: `pulse 1.6s ${laneIndex * 60}ms ease-in-out infinite`,
+              }}
+            />
+            <div
+              style={{
+                flex: 1,
+                height: 14,
+                background: "oklch(1 0 0 / 5%)",
+                borderRadius: 4,
+                animation: `pulse 1.6s ${laneIndex * 60 + 30}ms ease-in-out infinite`,
+              }}
+            />
+            <div
+              style={{
+                width: 70,
+                height: 10,
+                background: "oklch(1 0 0 / 5%)",
+                borderRadius: 2,
+                flexShrink: 0,
+                animation: `pulse 1.6s ${laneIndex * 60}ms ease-in-out infinite`,
+              }}
+            />
+          </div>
+        ),
+      )}
     </div>
   );
 }
@@ -398,7 +401,7 @@ export function AnalyticsRunners() {
   useEffect(() => {
     setFrameIdx(0);
     setIsPlaying(false);
-  }, [mode, metric]);
+  }, []);
 
   useEffect(() => {
     if (!isPlaying || !replayData) return;

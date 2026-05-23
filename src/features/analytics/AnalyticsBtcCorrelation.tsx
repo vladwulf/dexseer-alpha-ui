@@ -164,18 +164,20 @@ export function AnalyticsBtcCorrelation() {
           </div>
         ) : isLoading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  height: 28,
-                  background: "oklch(1 0 0 / 4%)",
-                  borderRadius: 4,
-                  animation: "pulse 1.6s ease-in-out infinite",
-                  animationDelay: `${i * 60}ms`,
-                }}
-              />
-            ))}
+            {Array.from({ length: 8 }, (_, rowIndex) => rowIndex).map(
+              (rowIndex) => (
+                <div
+                  key={`btc-correlation-skeleton-${rowIndex}`}
+                  style={{
+                    height: 28,
+                    background: "oklch(1 0 0 / 4%)",
+                    borderRadius: 4,
+                    animation: "pulse 1.6s ease-in-out infinite",
+                    animationDelay: `${rowIndex * 60}ms`,
+                  }}
+                />
+              ),
+            )}
           </div>
         ) : sorted.length === 0 ? (
           <div

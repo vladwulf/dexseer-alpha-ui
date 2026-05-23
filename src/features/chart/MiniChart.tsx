@@ -354,8 +354,8 @@ export function MiniChartModal({
         top: `${position.top}px`,
         left: `${position.left}px`,
       }}
-      onMouseEnter={handleModalMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onPointerEnter={handleModalMouseEnter}
+      onPointerLeave={handleMouseLeave}
     >
       <div className="pointer-events-auto border shadow-lg rounded-lg bg-base">
         <MiniChart

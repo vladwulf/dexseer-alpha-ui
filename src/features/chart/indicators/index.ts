@@ -40,8 +40,11 @@ export function getEMASeriesData(data: CandlestickData[], periods: number) {
       emaData.push({ time: data[i].time, value: previousEMA });
     } else {
       // Calculate EMA using the formula: EMA = (Close - Previous EMA) * Multiplier + Previous EMA
+      if (previousEMA === null) {
+        continue;
+      }
       const currentEMA: number =
-        (data[i].close - previousEMA!) * multiplier + previousEMA!;
+        (data[i].close - previousEMA) * multiplier + previousEMA;
       previousEMA = currentEMA;
       emaData.push({ time: data[i].time, value: currentEMA });
     }
@@ -74,8 +77,12 @@ export function calculateEMAFromValues(
       emaData.push(previousEMA);
     } else {
       // Calculate EMA
+      if (previousEMA === null) {
+        emaData.push(null);
+        continue;
+      }
       const currentEMA: number =
-        (values[i] - previousEMA!) * multiplier + previousEMA!;
+        (values[i] - previousEMA) * multiplier + previousEMA;
       previousEMA = currentEMA;
       emaData.push(currentEMA);
     }
@@ -138,8 +145,9 @@ export function getMACDSeriesData(
   const signalLine: { time: CandlestickData["time"]; value?: number }[] = [];
 
   for (let i = 0; i < data.length; i++) {
-    if (signalEMA[i] !== null) {
-      signalLine.push({ time: data[i].time, value: signalEMA[i]! });
+    const signalValue = signalEMA[i];
+    if (signalValue !== null) {
+      signalLine.push({ time: data[i].time, value: signalValue });
     } else {
       signalLine.push({ time: data[i].time });
     }
