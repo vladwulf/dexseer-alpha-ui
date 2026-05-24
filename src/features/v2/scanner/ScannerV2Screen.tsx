@@ -45,7 +45,6 @@ export function ScannerV2Screen() {
         <div className="overflow-hidden border-white/8 bg-[#0a0a0a] shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
           <ScannerMarketStrip items={MARKET_STRIP} />
           <ScannerMomentumHeatmap
-            assets={filteredAssets}
             selectedSymbol={selectedSymbol}
             onSelectSymbol={handleSelectSymbol}
           />
