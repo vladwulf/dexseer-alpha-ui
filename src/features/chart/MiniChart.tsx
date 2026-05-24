@@ -170,7 +170,13 @@ export function MiniChart({
     };
   }, [downColor, height, klines, periods, upColor, width]);
 
-  return <div ref={chartContainerRef} className="rounded-md" style={{ width, height }} />;
+  return (
+    <div
+      ref={chartContainerRef}
+      className="rounded-md"
+      style={{ width, height }}
+    />
+  );
 }
 
 interface MiniChartModalProps {

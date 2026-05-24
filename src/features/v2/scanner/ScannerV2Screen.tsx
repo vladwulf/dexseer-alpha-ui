@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
+import { ScannerMomentumHeatmap } from "./components/ScannerMomentumHeatmap";
 import { ScannerSidePanel } from "./components/ScannerSidePanel";
 import { ScannerTable } from "./components/ScannerTable";
 import { MARKET_STRIP } from "./data/mockScannerData";
@@ -43,6 +44,11 @@ export function ScannerV2Screen() {
       <div className="pb-8 pt-0 md:px-4">
         <div className="overflow-hidden border-white/8 bg-[#0a0a0a] shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
           <ScannerMarketStrip items={MARKET_STRIP} />
+          <ScannerMomentumHeatmap
+            assets={filteredAssets}
+            selectedSymbol={selectedSymbol}
+            onSelectSymbol={handleSelectSymbol}
+          />
 
           <ScannerControls
             density={density}
