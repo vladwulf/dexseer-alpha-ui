@@ -44,6 +44,7 @@ export const PRESET_OPTIONS: ScannerPreset[] = [
 ];
 
 export const TIMEFRAME_OPTIONS: ScannerTimeframe[] = [
+  "1m",
   "5m",
   "15m",
   "1h",

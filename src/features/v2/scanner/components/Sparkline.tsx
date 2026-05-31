@@ -1,13 +1,14 @@
 export function Sparkline({ values }: { values: number[] }) {
   const width = 88;
   const height = 28;
-  const max = Math.max(...values);
-  const min = Math.min(...values);
+  const normalizedValues = values.length >= 2 ? values : [14, 14];
+  const max = Math.max(...normalizedValues);
+  const min = Math.min(...normalizedValues);
   const range = Math.max(max - min, 1);
 
-  const points = values
+  const points = normalizedValues
     .map((value, index) => {
-      const x = (index / (values.length - 1)) * width;
+      const x = (index / (normalizedValues.length - 1)) * width;
       const y = height - ((value - min) / range) * (height - 4) - 2;
       return `${x},${y}`;
     })

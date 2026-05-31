@@ -1,16 +1,27 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
 import { ScannerMomentumHeatmap } from "./components/ScannerMomentumHeatmap";
 import { ScannerSidePanel } from "./components/ScannerSidePanel";
 import { ScannerTable } from "./components/ScannerTable";
 import { MARKET_STRIP } from "./data/mockScannerData";
+import {
+  useGetMarketStrip,
+  useGetScannerAssetDetails,
+  useGetScannerAssetDetailsChart,
+} from "./hooks/scanner.api";
 import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
 import { useScannerState } from "./hooks/useScannerState";
+import {
+  mapMarketStripResponse,
+  mergeChartIntoAsset,
+  mergeDetailsIntoAsset,
+} from "./lib/apiAdapters";
 
 export function ScannerV2Screen() {
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const isMobileScanner = useIsMobileScanner();
+  const marketStripQuery = useGetMarketStrip();
   const {
     density,
     filteredAssets,
@@ -31,6 +42,21 @@ export function ScannerV2Screen() {
     setTimeframe,
     setWatchlistFilter,
   } = useScannerState();
+  const selectedAssetId = selectedAsset?.assetId;
+  const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
+  const detailsChartQuery = useGetScannerAssetDetailsChart(selectedAssetId, {
+    timeframe,
+  });
+  const marketStripItems =
+    mapMarketStripResponse(marketStripQuery.data) ?? MARKET_STRIP;
+  const panelAsset = useMemo(() => {
+    if (!selectedAsset) return undefined;
+
+    return mergeChartIntoAsset(
+      mergeDetailsIntoAsset(selectedAsset, detailsQuery.data),
+      detailsChartQuery.data,
+    );
+  }, [detailsChartQuery.data, detailsQuery.data, selectedAsset]);
 
   const handleSelectSymbol = (symbol: string) => {
     setSelectedSymbol(symbol);
@@ -43,7 +69,11 @@ export function ScannerV2Screen() {
     <div className="min-h-screen bg-[#050505] text-white">
       <div className="pb-8 pt-0 md:px-4">
         <div className="overflow-hidden border-white/8 bg-[#0a0a0a] shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
-          <ScannerMarketStrip items={MARKET_STRIP} />
+          <ScannerMarketStrip
+            breadth={marketStripQuery.data?.breadth}
+            items={marketStripItems}
+            updatedAt={marketStripQuery.data?.updated_at}
+          />
           <ScannerMomentumHeatmap
             selectedSymbol={selectedSymbol}
             onSelectSymbol={handleSelectSymbol}
@@ -74,7 +104,7 @@ export function ScannerV2Screen() {
               onSelectSymbol={handleSelectSymbol}
             />
             <ScannerSidePanel
-              asset={selectedAsset}
+              asset={panelAsset}
               mobileOpen={isMobileScanner ? mobilePanelOpen : false}
               onMobileOpenChange={setMobilePanelOpen}
               timeframe={timeframe}

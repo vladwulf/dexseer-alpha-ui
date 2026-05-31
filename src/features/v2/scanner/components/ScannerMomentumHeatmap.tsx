@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { useGetRunners } from "@/features/analytics/hooks/analytics.api";
-import type { RunnerEntry, RunnerMetric } from "@/features/analytics/types";
+import {
+  type RunnerEntry,
+  type RunnerTimeframe,
+  useGetStatsRunners,
+} from "../hooks/scanner.api";
 import { formatSigned } from "../lib/formatters";
 
 type ScannerMomentumHeatmapProps = {
@@ -62,8 +65,8 @@ function getTileArea(layout: MosaicTileLayout) {
   return layout.colSpan * layout.rowSpan;
 }
 
-function getMetricValue(entry: RunnerEntry, metric: RunnerMetric) {
-  return metric === "1d" ? (entry.change_1d ?? 0) : (entry.change_4h ?? 0);
+function getMetricValue(entry: RunnerEntry) {
+  return entry.change_pct;
 }
 
 function getSymbolSize(layout: MosaicTileLayout, labelLength: number) {
@@ -94,7 +97,6 @@ function HeatmapTile({
   layout,
   selected,
   tone,
-  metric,
   onSelectSymbol,
 }: {
   asset: RunnerEntry;
@@ -102,14 +104,13 @@ function HeatmapTile({
   layout: MosaicTileLayout;
   selected: boolean;
   tone: HeatmapTone;
-  metric: RunnerMetric;
   onSelectSymbol: (symbol: string) => void;
 }) {
   const palette = getTilePalette(tone, intensity);
   const label = asset.symbol.replace(/USDT$|USD$/u, "");
   const area = getTileArea(layout);
   const isLead = area >= 12;
-  const metricValue = getMetricValue(asset, metric);
+  const metricValue = getMetricValue(asset);
 
   return (
     <button
@@ -164,7 +165,10 @@ function HeatmapTile({
               textShadow: "none",
             }}
           >
-            ${asset.price.toLocaleString("en-US", { maximumFractionDigits: 4 })}
+            $
+            {(asset.price ?? 0).toLocaleString("en-US", {
+              maximumFractionDigits: 4,
+            })}
           </div>
         )}
       </div>
@@ -176,7 +180,6 @@ function MosaicColumn({
   assets,
   label,
   labelColor,
-  metric,
   onSelectSymbol,
   selectedSymbol,
   tone,
@@ -184,13 +187,12 @@ function MosaicColumn({
   assets: RunnerEntry[];
   label: string;
   labelColor: string;
-  metric: RunnerMetric;
   onSelectSymbol: (symbol: string) => void;
   selectedSymbol: string;
   tone: HeatmapTone;
 }) {
   const maxAbsChange = Math.max(
-    ...assets.map((asset) => Math.abs(getMetricValue(asset, metric))),
+    ...assets.map((asset) => Math.abs(getMetricValue(asset))),
     0,
   );
 
@@ -213,7 +215,7 @@ function MosaicColumn({
           const intensity =
             maxAbsChange === 0
               ? 0
-              : Math.abs(getMetricValue(asset, metric)) / maxAbsChange;
+              : Math.abs(getMetricValue(asset)) / maxAbsChange;
 
           return (
             <HeatmapTile
@@ -225,7 +227,6 @@ function MosaicColumn({
               }
               selected={asset.symbol === selectedSymbol}
               tone={tone}
-              metric={metric}
               onSelectSymbol={onSelectSymbol}
             />
           );
@@ -239,35 +240,21 @@ export function ScannerMomentumHeatmap({
   selectedSymbol,
   onSelectSymbol,
 }: ScannerMomentumHeatmapProps) {
-  const [metric, setMetric] = useState<RunnerMetric>("1d");
-  const {
-    data: gainersData,
-    isLoading: gainersLoading,
-    isError: gainersError,
-  } = useGetRunners("long");
-  const {
-    data: losersData,
-    isLoading: losersLoading,
-    isError: losersError,
-  } = useGetRunners("short");
+  const [metric, setMetric] = useState<RunnerTimeframe>("1d");
+  const { data, isLoading, isError } = useGetStatsRunners({
+    timeframes: "4h,1d",
+    limit: 10,
+  });
 
-  const gainers = [...(gainersData?.[metric]?.entries ?? [])]
-    .filter((asset) => getMetricValue(asset, metric) > 0)
-    .sort(
-      (left, right) =>
-        getMetricValue(right, metric) - getMetricValue(left, metric),
-    )
+  const gainers = [...(data?.boards.gainers?.[metric]?.entries ?? [])]
+    .filter((asset) => getMetricValue(asset) > 0)
+    .sort((left, right) => getMetricValue(right) - getMetricValue(left))
     .slice(0, 10);
-  const losers = [...(losersData?.[metric]?.entries ?? [])]
-    .filter((asset) => getMetricValue(asset, metric) < 0)
-    .sort(
-      (left, right) =>
-        getMetricValue(left, metric) - getMetricValue(right, metric),
-    )
+  const losers = [...(data?.boards.losers?.[metric]?.entries ?? [])]
+    .filter((asset) => getMetricValue(asset) < 0)
+    .sort((left, right) => getMetricValue(left) - getMetricValue(right))
     .slice(0, 10);
   const metricLabel = metric === "1d" ? "24h" : "4h";
-  const isLoading = gainersLoading || losersLoading;
-  const isError = gainersError || losersError;
 
   if (!isLoading && !isError && (gainers.length === 0 || losers.length === 0)) {
     return null;
@@ -286,7 +273,7 @@ export function ScannerMomentumHeatmap({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {(["1d", "4h"] as RunnerMetric[]).map((nextMetric) => (
+            {(["1d", "4h"] as RunnerTimeframe[]).map((nextMetric) => (
               <button
                 key={nextMetric}
                 type="button"
@@ -325,7 +312,6 @@ export function ScannerMomentumHeatmap({
               assets={gainers}
               label="Gainers"
               labelColor="#5ecb78"
-              metric={metric}
               onSelectSymbol={onSelectSymbol}
               selectedSymbol={selectedSymbol}
               tone="gainer"
@@ -334,7 +320,6 @@ export function ScannerMomentumHeatmap({
               assets={losers}
               label="Losers"
               labelColor="#e8505f"
-              metric={metric}
               onSelectSymbol={onSelectSymbol}
               selectedSymbol={selectedSymbol}
               tone="loser"

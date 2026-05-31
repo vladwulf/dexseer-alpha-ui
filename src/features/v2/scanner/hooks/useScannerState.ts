@@ -2,9 +2,10 @@ import { useMemo, useState } from "react";
 import {
   MIN_VOLUME_OPTIONS,
   SCANNER_ASSETS,
-  SORT_OPTIONS,
   WATCHLIST_OPTIONS,
 } from "../data/mockScannerData";
+import { useGetScanner } from "../hooks/scanner.api";
+import { getScannerPresetKey, mapScannerRowToAsset } from "../lib/apiAdapters";
 import type {
   DensityMode,
   ScannerPreset,
@@ -19,14 +20,23 @@ export function useScannerState() {
   const [watchlistFilter, setWatchlistFilter] = useState<
     (typeof WATCHLIST_OPTIONS)[number]
   >(WATCHLIST_OPTIONS[0]);
-  const [sortBy, setSortBy] = useState<SortOption>(SORT_OPTIONS[0]);
+  const [sortBy, setSortBy] = useState<SortOption>("24h momentum");
   const [density, setDensity] = useState<DensityMode>("compact");
   const [minVolume, setMinVolume] = useState<
     (typeof MIN_VOLUME_OPTIONS)[number]
   >(MIN_VOLUME_OPTIONS[1]);
   const [selectedSymbol, setSelectedSymbol] = useState("DOGEUSDT");
+  const scannerQuery = useGetScanner({
+    preset: getScannerPresetKey(preset),
+    search,
+    limit: 100,
+  });
 
   const filteredAssets = useMemo(() => {
+    if (scannerQuery.data) {
+      return scannerQuery.data.entries.map(mapScannerRowToAsset);
+    }
+
     const normalizedSearch = search.trim().toLowerCase();
     const assets = SCANNER_ASSETS.filter((asset) =>
       normalizedSearch.length === 0
@@ -61,7 +71,7 @@ export function useScannerState() {
     }
 
     return sortedAssets;
-  }, [search, sortBy]);
+  }, [scannerQuery.data, search, sortBy]);
 
   const selectedAsset =
     filteredAssets.find((asset) => asset.symbol === selectedSymbol) ??
@@ -75,6 +85,7 @@ export function useScannerState() {
     search,
     selectedAsset,
     selectedSymbol,
+    scannerQuery,
     sortBy,
     timeframe,
     watchlistFilter,

@@ -1,7 +1,46 @@
 import type { MarketStripItem } from "../types";
 import { Pill } from "./Pill";
 
-export function ScannerMarketStrip({ items }: { items: MarketStripItem[] }) {
+type ScannerMarketStripProps = {
+  breadth?: {
+    gainers: number;
+    losers: number;
+    unchanged: number;
+    ratio: string;
+  };
+  items: MarketStripItem[];
+  updatedAt?: string | null;
+};
+
+function formatUpdatedAt(updatedAt?: string | null) {
+  if (!updatedAt) return "Live";
+
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  }).format(new Date(updatedAt));
+}
+
+export function ScannerMarketStrip({
+  breadth,
+  items,
+  updatedAt,
+}: ScannerMarketStripProps) {
+  const breadthBars = Math.max(
+    0,
+    Math.min(
+      10,
+      Math.round(
+        ((breadth?.gainers ?? 6) /
+          Math.max((breadth?.gainers ?? 6) + (breadth?.losers ?? 4), 1)) *
+          10,
+      ),
+    ),
+  );
+
   return (
     <section className="border-b border-white/8 px-4 py-3 md:px-6">
       <div className="flex flex-wrap items-center gap-3 md:gap-6">
@@ -33,20 +72,20 @@ export function ScannerMarketStrip({ items }: { items: MarketStripItem[] }) {
                 <span
                   key={`breadth-${index < 6 ? "up" : "down"}-${index}`}
                   className={`h-6 w-1.5 ${
-                    index < 6 ? "bg-[#79c68c]/80" : "bg-[#e35561]/65"
+                    index < breadthBars ? "bg-[#79c68c]/80" : "bg-[#e35561]/65"
                   }`}
                 />
               ))}
             </div>
             <span className="font-[var(--font-mono)] text-[0.82rem] text-white/78">
-              62 / 38
+              {breadth?.ratio ?? "62 / 38"}
             </span>
           </div>
         </div>
 
         <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           <div className="font-[var(--font-mono)] text-[0.82rem] text-white/55">
-            15:42:08 UTC
+            {formatUpdatedAt(updatedAt)}
           </div>
         </div>
       </div>
