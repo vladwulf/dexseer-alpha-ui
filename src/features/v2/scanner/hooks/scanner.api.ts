@@ -20,7 +20,14 @@ export type ScannerPresetKey =
   | "btc_decouplers"
   | "high_rvol";
 export type ScannerListTimeframe = "15m" | "1h" | "4h" | "1d";
-export type ScannerChartTimeframe = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+export type ScannerChartTimeframe =
+  | "1m"
+  | "5m"
+  | "15m"
+  | "30m"
+  | "1h"
+  | "4h"
+  | "1d";
 export type ScannerSortBy =
   | "change_pct"
   | "change_15m"
@@ -140,13 +147,44 @@ export type ScannerCandle = {
   high: number;
   low: number;
   close: number;
-  volume: number | null;
+  volume_base: number | null;
+  volume_quote: number | null;
+};
+
+export type ScannerBatchChartsRequest = {
+  asset_ids: string;
+  timeframe?: ScannerChartTimeframe;
+  limit?: number;
+};
+
+export type ScannerBatchChartAsset =
+  | {
+      asset_id: number;
+      symbol: string;
+      status: "ok";
+      updated_at: string | null;
+      candles: ScannerCandle[];
+    }
+  | {
+      asset_id: number;
+      symbol: null;
+      status: "not_found";
+      updated_at: null;
+      candles: [];
+      error: "Asset not found";
+    };
+
+export type ScannerBatchChartsResponse = {
+  timeframe: ScannerChartTimeframe;
+  limit: number;
+  updated_at: string | null;
+  assets: ScannerBatchChartAsset[];
 };
 
 export type ScannerChartResponse = {
   asset_id: number;
   symbol: string;
-  timeframe: string;
+  timeframe: ScannerChartTimeframe;
   updated_at: string | null;
   candles: ScannerCandle[];
 };
@@ -184,7 +222,7 @@ export type ScannerDetailsChartRequest = {
 export type ScannerDetailsChartResponse = {
   asset_id: number;
   symbol: string;
-  timeframe: string;
+  timeframe: ScannerChartTimeframe;
   candles: ScannerCandle[];
   overlays: {
     oi?: [];
@@ -240,6 +278,13 @@ async function getScannerChart(
   return response.data;
 }
 
+async function getScannerCharts(params: ScannerBatchChartsRequest) {
+  const response = await axios.get<ScannerBatchChartsResponse>(
+    `${FRONTEND_API_BASE}/scanner/charts${buildQueryString(params)}`,
+  );
+  return response.data;
+}
+
 async function getScannerAssetDetails(assetId: number) {
   const response = await axios.get<ScannerAssetDetailsResponse>(
     `${FRONTEND_API_BASE}/scanner/assets/${assetId}/details`,
@@ -291,6 +336,17 @@ export function useGetScannerChart(
     queryKey: ["scanner-v2-chart", assetId, params],
     queryFn: () => getScannerChart(assetId ?? 0, params),
     enabled: assetId !== null && assetId !== undefined,
+    refetchInterval: DEFAULT_REFETCH_INTERVAL,
+  });
+}
+
+export function useGetScannerCharts(
+  params: ScannerBatchChartsRequest | null,
+) {
+  return useQuery({
+    queryKey: ["scanner-v2-charts", params],
+    queryFn: () => getScannerCharts(params as ScannerBatchChartsRequest),
+    enabled: params !== null,
     refetchInterval: DEFAULT_REFETCH_INTERVAL,
   });
 }

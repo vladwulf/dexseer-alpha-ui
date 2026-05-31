@@ -9,11 +9,14 @@ import {
   useGetMarketStrip,
   useGetScannerAssetDetails,
   useGetScannerAssetDetailsChart,
+  useGetScannerCharts,
 } from "./hooks/scanner.api";
 import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
 import { useScannerState } from "./hooks/useScannerState";
 import {
+  getSupportedScannerChartTimeframe,
   mapMarketStripResponse,
+  mergeBatchChartsIntoAssets,
   mergeChartIntoAsset,
   mergeDetailsIntoAsset,
 } from "./lib/apiAdapters";
@@ -42,10 +45,30 @@ export function ScannerV2Screen() {
     setTimeframe,
     setWatchlistFilter,
   } = useScannerState();
+  const tableChartParams = useMemo(() => {
+    const assetIds = filteredAssets
+      .map((asset) => asset.assetId)
+      .filter((assetId): assetId is number => assetId !== undefined);
+
+    if (assetIds.length === 0) {
+      return null;
+    }
+
+    return {
+      asset_ids: assetIds.join(","),
+      timeframe: getSupportedScannerChartTimeframe(timeframe),
+      limit: 40,
+    };
+  }, [filteredAssets, timeframe]);
+  const tableChartsQuery = useGetScannerCharts(tableChartParams);
+  const tableAssets = useMemo(
+    () => mergeBatchChartsIntoAssets(filteredAssets, tableChartsQuery.data),
+    [filteredAssets, tableChartsQuery.data],
+  );
   const selectedAssetId = selectedAsset?.assetId;
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
   const detailsChartQuery = useGetScannerAssetDetailsChart(selectedAssetId, {
-    timeframe,
+    timeframe: getSupportedScannerChartTimeframe(timeframe),
   });
   const marketStripItems =
     mapMarketStripResponse(marketStripQuery.data) ?? MARKET_STRIP;
@@ -96,8 +119,9 @@ export function ScannerV2Screen() {
 
           <section className="min-h-[900px] xl:flex">
             <ScannerTable
-              assets={filteredAssets}
+              assets={tableAssets}
               density={density}
+              preset={preset}
               selectedSymbol={selectedSymbol}
               sorting={sorting}
               onSelectSymbol={handleSelectSymbol}

@@ -1,9 +1,11 @@
 import type { OHLCVExtended } from "@/types/ohlcv";
 import type {
   MarketStripResponse,
+  ScannerBatchChartsResponse,
   ScannerAssetDetailsResponse,
   ScannerCandle,
   ScannerChartResponse,
+  ScannerChartTimeframe,
   ScannerPresetKey,
   ScannerRow,
   ScannerSortBy,
@@ -147,8 +149,8 @@ function mapCandleToOhlcv(
     low: candle.low,
     close: candle.close,
     analytics_updated_at: null,
-    asset_volume: candle.volume ?? 0,
-    quote_volume: candle.volume ?? 0,
+    asset_volume: candle.volume_base ?? 0,
+    quote_volume: candle.volume_quote ?? 0,
     rel_vol_16p: null,
     rel_vol_96p: null,
     is_16p_breakout: false,
@@ -175,6 +177,39 @@ export function mergeChartIntoAsset(
       mapCandleToOhlcv(chart.asset_id, candle),
     ),
   };
+}
+
+export function mergeBatchChartsIntoAssets(
+  assets: ScannerAsset[],
+  charts?: ScannerBatchChartsResponse,
+) {
+  if (!charts) return assets;
+
+  const chartByAssetId = new Map(
+    charts.assets
+      .filter((assetChart) => assetChart.status === "ok")
+      .map((assetChart) => [
+        assetChart.asset_id,
+        assetChart.candles.map((candle) =>
+          mapCandleToOhlcv(assetChart.asset_id, candle),
+        ),
+      ]),
+  );
+
+  return assets.map((asset) =>
+    asset.assetId === undefined
+      ? asset
+      : {
+          ...asset,
+          chart: chartByAssetId.get(asset.assetId) ?? asset.chart,
+        },
+  );
+}
+
+export function getSupportedScannerChartTimeframe(
+  timeframe: string,
+): ScannerChartTimeframe {
+  return timeframe as ScannerChartTimeframe;
 }
 
 export function mapMarketStripResponse(

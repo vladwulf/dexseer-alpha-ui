@@ -6,6 +6,7 @@ import type {
 } from "@tanstack/react-table";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Link } from "react-router";
+import { MicroChart } from "@/features/chart/MicroChart";
 import {
   Table,
   TableBody,
@@ -21,8 +22,19 @@ import {
   getChangeTone,
   numberFormat,
 } from "../lib/formatters";
-import type { DensityMode, ScannerAsset } from "../types";
+import type { DensityMode, ScannerAsset, ScannerPreset } from "../types";
 import { Sparkline } from "./Sparkline";
+
+const GAINERS_COLUMNS = new Set([
+  "symbol", "price", "change5m", "change15m", "change1h", "change4h",
+  "change24h", "volume", "rvol", "oiDelta", "funding", "chart",
+]);
+
+const DEFAULT_COLUMNS = new Set([
+  "symbol", "price", "change5m", "change15m", "change1h", "change4h",
+  "change24h", "volume", "rvol", "oiDelta", "funding", "atrPercent",
+  "btcCorrelation", "alertCount", "setupScore", "sparkline",
+]);
 
 const scannerColumns: ColumnDef<ScannerAsset>[] = [
   {
@@ -189,11 +201,42 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
       </div>
     ),
   },
+  {
+    id: "chart",
+    header: "Chart",
+    enableSorting: false,
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
+      const asset = row.original;
+      const lastCandle = asset.chart[asset.chart.length - 1];
+      const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
+      const accentColor = isUp ? "#5dc887" : "#e35561";
+      return (
+        <div
+          className="relative inline-block w-[158px] overflow-hidden rounded-[6px] border border-white/8 bg-[#0a0a0a]"
+        >
+          <div
+            style={{
+              height: "1px",
+              background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+            }}
+          />
+          <MicroChart
+            klines={asset.chart}
+            alertTimestamp="2000-01-01 00:00:00+00"
+            width={158}
+            height={60}
+            periods={80}
+          />
+        </div>
+      );
+    },
+  },
 ];
 
 type ScannerTableProps = {
   assets: ScannerAsset[];
   density: DensityMode;
+  preset: ScannerPreset;
   selectedSymbol?: string;
   sorting: SortingState;
   onSelectSymbol: (symbol: string) => void;
@@ -203,15 +246,25 @@ type ScannerTableProps = {
 export function ScannerTable({
   assets,
   density,
+  preset,
   selectedSymbol,
   sorting,
   onSelectSymbol,
   onSortingChange,
 }: ScannerTableProps) {
+  const visibleColIds = preset === "Gainers" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
+  const columns = scannerColumns.filter((col) =>
+    "accessorKey" in col
+      ? visibleColIds.has(String(col.accessorKey))
+      : "id" in col
+        ? visibleColIds.has(String(col.id))
+        : true,
+  );
+
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: assets,
-    columns: scannerColumns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange,
     state: { sorting },
@@ -222,7 +275,7 @@ export function ScannerTable({
 
   return (
     <div className="min-w-0 border-b border-white/8 xl:flex-1 xl:border-b-0 xl:border-r">
-      <Table className="w-full table-fixed border-collapse overflow-x-auto hide-scrollbar-x">
+      <Table className="min-w-max w-full border-collapse hide-scrollbar-x">
         <TableHeader className="bg-[#0d0d0d]">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
