@@ -15,7 +15,7 @@ import type {
 export function useScannerState() {
   const [search, setSearch] = useState("");
   const [timeframe, setTimeframe] = useState<ScannerTimeframe>("1h");
-  const [preset, setPreset] = useState<ScannerPreset>("Breakouts");
+  const [preset, setPreset] = useState<ScannerPreset>("Gainers");
   const [watchlistFilter, setWatchlistFilter] = useState<
     (typeof WATCHLIST_OPTIONS)[number]
   >(WATCHLIST_OPTIONS[0]);

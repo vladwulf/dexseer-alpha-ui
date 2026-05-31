@@ -225,7 +225,7 @@ export function ScannerSidePanel({
 
   return (
     <>
-      <aside className="hidden overflow-y-auto bg-[#040404] xl:block xl:w-[380px] xl:shrink-0 2xl:w-[460px]">
+      <aside className="hidden overflow-y-auto bg-[#040404] xl:block xl:w-[350px] xl:shrink-0 2xl:w-[450px]">
         <ScannerSidePanelBody asset={asset} timeframe={timeframe} />
       </aside>
 

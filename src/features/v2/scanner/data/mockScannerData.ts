@@ -32,6 +32,7 @@ export const MARKET_STRIP: MarketStripItem[] = [
 ];
 
 export const PRESET_OPTIONS: ScannerPreset[] = [
+  "Gainers",
   "Momentum",
   "Breakouts",
   "Pullbacks",
