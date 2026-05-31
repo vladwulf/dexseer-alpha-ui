@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import {
   Table,
   TableBody,
@@ -93,9 +94,13 @@ export function ScannerTable({
                 <TableCell className="w-[128px] whitespace-nowrap px-3 py-3">
                   <div className="flex items-center gap-3">
                     <div>
-                      <div className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white">
+                      <Link
+                        to={`/assets/${asset.symbol}`}
+                        onClick={(event) => event.stopPropagation()}
+                        className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white transition hover:text-[oklch(0.72_0.18_248)]"
+                      >
                         {asset.symbol.replace("USDT", "")}
-                      </div>
+                      </Link>
                       <div className="mt-1 font-[var(--font-mono)] text-[0.58rem] uppercase tracking-[0.12em] text-white/28">
                         USDT
                       </div>

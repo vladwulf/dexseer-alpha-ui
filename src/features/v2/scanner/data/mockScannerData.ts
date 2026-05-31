@@ -517,3 +517,11 @@ export const SCANNER_ASSETS: ScannerAsset[] = [
     ],
   },
 ];
+
+export function getScannerAssetBySymbol(symbol: string) {
+  const normalizedSymbol = symbol.trim().toUpperCase();
+
+  return SCANNER_ASSETS.find(
+    (asset) => asset.symbol.toUpperCase() === normalizedSymbol,
+  );
+}
