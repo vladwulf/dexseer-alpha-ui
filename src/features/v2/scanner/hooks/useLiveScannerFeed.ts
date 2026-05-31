@@ -7,14 +7,14 @@ import type { ScannerPreset } from "../types";
 import type {
   MarketStripResponse,
   RunnersResponse,
-  ScannerListTimeframe,
   ScannerPresetKey,
   ScannerResponse,
+  ScannerSortBy,
+  ScannerSortDirection,
 } from "./scanner.api";
 
 type UseLiveScannerFeedParams = {
   preset: ScannerPreset;
-  timeframe: ScannerListTimeframe;
 };
 
 const MARKET_STRIP_ROOM = "screener:stats:market-strip:v1";
@@ -34,9 +34,10 @@ function isScannerListQueryKey(value: unknown): value is [
   "scanner-v2-list",
   {
     preset?: ScannerPresetKey;
-    timeframe?: ScannerListTimeframe;
     search?: string;
     limit?: number;
+    sort_by?: ScannerSortBy;
+    sort_direction?: ScannerSortDirection;
   },
 ] {
   if (!Array.isArray(value) || value[0] !== "scanner-v2-list") {
@@ -47,10 +48,7 @@ function isScannerListQueryKey(value: unknown): value is [
   return typeof params === "object" && params !== null;
 }
 
-export function useLiveScannerFeed({
-  preset,
-  timeframe,
-}: UseLiveScannerFeedParams) {
+export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
   const subscribedRoomsRef = useRef<Set<string>>(new Set());
@@ -109,12 +107,14 @@ export function useLiveScannerFeed({
 
         const [, params] = query.queryKey;
         const matchesPreset = params.preset === (payload.preset ?? undefined);
-        const matchesTimeframe =
-          params.timeframe === undefined || params.timeframe === timeframe;
         const matchesSearch =
           params.search === undefined || params.search.length === 0;
+        const matchesSort =
+          params.sort_by === undefined ||
+          (params.sort_by === payload.sort_by &&
+            params.sort_direction === payload.sort_direction);
 
-        if (!matchesPreset || !matchesTimeframe || !matchesSearch) {
+        if (!matchesPreset || !matchesSearch || !matchesSort) {
           continue;
         }
 
@@ -152,7 +152,7 @@ export function useLiveScannerFeed({
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [preset, queryClient, roomNames, timeframe]);
+  }, [preset, queryClient, roomNames]);
 
   useEffect(() => {
     const socket = socketRef.current;

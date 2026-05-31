@@ -35,7 +35,9 @@ export type ScannerChartTimeframe =
   | "1d";
 export type ScannerListTimeframe = ScannerChartTimeframe;
 export type ScannerSortBy =
+  | "price"
   | "change_pct"
+  | "change_5m"
   | "change_15m"
   | "change_1h"
   | "change_4h"
@@ -44,6 +46,7 @@ export type ScannerSortBy =
   | "rvol_24h"
   | "oi_change_24h"
   | "funding_rate"
+  | "alert_count"
   | "score";
 export type ScannerSortDirection = "asc" | "desc";
 
@@ -100,7 +103,6 @@ export type RunnersResponse = {
 
 export type ScannerRequest = {
   preset?: ScannerPresetKey;
-  timeframe?: ScannerListTimeframe;
   search?: string;
   limit?: number;
   offset?: number;
@@ -133,7 +135,7 @@ export type ScannerRow = {
 
 export type ScannerResponse = {
   preset: ScannerPresetKey | null;
-  timeframe: ScannerListTimeframe;
+  timeframe?: ScannerListTimeframe;
   sort_by: string;
   sort_direction: ScannerSortDirection;
   limit: number;

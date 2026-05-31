@@ -46,7 +46,7 @@ export function ScannerV2Screen() {
     setWatchlistFilter,
   } = useScannerState();
   const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
-  useLiveScannerFeed({ preset, timeframe });
+  useLiveScannerFeed({ preset });
   const tableAssetIds = useMemo(
     () =>
       [

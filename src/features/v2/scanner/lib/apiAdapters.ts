@@ -1,3 +1,4 @@
+import type { SortingState } from "@tanstack/react-table";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import type {
   MarketStripResponse,
@@ -9,6 +10,7 @@ import type {
   ScannerPresetKey,
   ScannerRow,
   ScannerSortBy,
+  ScannerSortDirection,
 } from "../hooks/scanner.api";
 import type {
   MarketStripItem,
@@ -31,11 +33,26 @@ const presetKeyByLabel: Record<ScannerPreset, ScannerPresetKey> = {
 
 const sortKeyByLabel: Record<SortOption, ScannerSortBy> = {
   "Setup score": "score",
-  "Alert count": "score",
+  "Alert count": "alert_count",
   "24h momentum": "change_24h",
   RVOL: "rvol_24h",
   Funding: "funding_rate",
   "BTC correlation": "score",
+};
+
+const scannerColumnSortKeyById: Record<string, ScannerSortBy> = {
+  price: "price",
+  change5m: "change_5m",
+  change15m: "change_15m",
+  change1h: "change_1h",
+  change4h: "change_4h",
+  change24h: "change_24h",
+  volume: "volume_24h",
+  rvol: "rvol_24h",
+  oiDelta: "oi_change_24h",
+  funding: "funding_rate",
+  alertCount: "alert_count",
+  setupScore: "score",
 };
 
 const volumeThresholdByLabel = {
@@ -51,6 +68,28 @@ export function getScannerPresetKey(preset: ScannerPreset) {
 
 export function getScannerSortKey(sortBy: SortOption) {
   return sortKeyByLabel[sortBy];
+}
+
+export function getScannerSortParams(sorting: SortingState): {
+  sort_by?: ScannerSortBy;
+  sort_direction?: ScannerSortDirection;
+} {
+  const firstSort = sorting[0];
+
+  if (!firstSort) {
+    return {};
+  }
+
+  const sort_by = scannerColumnSortKeyById[firstSort.id];
+
+  if (!sort_by) {
+    return {};
+  }
+
+  return {
+    sort_by,
+    sort_direction: firstSort.desc ? "desc" : "asc",
+  };
 }
 
 export function getMinVolumeValue(label: keyof typeof volumeThresholdByLabel) {
