@@ -12,12 +12,12 @@ import {
   useGetScannerCharts,
 } from "./hooks/scanner.api";
 import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
+import { useLiveScannerCharts } from "./hooks/useLiveScannerCharts";
 import { useScannerState } from "./hooks/useScannerState";
 import {
   getSupportedScannerChartTimeframe,
   mapMarketStripResponse,
-  mergeBatchChartsIntoAssets,
-  mergeChartIntoAsset,
+  mergeChartSeriesIntoAsset,
   mergeDetailsIntoAsset,
 } from "./lib/apiAdapters";
 
@@ -45,41 +45,60 @@ export function ScannerV2Screen() {
     setTimeframe,
     setWatchlistFilter,
   } = useScannerState();
+  const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
+  const tableAssetIds = useMemo(
+    () =>
+      filteredAssets
+        .map((asset) => asset.assetId)
+        .filter((assetId): assetId is number => assetId !== undefined),
+    [filteredAssets],
+  );
   const tableChartParams = useMemo(() => {
-    const assetIds = filteredAssets
-      .map((asset) => asset.assetId)
-      .filter((assetId): assetId is number => assetId !== undefined);
-
-    if (assetIds.length === 0) {
+    if (tableAssetIds.length === 0) {
       return null;
     }
 
     return {
-      asset_ids: assetIds.join(","),
-      timeframe: getSupportedScannerChartTimeframe(timeframe),
+      asset_ids: tableAssetIds.join(","),
+      timeframe: chartTimeframe,
       limit: 40,
     };
-  }, [filteredAssets, timeframe]);
+  }, [chartTimeframe, tableAssetIds]);
   const tableChartsQuery = useGetScannerCharts(tableChartParams);
-  const tableAssets = useMemo(
-    () => mergeBatchChartsIntoAssets(filteredAssets, tableChartsQuery.data),
-    [filteredAssets, tableChartsQuery.data],
-  );
   const selectedAssetId = selectedAsset?.assetId;
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
   const detailsChartQuery = useGetScannerAssetDetailsChart(selectedAssetId, {
-    timeframe: getSupportedScannerChartTimeframe(timeframe),
+    timeframe: chartTimeframe,
   });
+  const liveCharts = useLiveScannerCharts({
+    timeframe: chartTimeframe,
+    tableAssetIds,
+    tableCharts: tableChartsQuery.data,
+    selectedAssetId,
+    detailsChart: detailsChartQuery.data,
+  });
+  const tableAssets = useMemo(
+    () =>
+      filteredAssets.map((asset) =>
+        asset.assetId === undefined
+          ? asset
+          : mergeChartSeriesIntoAsset(
+              asset,
+              liveCharts.tableChartSeriesByAssetId.get(asset.assetId),
+            ),
+      ),
+    [filteredAssets, liveCharts.tableChartSeriesByAssetId],
+  );
   const marketStripItems =
     mapMarketStripResponse(marketStripQuery.data) ?? MARKET_STRIP;
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;
 
-    return mergeChartIntoAsset(
+    return mergeChartSeriesIntoAsset(
       mergeDetailsIntoAsset(selectedAsset, detailsQuery.data),
-      detailsChartQuery.data,
+      liveCharts.detailsChartSeries,
     );
-  }, [detailsChartQuery.data, detailsQuery.data, selectedAsset]);
+  }, [detailsQuery.data, liveCharts.detailsChartSeries, selectedAsset]);
 
   const handleSelectSymbol = (symbol: string) => {
     setSelectedSymbol(symbol);

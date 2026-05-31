@@ -1,8 +1,8 @@
 import type { OHLCVExtended } from "@/types/ohlcv";
 import type {
   MarketStripResponse,
-  ScannerBatchChartsResponse,
   ScannerAssetDetailsResponse,
+  ScannerBatchChartsResponse,
   ScannerCandle,
   ScannerChartResponse,
   ScannerChartTimeframe,
@@ -165,18 +165,38 @@ function mapCandleToOhlcv(
   };
 }
 
+export function mapScannerCandlesToOhlcv(
+  assetId: number,
+  candles: ScannerCandle[],
+) {
+  return candles.map((candle) => mapCandleToOhlcv(assetId, candle));
+}
+
+export function mergeChartSeriesIntoAsset(
+  asset: ScannerAsset,
+  chart?: OHLCVExtended[],
+) {
+  if (!chart) return asset;
+
+  const lastCandle = chart[chart.length - 1];
+
+  return {
+    ...asset,
+    price: lastCandle?.close ?? asset.price,
+    chart,
+  };
+}
+
 export function mergeChartIntoAsset(
   asset: ScannerAsset,
   chart?: ScannerChartResponse,
 ) {
   if (!chart) return asset;
 
-  return {
-    ...asset,
-    chart: chart.candles.map((candle) =>
-      mapCandleToOhlcv(chart.asset_id, candle),
-    ),
-  };
+  return mergeChartSeriesIntoAsset(
+    asset,
+    mapScannerCandlesToOhlcv(chart.asset_id, chart.candles),
+  );
 }
 
 export function mergeBatchChartsIntoAssets(
@@ -199,10 +219,10 @@ export function mergeBatchChartsIntoAssets(
   return assets.map((asset) =>
     asset.assetId === undefined
       ? asset
-      : {
-          ...asset,
-          chart: chartByAssetId.get(asset.assetId) ?? asset.chart,
-        },
+      : mergeChartSeriesIntoAsset(
+          asset,
+          chartByAssetId.get(asset.assetId) ?? asset.chart,
+        ),
   );
 }
 

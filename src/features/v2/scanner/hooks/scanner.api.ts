@@ -324,7 +324,6 @@ export function useGetScanner(params: ScannerRequest = {}) {
   return useQuery({
     queryKey: ["scanner-v2-list", params],
     queryFn: () => getScanner(params),
-    refetchInterval: DEFAULT_REFETCH_INTERVAL,
   });
 }
 
@@ -336,18 +335,14 @@ export function useGetScannerChart(
     queryKey: ["scanner-v2-chart", assetId, params],
     queryFn: () => getScannerChart(assetId ?? 0, params),
     enabled: assetId !== null && assetId !== undefined,
-    refetchInterval: DEFAULT_REFETCH_INTERVAL,
   });
 }
 
-export function useGetScannerCharts(
-  params: ScannerBatchChartsRequest | null,
-) {
+export function useGetScannerCharts(params: ScannerBatchChartsRequest | null) {
   return useQuery({
     queryKey: ["scanner-v2-charts", params],
     queryFn: () => getScannerCharts(params as ScannerBatchChartsRequest),
     enabled: params !== null,
-    refetchInterval: DEFAULT_REFETCH_INTERVAL,
   });
 }
 
@@ -356,7 +351,6 @@ export function useGetScannerAssetDetails(assetId: number | null | undefined) {
     queryKey: ["scanner-v2-asset-details", assetId],
     queryFn: () => getScannerAssetDetails(assetId ?? 0),
     enabled: assetId !== null && assetId !== undefined,
-    refetchInterval: DEFAULT_REFETCH_INTERVAL,
   });
 }
 
@@ -368,6 +362,5 @@ export function useGetScannerAssetDetailsChart(
     queryKey: ["scanner-v2-asset-details-chart", assetId, params],
     queryFn: () => getScannerAssetDetailsChart(assetId ?? 0, params),
     enabled: assetId !== null && assetId !== undefined,
-    refetchInterval: DEFAULT_REFETCH_INTERVAL,
   });
 }
