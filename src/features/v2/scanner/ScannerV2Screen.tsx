@@ -4,7 +4,6 @@ import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
 import { ScannerMomentumHeatmap } from "./components/ScannerMomentumHeatmap";
 import { ScannerSidePanel } from "./components/ScannerSidePanel";
 import { ScannerTable } from "./components/ScannerTable";
-import { MARKET_STRIP } from "./data/mockScannerData";
 import {
   useGetMarketStrip,
   useGetScannerAssetDetails,
@@ -50,9 +49,13 @@ export function ScannerV2Screen() {
   useLiveScannerFeed({ preset, timeframe });
   const tableAssetIds = useMemo(
     () =>
-      filteredAssets
-        .map((asset) => asset.assetId)
-        .filter((assetId): assetId is number => assetId !== undefined),
+      [
+        ...new Set(
+          filteredAssets
+            .map((asset) => asset.assetId)
+            .filter((assetId): assetId is number => assetId !== undefined),
+        ),
+      ].sort((left, right) => left - right),
     [filteredAssets],
   );
   const tableChartParams = useMemo(() => {
@@ -91,8 +94,7 @@ export function ScannerV2Screen() {
       ),
     [filteredAssets, liveCharts.tableChartSeriesByAssetId],
   );
-  const marketStripItems =
-    mapMarketStripResponse(marketStripQuery.data) ?? MARKET_STRIP;
+  const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;
 

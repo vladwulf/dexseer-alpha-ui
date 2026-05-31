@@ -1,12 +1,8 @@
 import type {
   MIN_VOLUME_OPTIONS,
   WATCHLIST_OPTIONS,
-} from "../../data/mockScannerData";
-import type {
-  DensityMode,
-  ScannerPreset,
-  ScannerTimeframe,
-} from "../../types";
+} from "../../lib/scannerOptions";
+import type { DensityMode, ScannerPreset, ScannerTimeframe } from "../../types";
 
 export type ScannerControlsProps = {
   density: DensityMode;

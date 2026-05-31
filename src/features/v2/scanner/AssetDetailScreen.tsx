@@ -6,6 +6,7 @@ import {
   Star,
   Volume2,
 } from "lucide-react";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { IndexChart } from "@/features/chart/IndexChart";
@@ -14,7 +15,17 @@ import { DetailBlock } from "./components/DetailBlock";
 import { Pill } from "./components/Pill";
 import { SessionBars } from "./components/SessionBars";
 import { StatCard } from "./components/StatCard";
-import { getScannerAssetBySymbol } from "./data/mockScannerData";
+import {
+  useGetScanner,
+  useGetScannerAssetDetails,
+  useGetScannerAssetDetailsChart,
+} from "./hooks/scanner.api";
+import {
+  mapScannerCandlesToOhlcv,
+  mapScannerRowToAsset,
+  mergeChartSeriesIntoAsset,
+  mergeDetailsIntoAsset,
+} from "./lib/apiAdapters";
 import { formatPrice, formatSigned, numberFormat } from "./lib/formatters";
 
 const chipClassName =
@@ -48,9 +59,68 @@ function AssetDetailNotFound() {
   );
 }
 
+function AssetDetailLoading() {
+  return (
+    <div className="min-h-screen bg-[#050505] px-4 pb-16 pt-8 text-white">
+      <div className="mx-auto max-w-6xl">
+        <Link
+          to="/v2/scanner"
+          className="inline-flex items-center gap-2 font-[var(--font-mono)] text-[0.72rem] uppercase tracking-[0.1em] text-white/48 transition hover:text-white/80"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to scanner
+        </Link>
+
+        <div className="mt-8 rounded-[28px] border border-white/8 bg-[#0b0b0b] p-8 shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
+          <p className="font-[var(--font-mono)] text-[0.62rem] uppercase tracking-[0.14em] text-white/40">
+            Asset detail
+          </p>
+          <h1 className="mt-3 [font-family:var(--font-display)] text-3xl font-bold italic text-white">
+            Loading live asset data
+          </h1>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AssetDetailScreen() {
   const { symbol = "" } = useParams();
-  const asset = getScannerAssetBySymbol(symbol);
+  const normalizedSymbol = symbol.toUpperCase();
+  const scannerQuery = useGetScanner({
+    search: normalizedSymbol,
+    limit: 10,
+  });
+  const baseAsset = useMemo(() => {
+    const row = scannerQuery.data?.entries.find(
+      (entry) => entry.symbol === normalizedSymbol,
+    );
+
+    return row ? mapScannerRowToAsset(row) : undefined;
+  }, [normalizedSymbol, scannerQuery.data]);
+  const assetId = baseAsset?.assetId;
+  const detailsQuery = useGetScannerAssetDetails(assetId);
+  const detailsChartQuery = useGetScannerAssetDetailsChart(assetId, {
+    timeframe: "1h",
+  });
+  const asset = useMemo(() => {
+    if (!baseAsset) return undefined;
+
+    const detailsChart = detailsChartQuery.data;
+    const chart =
+      detailsChart && detailsChart.asset_id === baseAsset.assetId
+        ? mapScannerCandlesToOhlcv(detailsChart.asset_id, detailsChart.candles)
+        : undefined;
+
+    return mergeChartSeriesIntoAsset(
+      mergeDetailsIntoAsset(baseAsset, detailsQuery.data),
+      chart,
+    );
+  }, [baseAsset, detailsChartQuery.data, detailsQuery.data]);
+
+  if (scannerQuery.isLoading) {
+    return <AssetDetailLoading />;
+  }
 
   if (!asset) {
     return <AssetDetailNotFound />;

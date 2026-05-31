@@ -2,7 +2,7 @@ import {
   MIN_VOLUME_OPTIONS,
   SORT_OPTIONS,
   WATCHLIST_OPTIONS,
-} from "../../../data/mockScannerData";
+} from "../../../lib/scannerOptions";
 import type { SortOption } from "../../../types";
 import { OptionDropdown } from "./OptionDropdown";
 

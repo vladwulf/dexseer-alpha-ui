@@ -1,4 +1,4 @@
-import { PRESET_OPTIONS } from "../../../data/mockScannerData";
+import { PRESET_OPTIONS } from "../../../lib/scannerOptions";
 import type { ScannerPreset } from "../../../types";
 import { OptionDropdown } from "./OptionDropdown";
 

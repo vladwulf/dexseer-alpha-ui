@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { TIMEFRAME_OPTIONS } from "../../../data/mockScannerData";
+import { TIMEFRAME_OPTIONS } from "../../../lib/scannerOptions";
 import type { ScannerTimeframe } from "../../../types";
 
 type TimeframeChipsProps = {

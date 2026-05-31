@@ -5,7 +5,7 @@ import {
   createChart,
   HistogramSeries,
 } from "lightweight-charts";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { MiniChart } from "./MiniChart";
@@ -69,14 +69,53 @@ export function MicroChart({
   const candlestickSeriesRef = useRef<ReturnType<
     ReturnType<typeof createChart>["addSeries"]
   > | null>(null);
+  const volumeSeriesRef = useRef<ReturnType<
+    ReturnType<typeof createChart>["addSeries"]
+  > | null>(null);
+
+  const seriesData = useMemo(() => {
+    const alertTimestampUnix = (new Date(alertTimestamp).getTime() /
+      1000) as Time;
+
+    return klines
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
+      )
+      .map((kline) => {
+        const time = (new Date(kline.time).getTime() / 1000) as Time;
+        let candleColor: string | undefined;
+
+        if (time === alertTimestampUnix) {
+          candleColor = "yellow";
+        } else if (time > alertTimestampUnix) {
+          candleColor = kline.close > kline.open ? upColor : downColor;
+        } else if (time < alertTimestampUnix) {
+          candleColor =
+            kline.close > kline.open
+              ? hexToRgba(upColor, 0.5)
+              : hexToRgba(downColor, 0.5);
+        }
+
+        return {
+          time,
+          open: kline.open,
+          high: kline.high,
+          low: kline.low,
+          close: kline.close,
+          volume: Number(kline.asset_volume) || 0,
+          color: candleColor,
+          borderColor: candleColor,
+          wickColor: candleColor,
+        };
+      });
+  }, [alertTimestamp, downColor, klines, upColor]);
 
   useEffect(() => {
-    if (!chartContainerRef.current || !klines || klines.length === 0) return;
-
-    // Limit the number of periods to render
-    // const dataToRender = periods
-    //   ? klines.slice(-periods) // Take the last N periods
-    //   : klines;
+    if (!chartContainerRef.current || chartRef.current) return;
 
     // Create chart instance with dark theme
     const chart = createChart(chartContainerRef.current, {
@@ -151,57 +190,6 @@ export function MicroChart({
         minMove: 0.00000001,
       },
     });
-
-    // Convert Binance K-line data to candlestick format
-
-    const alertTimestampUnix = (new Date(alertTimestamp).getTime() /
-      1000) as Time;
-
-    const seriesData = klines
-      .filter(
-        (kline) =>
-          kline.open != null &&
-          kline.high != null &&
-          kline.low != null &&
-          kline.close != null,
-      )
-      .map((kline) => {
-        const time = (new Date(kline.time).getTime() / 1000) as Time;
-        let candleColor: string | undefined;
-        if (time === alertTimestampUnix) {
-          candleColor = "yellow";
-        } else if (time > alertTimestampUnix) {
-          // up color
-          if (kline.close > kline.open) {
-            candleColor = upColor;
-            // down color
-          } else {
-            candleColor = downColor;
-          }
-        } else if (time < alertTimestampUnix) {
-          // up color
-          if (kline.close > kline.open) {
-            candleColor = hexToRgba(upColor, 0.5);
-            // down color
-          } else {
-            candleColor = hexToRgba(downColor, 0.5);
-          }
-        }
-
-        return {
-          time,
-          open: kline.open,
-          high: kline.high,
-          low: kline.low,
-          close: kline.close,
-          volume: Number(kline.asset_volume) || 0,
-          color: candleColor,
-          borderColor: candleColor,
-          wickColor: candleColor,
-        };
-      });
-
-    candlestickSeries.setData(seriesData);
     candlestickSeries.applyOptions({
       lastValueVisible: false, // hides the price on the right scale
       priceLineVisible: false, // hides the horizontal last price line
@@ -223,17 +211,6 @@ export function MicroChart({
       },
     });
 
-    volumeSeries.setData(
-      seriesData.map((kline) => ({
-        time: kline.time,
-        value: kline.volume,
-        color:
-          kline.close >= kline.open
-            ? hexToRgba(upColor, VOLUME_OPACITY)
-            : hexToRgba(downColor, VOLUME_OPACITY),
-      })),
-    );
-
     // Remove all price lines (including the last price line)
     // Get all price lines and remove them
     const priceLines = candlestickSeries.priceLines();
@@ -247,12 +224,54 @@ export function MicroChart({
     // Store refs
     chartRef.current = chart;
     candlestickSeriesRef.current = candlestickSeries;
+    volumeSeriesRef.current = volumeSeries;
 
     // Cleanup
     return () => {
+      volumeSeriesRef.current = null;
+      candlestickSeriesRef.current = null;
+      chartRef.current = null;
       chart.remove();
     };
-  }, [alertTimestamp, downColor, height, klines, upColor, width]);
+  }, [downColor, height, upColor, width]);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    chartRef.current.applyOptions({ width, height });
+  }, [height, width]);
+
+  useEffect(() => {
+    const candlestickSeries = candlestickSeriesRef.current;
+    const volumeSeries = volumeSeriesRef.current;
+    const chart = chartRef.current;
+
+    if (!candlestickSeries || !volumeSeries || !chart) {
+      return;
+    }
+
+    candlestickSeries.applyOptions({
+      upColor,
+      downColor,
+      borderUpColor: upColor,
+      borderDownColor: downColor,
+      wickUpColor: upColor,
+      wickDownColor: downColor,
+    });
+
+    candlestickSeries.setData(seriesData);
+    volumeSeries.setData(
+      seriesData.map((kline) => ({
+        time: kline.time,
+        value: kline.volume,
+        color:
+          kline.close >= kline.open
+            ? hexToRgba(upColor, VOLUME_OPACITY)
+            : hexToRgba(downColor, VOLUME_OPACITY),
+      })),
+    );
+    chart.timeScale().fitContent();
+  }, [downColor, seriesData, upColor]);
 
   return (
     <div

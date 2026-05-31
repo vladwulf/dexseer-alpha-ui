@@ -1,18 +1,9 @@
 import type { SortingState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import {
-  MIN_VOLUME_OPTIONS,
-  SCANNER_ASSETS,
-  WATCHLIST_OPTIONS,
-} from "../data/mockScannerData";
 import { useGetScanner } from "../hooks/scanner.api";
 import { getScannerPresetKey, mapScannerRowToAsset } from "../lib/apiAdapters";
-import type {
-  DensityMode,
-  ScannerAsset,
-  ScannerPreset,
-  ScannerTimeframe,
-} from "../types";
+import { MIN_VOLUME_OPTIONS, WATCHLIST_OPTIONS } from "../lib/scannerOptions";
+import type { DensityMode, ScannerPreset, ScannerTimeframe } from "../types";
 
 export function useScannerState() {
   const [search, setSearch] = useState("");
@@ -28,7 +19,7 @@ export function useScannerState() {
   const [minVolume, setMinVolume] = useState<
     (typeof MIN_VOLUME_OPTIONS)[number]
   >(MIN_VOLUME_OPTIONS[1]);
-  const [selectedSymbol, setSelectedSymbol] = useState("DOGEUSDT");
+  const [selectedSymbol, setSelectedSymbol] = useState("");
   const scannerQuery = useGetScanner({
     preset: getScannerPresetKey(preset),
     search,
@@ -37,18 +28,7 @@ export function useScannerState() {
   });
 
   const filteredAssets = useMemo(() => {
-    let assets: ScannerAsset[];
-
-    if (scannerQuery.data) {
-      assets = scannerQuery.data.entries.map(mapScannerRowToAsset);
-    } else {
-      const normalizedSearch = search.trim().toLowerCase();
-      assets = SCANNER_ASSETS.filter((asset) =>
-        normalizedSearch.length === 0
-          ? true
-          : asset.symbol.toLowerCase().includes(normalizedSearch),
-      );
-    }
+    const assets = scannerQuery.data?.entries.map(mapScannerRowToAsset) ?? [];
 
     if (sorting.length === 0) return assets;
 
@@ -63,7 +43,7 @@ export function useScannerState() {
       return 0;
     });
     return sorted;
-  }, [scannerQuery.data, search, sorting]);
+  }, [scannerQuery.data, sorting]);
 
   const selectedAsset =
     filteredAssets.find((asset) => asset.symbol === selectedSymbol) ??

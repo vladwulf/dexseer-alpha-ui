@@ -29,16 +29,11 @@ export function ScannerMarketStrip({
   items,
   updatedAt,
 }: ScannerMarketStripProps) {
+  const gainers = breadth?.gainers ?? 0;
+  const losers = breadth?.losers ?? 0;
   const breadthBars = Math.max(
     0,
-    Math.min(
-      10,
-      Math.round(
-        ((breadth?.gainers ?? 6) /
-          Math.max((breadth?.gainers ?? 6) + (breadth?.losers ?? 4), 1)) *
-          10,
-      ),
-    ),
+    Math.min(10, Math.round((gainers / Math.max(gainers + losers, 1)) * 10)),
   );
 
   return (
@@ -78,7 +73,7 @@ export function ScannerMarketStrip({
               ))}
             </div>
             <span className="font-[var(--font-mono)] text-[0.82rem] text-white/78">
-              {breadth?.ratio ?? "62 / 38"}
+              {breadth?.ratio ?? "- / -"}
             </span>
           </div>
         </div>
