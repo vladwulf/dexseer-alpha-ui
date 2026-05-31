@@ -1,5 +1,6 @@
 import type { SortingState, Updater } from "@tanstack/react-table";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useLiveChartSeries } from "@/hooks/chart/useLiveChartSeries";
 import { SortBy, useGetAssets } from "../hooks/screener.api";
 import {
   type RefreshInterval,
@@ -121,23 +122,11 @@ export const ScreenerTable = () => {
   const [timeframe, setTimeframe] = useState<Timeframe>("15m");
   const [profile, setProfile] = useState<ScreenerProfile>("multi-timeframe");
   const [assetNameFilter, setAssetNameFilter] = useState("");
-  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>("5s");
+  const [refreshInterval, setRefreshInterval] =
+    useState<RefreshInterval>("live");
   const [density, setDensity] = useState<ScreenerDensity>("compact");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
   const columns = getCryptoColumns(density, profile);
-
-  const refreshIntervalMs: number | false =
-    refreshInterval === "manual"
-      ? false
-      : refreshInterval === "5s"
-        ? 5000
-        : refreshInterval === "10s"
-          ? 10000
-          : refreshInterval === "30s"
-            ? 30000
-            : refreshInterval === "1m"
-              ? 60000
-              : 300000;
 
   const {
     data: assets,
@@ -148,8 +137,37 @@ export const ScreenerTable = () => {
     direction,
     chartTimeframe: timeframe,
     assetName: assetNameFilter,
-    refetchIntervalMs: refreshIntervalMs,
   });
+  const liveCharts = useLiveChartSeries({
+    enabled: refreshInterval === "live",
+    timeframe,
+    seeds: (assets ?? []).map((asset) => ({
+      assetId: asset.id,
+      data: asset.chart.data,
+    })),
+  });
+  const liveAssets = useMemo(
+    () =>
+      (assets ?? []).map((asset) => {
+        const nextChartData = liveCharts.seriesByAssetId.get(asset.id);
+
+        if (!nextChartData) {
+          return asset;
+        }
+
+        const lastCandle = nextChartData[nextChartData.length - 1];
+
+        return {
+          ...asset,
+          price: lastCandle?.close ?? asset.price,
+          chart: {
+            ...asset.chart,
+            data: nextChartData,
+          },
+        };
+      }),
+    [assets, liveCharts.seriesByAssetId],
+  );
 
   const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
     setSorting((old) => {
@@ -227,7 +245,7 @@ export const ScreenerTable = () => {
       >
         <DataTable<ScreenerAssetWithChart, unknown>
           columns={columns}
-          data={assets || []}
+          data={liveAssets}
           sorting={sorting}
           onSortingChange={handleSortingChange}
           density={density}

@@ -72,23 +72,23 @@ function getMetricValue(entry: RunnerEntry) {
 function getSymbolSize(layout: MosaicTileLayout, labelLength: number) {
   const area = getTileArea(layout);
 
-  if (area >= 12 && labelLength <= 5) return "clamp(2.6rem, 4.2vw, 4.8rem)";
-  if (area >= 8 && labelLength <= 6) return "clamp(2.1rem, 3.3vw, 3.7rem)";
-  if (area >= 6) return "clamp(1.55rem, 2.35vw, 2.7rem)";
-  if (area >= 4) return "clamp(1rem, 1.45vw, 1.55rem)";
+  if (area >= 12 && labelLength <= 5) return "clamp(3rem, 14cqw, 6rem)";
+  if (area >= 8 && labelLength <= 6) return "clamp(2.4rem, 11cqw, 4.5rem)";
+  if (area >= 6) return "clamp(1.8rem, 8cqw, 3.2rem)";
+  if (area >= 4) return "clamp(1.2rem, 6cqw, 2.2rem)";
 
-  return "clamp(0.82rem, 1.1vw, 1.08rem)";
+  return "clamp(0.95rem, 4.5cqw, 1.4rem)";
 }
 
 function getChangeSize(layout: MosaicTileLayout) {
   const area = getTileArea(layout);
 
-  if (area >= 12) return "clamp(1.35rem, 2.3vw, 2.6rem)";
-  if (area >= 8) return "clamp(1.1rem, 1.8vw, 2rem)";
-  if (area >= 6) return "clamp(0.9rem, 1.35vw, 1.35rem)";
-  if (area >= 4) return "clamp(0.76rem, 1.05vw, 1rem)";
+  if (area >= 12) return "clamp(1.6rem, 8cqw, 3.5rem)";
+  if (area >= 8) return "clamp(1.3rem, 6cqw, 2.6rem)";
+  if (area >= 6) return "clamp(1rem, 4.5cqw, 1.8rem)";
+  if (area >= 4) return "clamp(0.9rem, 3.8cqw, 1.4rem)";
 
-  return "clamp(0.68rem, 0.9vw, 0.86rem)";
+  return "clamp(0.8rem, 3cqw, 1.1rem)";
 }
 
 function HeatmapTile({
@@ -116,16 +116,16 @@ function HeatmapTile({
     <button
       type="button"
       onClick={() => onSelectSymbol(asset.symbol)}
+      className="group relative flex min-h-[78px] flex-col items-center justify-center overflow-hidden px-2 py-2 text-center transition-all duration-100 hover:brightness-[1.15]"
       style={{
         background: palette.bg,
         gridColumn: `span ${layout.colSpan} / span ${layout.colSpan}`,
         gridRow: `span ${layout.rowSpan} / span ${layout.rowSpan}`,
-        // Selected: colored outline inset, not white
         outline: selected ? `2px solid ${palette.selectedRing}` : "none",
         outlineOffset: "-2px",
         zIndex: selected ? 1 : 0,
+        containerType: "inline-size",
       }}
-      className="group relative flex min-h-[78px] flex-col items-center justify-center overflow-hidden px-2 py-2 text-center transition-all duration-100 hover:brightness-[1.15]"
     >
       {/* Catch-light overlay — one diagonal gradient, nothing else */}
       <div
@@ -240,9 +240,9 @@ export function ScannerMomentumHeatmap({
   selectedSymbol,
   onSelectSymbol,
 }: ScannerMomentumHeatmapProps) {
-  const [metric, setMetric] = useState<RunnerTimeframe>("1d");
+  const [metric, setMetric] = useState<RunnerTimeframe>("1h");
   const { data, isLoading, isError } = useGetStatsRunners({
-    timeframes: "4h,1d",
+    timeframes: "1h,4h,1d",
     limit: 10,
   });
 
@@ -254,11 +254,9 @@ export function ScannerMomentumHeatmap({
     .filter((asset) => getMetricValue(asset) < 0)
     .sort((left, right) => getMetricValue(left) - getMetricValue(right))
     .slice(0, 10);
-  const metricLabel = metric === "1d" ? "24h" : "4h";
+  const metricLabel = metric === "1h" ? "1h" : metric === "1d" ? "24h" : "4h";
 
-  if (!isLoading && !isError && (gainers.length === 0 || losers.length === 0)) {
-    return null;
-  }
+  const noData = !isLoading && !isError && gainers.length === 0 && losers.length === 0;
 
   return (
     <section className="border-b border-white/8 px-4 py-5 md:px-6">
@@ -273,7 +271,7 @@ export function ScannerMomentumHeatmap({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {(["1d", "4h"] as RunnerTimeframe[]).map((nextMetric) => (
+            {(["1h", "4h", "1d"] as RunnerTimeframe[]).map((nextMetric) => (
               <button
                 key={nextMetric}
                 type="button"
@@ -305,6 +303,10 @@ export function ScannerMomentumHeatmap({
                 className="h-[420px] animate-pulse rounded-[10px] border border-white/8 bg-white/[0.03]"
               />
             ))}
+          </div>
+        ) : noData ? (
+          <div className="rounded-[10px] border border-white/8 bg-black/30 px-4 py-8 text-center font-[var(--font-mono)] text-[0.68rem] tracking-[0.06em] text-white/40">
+            No gainers/losers data for {metricLabel}
           </div>
         ) : (
           <div className="grid gap-4 xl:grid-cols-2">

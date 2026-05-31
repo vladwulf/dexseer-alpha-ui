@@ -7,7 +7,12 @@ import {
 } from "../data/mockScannerData";
 import { useGetScanner } from "../hooks/scanner.api";
 import { getScannerPresetKey, mapScannerRowToAsset } from "../lib/apiAdapters";
-import type { DensityMode, ScannerAsset, ScannerPreset, ScannerTimeframe } from "../types";
+import type {
+  DensityMode,
+  ScannerAsset,
+  ScannerPreset,
+  ScannerTimeframe,
+} from "../types";
 
 export function useScannerState() {
   const [search, setSearch] = useState("");
@@ -27,6 +32,7 @@ export function useScannerState() {
   const scannerQuery = useGetScanner({
     preset: getScannerPresetKey(preset),
     search,
+    timeframe,
     limit: 100,
   });
 

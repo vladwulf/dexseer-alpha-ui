@@ -3,7 +3,13 @@ import axios from "axios";
 import { API_URL } from "@/config";
 
 const FRONTEND_API_BASE = `${API_URL}/api/frontend/v1`;
-const DEFAULT_REFETCH_INTERVAL = 5000;
+
+const SOCKET_PRIMED_QUERY_OPTIONS = {
+  staleTime: Number.POSITIVE_INFINITY,
+  refetchOnMount: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+} as const;
 
 export type StatsQuote = "USDT";
 export type RunnerBoard = "gainers" | "losers" | "volume";
@@ -19,7 +25,6 @@ export type ScannerPresetKey =
   | "squeeze_candidates"
   | "btc_decouplers"
   | "high_rvol";
-export type ScannerListTimeframe = "15m" | "1h" | "4h" | "1d";
 export type ScannerChartTimeframe =
   | "1m"
   | "5m"
@@ -28,6 +33,7 @@ export type ScannerChartTimeframe =
   | "1h"
   | "4h"
   | "1d";
+export type ScannerListTimeframe = ScannerChartTimeframe;
 export type ScannerSortBy =
   | "change_pct"
   | "change_15m"
@@ -112,6 +118,7 @@ export type ScannerRow = {
   symbol: string;
   market: "PERP";
   price: number | null;
+  change_5m: number | null;
   change_15m: number | null;
   change_1h: number | null;
   change_4h: number | null;
@@ -308,7 +315,7 @@ export function useGetMarketStrip(params: MarketStripRequest = {}) {
   return useQuery({
     queryKey: ["scanner-v2-market-strip", params],
     queryFn: () => getMarketStrip(params),
-    refetchInterval: DEFAULT_REFETCH_INTERVAL,
+    ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }
 
@@ -316,7 +323,7 @@ export function useGetStatsRunners(params: RunnersRequest = {}) {
   return useQuery({
     queryKey: ["scanner-v2-runners", params],
     queryFn: () => getRunners(params),
-    refetchInterval: DEFAULT_REFETCH_INTERVAL,
+    ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }
 
@@ -324,6 +331,7 @@ export function useGetScanner(params: ScannerRequest = {}) {
   return useQuery({
     queryKey: ["scanner-v2-list", params],
     queryFn: () => getScanner(params),
+    ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }
 
@@ -335,6 +343,7 @@ export function useGetScannerChart(
     queryKey: ["scanner-v2-chart", assetId, params],
     queryFn: () => getScannerChart(assetId ?? 0, params),
     enabled: assetId !== null && assetId !== undefined,
+    ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }
 
@@ -343,6 +352,7 @@ export function useGetScannerCharts(params: ScannerBatchChartsRequest | null) {
     queryKey: ["scanner-v2-charts", params],
     queryFn: () => getScannerCharts(params as ScannerBatchChartsRequest),
     enabled: params !== null,
+    ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }
 
@@ -351,6 +361,7 @@ export function useGetScannerAssetDetails(assetId: number | null | undefined) {
     queryKey: ["scanner-v2-asset-details", assetId],
     queryFn: () => getScannerAssetDetails(assetId ?? 0),
     enabled: assetId !== null && assetId !== undefined,
+    ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }
 
@@ -362,5 +373,6 @@ export function useGetScannerAssetDetailsChart(
     queryKey: ["scanner-v2-asset-details-chart", assetId, params],
     queryFn: () => getScannerAssetDetailsChart(assetId ?? 0, params),
     enabled: assetId !== null && assetId !== undefined,
+    ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }

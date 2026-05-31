@@ -89,7 +89,7 @@ export function mapScannerRowToAsset(row: ScannerRow): ScannerAsset {
     symbol: row.symbol,
     market: row.market,
     price: row.price ?? 0,
-    change5m: 0,
+    change5m: row.change_5m ?? 0,
     change15m: row.change_15m ?? 0,
     change1h: row.change_1h ?? 0,
     change4h: row.change_4h ?? 0,

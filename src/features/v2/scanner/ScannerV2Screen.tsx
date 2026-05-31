@@ -13,6 +13,7 @@ import {
 } from "./hooks/scanner.api";
 import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
 import { useLiveScannerCharts } from "./hooks/useLiveScannerCharts";
+import { useLiveScannerFeed } from "./hooks/useLiveScannerFeed";
 import { useScannerState } from "./hooks/useScannerState";
 import {
   getSupportedScannerChartTimeframe,
@@ -46,6 +47,7 @@ export function ScannerV2Screen() {
     setWatchlistFilter,
   } = useScannerState();
   const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
+  useLiveScannerFeed({ preset, timeframe });
   const tableAssetIds = useMemo(
     () =>
       filteredAssets

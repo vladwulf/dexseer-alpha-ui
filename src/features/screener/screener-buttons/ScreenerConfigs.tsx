@@ -16,7 +16,7 @@ export type ScreenerProfile =
   | "multi-timeframe"
   | "day-trading"
   | "swing-trading";
-export type RefreshInterval = "manual" | "5s" | "10s" | "30s" | "1m" | "5m";
+export type RefreshInterval = "manual" | "live";
 export type ScreenerDensity = "compact" | "extended";
 export type SortPreset =
   | "top-gainers"
@@ -36,11 +36,7 @@ const timeframes: { value: Timeframe; label: string }[] = [
 
 const refreshIntervals: { value: RefreshInterval; label: string }[] = [
   { value: "manual", label: "Off" },
-  { value: "5s", label: "5s" },
-  { value: "10s", label: "10s" },
-  { value: "30s", label: "30s" },
-  { value: "1m", label: "1m" },
-  { value: "5m", label: "5m" },
+  { value: "live", label: "Live" },
 ];
 
 export type ColumnKey =
@@ -371,7 +367,7 @@ export function ScreenerConfigs({
                   letterSpacing: "0.1em",
                 }}
               >
-                Auto Refresh
+                Live Updates
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup

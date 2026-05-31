@@ -1,4 +1,6 @@
+import { useMemo } from "react";
 import { useGetChartBySymbol } from "@/hooks/chart/useGetChart";
+import { useLiveChartSeries } from "@/hooks/chart/useLiveChartSeries";
 import { IndexChart } from "../chart/IndexChart";
 
 interface MarketMoverCardProps {
@@ -13,8 +15,26 @@ function MarketMoverCard({
   ticker,
 }: MarketMoverCardProps) {
   const { data, isLoading } = useGetChartBySymbol(symbol, "15m", 500);
+  const liveCharts = useLiveChartSeries({
+    timeframe: "15m",
+    seeds:
+      data === undefined
+        ? []
+        : [
+            {
+              assetId: data.asset.id,
+              data: data.ohlcData,
+            },
+          ],
+  });
+  const ohlc = useMemo(() => {
+    if (!data) {
+      return [];
+    }
 
-  const ohlc = data?.ohlcData ?? [];
+    return liveCharts.seriesByAssetId.get(data.asset.id) ?? data.ohlcData;
+  }, [data, liveCharts.seriesByAssetId]);
+
   const currentPrice = ohlc.length > 0 ? ohlc[ohlc.length - 1].close : 0;
   const openPrice = ohlc.length > 0 ? ohlc[0].open : 0;
   const priceChange =
