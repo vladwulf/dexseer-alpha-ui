@@ -75,15 +75,21 @@ export function DataTable<TData, TValue>({
                       key={header.id}
                       className={
                         header.column.getCanSort()
-                          ? "cursor-pointer select-none hover:underline"
+                          ? "cursor-pointer select-none"
                           : ""
                       }
                       onClick={header.column.getToggleSortingHandler()}
-                      style={{ userSelect: "none" }}
+                      style={{
+                        userSelect: "none",
+                        background: header.column.getIsSorted()
+                          ? "oklch(0.72 0.18 248 / 6%)"
+                          : undefined,
+                        transition: "background 0.12s",
+                      }}
                     >
                       <div
                         className={cn(
-                          "flex items-center gap-2",
+                          "flex items-center gap-1.5",
                           !header.column.getCanSort() && "justify-center",
                         )}
                       >
@@ -93,19 +99,24 @@ export function DataTable<TData, TValue>({
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
-                        {header.column.getCanSort() &&
-                          header.column.getIsSorted() && (
-                            <span
-                              style={{
-                                color: "oklch(0.72 0.18 248)",
-                                fontSize: "0.65rem",
-                              }}
-                            >
-                              {header.column.getIsSorted() === "asc"
-                                ? "↑"
-                                : "↓"}
-                            </span>
-                          )}
+                        {header.column.getCanSort() && (
+                          <span
+                            style={{
+                              fontSize: "0.6rem",
+                              lineHeight: 1,
+                              color: header.column.getIsSorted()
+                                ? "oklch(0.72 0.18 248)"
+                                : "oklch(0.32 0 0)",
+                              transition: "color 0.12s",
+                            }}
+                          >
+                            {header.column.getIsSorted() === "asc"
+                              ? "↑"
+                              : header.column.getIsSorted() === "desc"
+                                ? "↓"
+                                : "⇅"}
+                          </span>
+                        )}
                       </div>
                     </TableHead>
                   );

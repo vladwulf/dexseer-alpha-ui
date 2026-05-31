@@ -30,7 +30,7 @@ export function ScannerV2Screen() {
     search,
     selectedAsset,
     selectedSymbol,
-    sortBy,
+    sorting,
     timeframe,
     watchlistFilter,
     setDensity,
@@ -38,7 +38,7 @@ export function ScannerV2Screen() {
     setPreset,
     setSearch,
     setSelectedSymbol,
-    setSortBy,
+    setSorting,
     setTimeframe,
     setWatchlistFilter,
   } = useScannerState();
@@ -84,14 +84,12 @@ export function ScannerV2Screen() {
             minVolume={minVolume}
             preset={preset}
             search={search}
-            sortBy={sortBy}
             timeframe={timeframe}
             watchlistFilter={watchlistFilter}
             onDensityChange={setDensity}
             onMinVolumeChange={setMinVolume}
             onPresetChange={setPreset}
             onSearchChange={setSearch}
-            onSortByChange={setSortBy}
             onTimeframeChange={setTimeframe}
             onWatchlistFilterChange={setWatchlistFilter}
           />
@@ -101,7 +99,9 @@ export function ScannerV2Screen() {
               assets={filteredAssets}
               density={density}
               selectedSymbol={selectedSymbol}
+              sorting={sorting}
               onSelectSymbol={handleSelectSymbol}
+              onSortingChange={setSorting}
             />
             <ScannerSidePanel
               asset={panelAsset}

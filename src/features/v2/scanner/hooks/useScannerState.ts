@@ -1,3 +1,4 @@
+import type { SortingState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import {
   MIN_VOLUME_OPTIONS,
@@ -6,12 +7,7 @@ import {
 } from "../data/mockScannerData";
 import { useGetScanner } from "../hooks/scanner.api";
 import { getScannerPresetKey, mapScannerRowToAsset } from "../lib/apiAdapters";
-import type {
-  DensityMode,
-  ScannerPreset,
-  ScannerTimeframe,
-  SortOption,
-} from "../types";
+import type { DensityMode, ScannerAsset, ScannerPreset, ScannerTimeframe } from "../types";
 
 export function useScannerState() {
   const [search, setSearch] = useState("");
@@ -20,7 +16,9 @@ export function useScannerState() {
   const [watchlistFilter, setWatchlistFilter] = useState<
     (typeof WATCHLIST_OPTIONS)[number]
   >(WATCHLIST_OPTIONS[0]);
-  const [sortBy, setSortBy] = useState<SortOption>("24h momentum");
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "change24h", desc: true },
+  ]);
   const [density, setDensity] = useState<DensityMode>("compact");
   const [minVolume, setMinVolume] = useState<
     (typeof MIN_VOLUME_OPTIONS)[number]
@@ -33,45 +31,33 @@ export function useScannerState() {
   });
 
   const filteredAssets = useMemo(() => {
+    let assets: ScannerAsset[];
+
     if (scannerQuery.data) {
-      return scannerQuery.data.entries.map(mapScannerRowToAsset);
+      assets = scannerQuery.data.entries.map(mapScannerRowToAsset);
+    } else {
+      const normalizedSearch = search.trim().toLowerCase();
+      assets = SCANNER_ASSETS.filter((asset) =>
+        normalizedSearch.length === 0
+          ? true
+          : asset.symbol.toLowerCase().includes(normalizedSearch),
+      );
     }
 
-    const normalizedSearch = search.trim().toLowerCase();
-    const assets = SCANNER_ASSETS.filter((asset) =>
-      normalizedSearch.length === 0
-        ? true
-        : asset.symbol.toLowerCase().includes(normalizedSearch),
-    );
+    if (sorting.length === 0) return assets;
 
-    const sortedAssets = [...assets];
-
-    switch (sortBy) {
-      case "Alert count":
-        sortedAssets.sort((left, right) => right.alertCount - left.alertCount);
-        break;
-      case "24h momentum":
-        sortedAssets.sort((left, right) => right.change24h - left.change24h);
-        break;
-      case "RVOL":
-        sortedAssets.sort((left, right) => right.rvol - left.rvol);
-        break;
-      case "Funding":
-        sortedAssets.sort((left, right) => right.funding - left.funding);
-        break;
-      case "BTC correlation":
-        sortedAssets.sort(
-          (left, right) =>
-            Math.abs(left.btcCorrelation) - Math.abs(right.btcCorrelation),
-        );
-        break;
-      default:
-        sortedAssets.sort((left, right) => right.setupScore - left.setupScore);
-        break;
-    }
-
-    return sortedAssets;
-  }, [scannerQuery.data, search, sortBy]);
+    const { id, desc } = sorting[0];
+    const sorted = [...assets];
+    sorted.sort((a, b) => {
+      const aVal = (a as Record<string, unknown>)[id];
+      const bVal = (b as Record<string, unknown>)[id];
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return desc ? bVal - aVal : aVal - bVal;
+      }
+      return 0;
+    });
+    return sorted;
+  }, [scannerQuery.data, search, sorting]);
 
   const selectedAsset =
     filteredAssets.find((asset) => asset.symbol === selectedSymbol) ??
@@ -86,7 +72,7 @@ export function useScannerState() {
     selectedAsset,
     selectedSymbol,
     scannerQuery,
-    sortBy,
+    sorting,
     timeframe,
     watchlistFilter,
     setDensity,
@@ -94,7 +80,7 @@ export function useScannerState() {
     setPreset,
     setSearch,
     setSelectedSymbol,
-    setSortBy,
+    setSorting,
     setTimeframe,
     setWatchlistFilter,
   };
