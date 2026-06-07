@@ -2,13 +2,55 @@ import { useState } from "react";
 import rawLong from "./raw-long";
 import rawShort from "./raw-short";
 
+type RawTrade = {
+  slPct: number;
+  tpPct: number;
+  totalSignals: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  expectancy: number;
+  timeouts?: number;
+  timeoutRate?: number;
+  avgTimeoutPnl?: number;
+};
+
+type Trade = {
+  label: string;
+  sl: number;
+  tp: number;
+  rr: number;
+  wins: number;
+  losses: number;
+  open: number;
+  total: number;
+  winRate: number;
+  expectancy: number;
+  timeouts: number;
+  timeoutRate: number;
+  avgTimeoutPnl: number;
+};
+
+type TradeGrid = Record<number, Record<number, Trade>>;
+type HeatmapProps = {
+  trades: Trade[];
+  label: string;
+  color: string;
+  maxExp: number;
+};
+type DataTableProps = {
+  trades: Trade[];
+  label: string;
+  color: string;
+};
+
 /* ── Converter: external format → dashboard format ── */
-function convertTrades(raw) {
+function convertTrades(raw: RawTrade[]): Trade[] {
   return raw.map((t) => {
     const sl = t.slPct;
     const tp = t.tpPct;
     const rr = Math.round(tp / sl);
-    const open = t.total - t.wins - t.losses;
+    const open = t.totalSignals - t.wins - t.losses;
     return {
       label: `${sl}:${tp}`,
       sl,
@@ -17,7 +59,7 @@ function convertTrades(raw) {
       wins: t.wins,
       losses: t.losses,
       open,
-      total: t.total,
+      total: t.totalSignals,
       winRate: t.winRate,
       expectancy: t.expectancy,
       timeouts: t.timeouts ?? 0,
@@ -31,9 +73,9 @@ const longTrades = convertTrades(rawLong);
 const shortTrades = convertTrades(rawShort);
 
 /* ── Helpers ── */
-function deriveLevels(trades) {
-  const sls = new Set(),
-    rrs = new Set();
+function deriveLevels(trades: Trade[]) {
+  const sls = new Set<number>();
+  const rrs = new Set<number>();
   trades.forEach((t) => {
     sls.add(t.sl);
     rrs.add(t.rr);
@@ -44,14 +86,14 @@ function deriveLevels(trades) {
   };
 }
 
-function expColor(v, max) {
+function expColor(v: number, max: number) {
   if (v < 0)
     return `rgba(239,68,68,${Math.min(Math.abs(v) / 1.5, 1) * 0.45 + 0.1})`;
   return `rgba(34,197,94,${Math.min(v / max, 1) * 0.5 + 0.06})`;
 }
 
-function buildGrid(trades) {
-  const g = {};
+function buildGrid(trades: Trade[]): TradeGrid {
+  const g: TradeGrid = {};
   trades.forEach((t) => {
     if (!g[t.sl]) g[t.sl] = {};
     g[t.sl][t.rr] = t;
@@ -59,7 +101,7 @@ function buildGrid(trades) {
   return g;
 }
 
-function Heatmap({ trades, label, color, maxExp }) {
+function Heatmap({ trades, label, color, maxExp }: HeatmapProps) {
   const { slLevels, rrLevels } = deriveLevels(trades);
   const grid = buildGrid(trades);
   return (
@@ -194,7 +236,7 @@ function Heatmap({ trades, label, color, maxExp }) {
   );
 }
 
-function DataTable({ trades, label, color }) {
+function DataTable({ trades, label, color }: DataTableProps) {
   const sorted = [...trades].sort((a, b) => b.expectancy - a.expectancy);
   const th = {
     padding: "8px 6px",
@@ -301,12 +343,12 @@ export default function Dashboard() {
     ...shortTrades.map((t) => t.expectancy),
   );
 
-  const best = (arr) =>
+  const best = (arr: Trade[]) =>
     [...arr].sort((a, b) => b.expectancy - a.expectancy).slice(0, 3);
   const longBest = best(longTrades);
   const shortBest = best(shortTrades);
 
-  const btn = (act) => ({
+  const btn = (act: boolean) => ({
     background: act ? "#3b82f6" : "#1a1d29",
     color: "#fff",
     border: "none",
@@ -442,12 +484,14 @@ export default function Dashboard() {
         {/* View toggle */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           <button
+            type="button"
             onClick={() => setView("heatmaps")}
             style={btn(view === "heatmaps")}
           >
             Heatmaps
           </button>
           <button
+            type="button"
             onClick={() => setView("table")}
             style={btn(view === "table")}
           >

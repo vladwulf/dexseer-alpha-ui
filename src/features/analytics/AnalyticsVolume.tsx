@@ -1,7 +1,10 @@
-import { useState } from "react";
 import { millify } from "millify";
+import { useState } from "react";
 import { useGetHourlyVolumeActivity } from "./hooks/analytics.api";
-import type { AnalyticsHourlyVolumeBucket, AnalyticsVolumeMetric } from "./types";
+import type {
+  AnalyticsHourlyVolumeBucket,
+  AnalyticsVolumeMetric,
+} from "./types";
 
 type HourlyData = {
   hour: number;
@@ -9,7 +12,9 @@ type HourlyData = {
   topAssets: { symbol: string; volume: number }[];
 };
 
-function normalizeBuckets(buckets: AnalyticsHourlyVolumeBucket[]): HourlyData[] {
+function normalizeBuckets(
+  buckets: AnalyticsHourlyVolumeBucket[],
+): HourlyData[] {
   const byHour = new Map(buckets.map((b) => [b.hour, b]));
   return Array.from({ length: 24 }, (_, hour) => {
     const bucket = byHour.get(hour);
@@ -34,24 +39,56 @@ const CHART_H = 220;
 const AXIS_H = 28;
 
 function padH(h: number) {
-  return String(h).padStart(2, "0") + ":00";
+  return `${String(h).padStart(2, "0")}:00`;
 }
 
 function SkeletonBars() {
   // Approximate shape of a typical volume curve for the skeleton
-  const heights = [14, 9, 7, 6, 8, 11, 17, 24, 36, 51, 64, 77, 81, 87, 100, 94, 91, 89, 84, 74, 61, 47, 34, 21];
+  const heights = [
+    { key: "h00", value: 14 },
+    { key: "h01", value: 9 },
+    { key: "h02", value: 7 },
+    { key: "h03", value: 6 },
+    { key: "h04", value: 8 },
+    { key: "h05", value: 11 },
+    { key: "h06", value: 17 },
+    { key: "h07", value: 24 },
+    { key: "h08", value: 36 },
+    { key: "h09", value: 51 },
+    { key: "h10", value: 64 },
+    { key: "h11", value: 77 },
+    { key: "h12", value: 81 },
+    { key: "h13", value: 87 },
+    { key: "h14", value: 100 },
+    { key: "h15", value: 94 },
+    { key: "h16", value: 91 },
+    { key: "h17", value: 89 },
+    { key: "h18", value: 84 },
+    { key: "h19", value: 74 },
+    { key: "h20", value: 61 },
+    { key: "h21", value: 47 },
+    { key: "h22", value: 34 },
+    { key: "h23", value: 21 },
+  ];
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", height: CHART_H, gap: 3 }}>
-      {heights.map((h, i) => (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-end",
+        height: CHART_H,
+        gap: 3,
+      }}
+    >
+      {heights.map((bar, hour) => (
         <div
-          key={i}
+          key={bar.key}
           style={{
             flex: 1,
-            height: `${h}%`,
+            height: `${bar.value}%`,
             borderRadius: "2px 2px 0 0",
             background: "oklch(1 0 0 / 5%)",
             animation: "pulse 1.6s ease-in-out infinite",
-            animationDelay: `${i * 40}ms`,
+            animationDelay: `${hour * 40}ms`,
           }}
         />
       ))}
@@ -63,15 +100,21 @@ const LOOKBACK_OPTIONS = [7, 14, 30, 90] as const;
 
 export function AnalyticsVolume() {
   const [metric, setMetric] = useState<AnalyticsVolumeMetric>("asset_volume");
-  const [lookbackDays, setLookbackDays] = useState<(typeof LOOKBACK_OPTIONS)[number]>(7);
+  const [lookbackDays, setLookbackDays] =
+    useState<(typeof LOOKBACK_OPTIONS)[number]>(7);
   const [activeHour, setActiveHour] = useState<number | null>(null);
   const currentHour = new Date().getUTCHours();
 
-  const { data, isLoading, isError } = useGetHourlyVolumeActivity({ metric, lookbackDays });
+  const { data, isLoading, isError } = useGetHourlyVolumeActivity({
+    metric,
+    lookbackDays,
+  });
 
   const hourlyData: HourlyData[] = data ? normalizeBuckets(data.buckets) : [];
 
-  const maxVol = hourlyData.length ? Math.max(...hourlyData.map((d) => d.volume)) : 1;
+  const maxVol = hourlyData.length
+    ? Math.max(...hourlyData.map((d) => d.volume))
+    : 1;
   const totalVol = hourlyData.reduce((s, d) => s + d.volume, 0);
   const peak = hourlyData.length
     ? hourlyData.reduce((best, d) => (d.volume > best.volume ? d : best))
@@ -143,28 +186,38 @@ export function AnalyticsVolume() {
 
           <div className="flex items-center gap-2 shrink-0">
             {/* Metric toggle */}
-            {(["quote_volume", "asset_volume"] as AnalyticsVolumeMetric[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMetric(m)}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.6rem",
-                  letterSpacing: "0.08em",
-                  cursor: "pointer",
-                  border: "1px solid",
-                  borderRadius: 4,
-                  padding: "4px 10px",
-                  transition: "color 0.15s, background 0.15s, border-color 0.15s",
-                  background: metric === m ? "oklch(0.72 0.18 248 / 12%)" : "transparent",
-                  borderColor: metric === m ? "oklch(0.72 0.18 248 / 35%)" : "oklch(1 0 0 / 10%)",
-                  color: metric === m ? "oklch(0.72 0.18 248)" : "oklch(0.48 0 0)",
-                }}
-              >
-                {m === "quote_volume" ? "QUOTE VOL" : "ASSET VOL"}
-              </button>
-            ))}
+            {(["quote_volume", "asset_volume"] as AnalyticsVolumeMetric[]).map(
+              (m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMetric(m)}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.08em",
+                    cursor: "pointer",
+                    border: "1px solid",
+                    borderRadius: 4,
+                    padding: "4px 10px",
+                    transition:
+                      "color 0.15s, background 0.15s, border-color 0.15s",
+                    background:
+                      metric === m
+                        ? "oklch(0.72 0.18 248 / 12%)"
+                        : "transparent",
+                    borderColor:
+                      metric === m
+                        ? "oklch(0.72 0.18 248 / 35%)"
+                        : "oklch(1 0 0 / 10%)",
+                    color:
+                      metric === m ? "oklch(0.72 0.18 248)" : "oklch(0.48 0 0)",
+                  }}
+                >
+                  {m === "quote_volume" ? "QUOTE VOL" : "ASSET VOL"}
+                </button>
+              ),
+            )}
 
             <span
               style={{
@@ -188,13 +241,17 @@ export function AnalyticsVolume() {
           {[
             {
               label: "24h Volume",
-              value: totalVol > 0 ? `$${millify(totalVol, { precision: 2 })}` : "—",
+              value:
+                totalVol > 0 ? `$${millify(totalVol, { precision: 2 })}` : "—",
               sub: metricLabel,
             },
             {
               label: "Peak Hour",
               value: peak && peak.volume > 0 ? padH(peak.hour) : "—",
-              sub: peak && peak.volume > 0 ? `$${millify(peak.volume)} UTC` : "no data",
+              sub:
+                peak && peak.volume > 0
+                  ? `$${millify(peak.volume)} UTC`
+                  : "no data",
             },
             {
               label: "Tracked Assets",
@@ -204,7 +261,10 @@ export function AnalyticsVolume() {
             {
               label: "Top Asset",
               value: topAsset,
-              sub: topAsset !== "—" ? `$${millify(assetTotals[topAsset])} vol` : "no data",
+              sub:
+                topAsset !== "—"
+                  ? `$${millify(assetTotals[topAsset])} vol`
+                  : "no data",
             },
           ].map((s) => (
             <div
@@ -289,7 +349,8 @@ export function AnalyticsVolume() {
                     letterSpacing: "0.05em",
                   }}
                 >
-                  {padH(activeData.hour)} UTC — ${millify(activeData.volume, { precision: 2 })}
+                  {padH(activeData.hour)} UTC — $
+                  {millify(activeData.volume, { precision: 2 })}
                 </span>
               ) : (
                 <span
@@ -300,11 +361,21 @@ export function AnalyticsVolume() {
                     letterSpacing: "0.05em",
                   }}
                 >
-                  {isLoading ? "loading..." : isError ? "failed to load" : "hover a bar for details"}
+                  {isLoading
+                    ? "loading..."
+                    : isError
+                      ? "failed to load"
+                      : "hover a bar for details"}
                 </span>
               )}
 
-              <div style={{ width: 1, height: 14, background: "oklch(1 0 0 / 10%)" }} />
+              <div
+                style={{
+                  width: 1,
+                  height: 14,
+                  background: "oklch(1 0 0 / 10%)",
+                }}
+              />
 
               {LOOKBACK_OPTIONS.map((d) => (
                 <button
@@ -319,10 +390,20 @@ export function AnalyticsVolume() {
                     border: "1px solid",
                     borderRadius: 4,
                     padding: "4px 10px",
-                    transition: "color 0.15s, background 0.15s, border-color 0.15s",
-                    background: lookbackDays === d ? "oklch(0.72 0.18 248 / 12%)" : "transparent",
-                    borderColor: lookbackDays === d ? "oklch(0.72 0.18 248 / 35%)" : "oklch(1 0 0 / 10%)",
-                    color: lookbackDays === d ? "oklch(0.72 0.18 248)" : "oklch(0.48 0 0)",
+                    transition:
+                      "color 0.15s, background 0.15s, border-color 0.15s",
+                    background:
+                      lookbackDays === d
+                        ? "oklch(0.72 0.18 248 / 12%)"
+                        : "transparent",
+                    borderColor:
+                      lookbackDays === d
+                        ? "oklch(0.72 0.18 248 / 35%)"
+                        : "oklch(1 0 0 / 10%)",
+                    color:
+                      lookbackDays === d
+                        ? "oklch(0.72 0.18 248)"
+                        : "oklch(0.48 0 0)",
                   }}
                 >
                   {d}D
@@ -399,16 +480,24 @@ export function AnalyticsVolume() {
                   }}
                 >
                   {hourlyData.map((d) => {
-                    const barH = Math.max(d.volume > 0 ? 3 : 0, Math.round((d.volume / maxVol) * CHART_H));
+                    const barH = Math.max(
+                      d.volume > 0 ? 3 : 0,
+                      Math.round((d.volume / maxVol) * CHART_H),
+                    );
                     const isActive = activeHour === d.hour;
                     const isCurrent = d.hour === currentHour;
 
                     return (
                       <div
                         key={d.hour}
-                        style={{ flex: 1, height: CHART_H, display: "flex", alignItems: "flex-end" }}
-                        onMouseEnter={() => setActiveHour(d.hour)}
-                        onMouseLeave={() => setActiveHour(null)}
+                        style={{
+                          flex: 1,
+                          height: CHART_H,
+                          display: "flex",
+                          alignItems: "flex-end",
+                        }}
+                        onPointerEnter={() => setActiveHour(d.hour)}
+                        onPointerLeave={() => setActiveHour(null)}
                       >
                         <div
                           style={{
@@ -418,7 +507,8 @@ export function AnalyticsVolume() {
                             transformOrigin: "bottom",
                             animationName: "barGrow",
                             animationDuration: "0.55s",
-                            animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                            animationTimingFunction:
+                              "cubic-bezier(0.22, 1, 0.36, 1)",
                             animationDelay: `${d.hour * 18}ms`,
                             animationFillMode: "backwards",
                             background: isCurrent
@@ -640,12 +730,30 @@ export function AnalyticsVolume() {
 
           {isLoading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i}>
-                  <div style={{ height: 10, background: "oklch(1 0 0 / 5%)", borderRadius: 3, marginBottom: 6, width: `${40 + i * 8}%`, animation: "pulse 1.6s ease-in-out infinite", animationDelay: `${i * 80}ms` }} />
-                  <div style={{ height: 5, background: "oklch(1 0 0 / 5%)", borderRadius: 3 }} />
-                </div>
-              ))}
+              {Array.from({ length: 6 }, (_, rowIndex) => rowIndex).map(
+                (rowIndex) => (
+                  <div key={`asset-skeleton-${rowIndex}`}>
+                    <div
+                      style={{
+                        height: 10,
+                        background: "oklch(1 0 0 / 5%)",
+                        borderRadius: 3,
+                        marginBottom: 6,
+                        width: `${40 + rowIndex * 8}%`,
+                        animation: "pulse 1.6s ease-in-out infinite",
+                        animationDelay: `${rowIndex * 80}ms`,
+                      }}
+                    />
+                    <div
+                      style={{
+                        height: 5,
+                        background: "oklch(1 0 0 / 5%)",
+                        borderRadius: 3,
+                      }}
+                    />
+                  </div>
+                ),
+              )}
             </div>
           ) : isError ? (
             <div

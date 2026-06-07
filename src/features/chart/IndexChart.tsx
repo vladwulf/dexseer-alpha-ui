@@ -1,12 +1,12 @@
-import type { OHLCVExtended } from "@/types/ohlcv";
 import {
+  type CandlestickData,
   CandlestickSeries,
   ColorType,
   createChart,
-  type CandlestickData,
   type Time,
 } from "lightweight-charts";
 import { useEffect, useRef } from "react";
+import type { OHLCVExtended } from "@/types/ohlcv";
 
 type ChartProps = {
   klines: OHLCVExtended[];

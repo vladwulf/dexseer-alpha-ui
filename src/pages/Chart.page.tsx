@@ -1,6 +1,6 @@
+import { useSearchParams } from "react-router";
 import { StandardChart } from "@/features/chart/StandardChart";
 import { useGetChartBySymbol } from "@/hooks/chart/useGetChart";
-import { useSearchParams } from "react-router";
 
 export default function ChartPage() {
   const [searchParams] = useSearchParams();

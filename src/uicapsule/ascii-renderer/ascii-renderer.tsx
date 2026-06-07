@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import type * as THREE from "three";
 import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
 
 export const AsciiRenderer = () => {
@@ -17,13 +18,15 @@ export const AsciiRenderer = () => {
 };
 
 const Torusknot = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const meshRef = useRef<any>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
 
-  useFrame(
-    (state, delta) =>
-      (meshRef.current.rotation.x = meshRef.current.rotation.y += delta / 2)
-  );
+  useFrame((_state, delta) => {
+    if (!meshRef.current) {
+      return;
+    }
+    meshRef.current.rotation.y += delta / 2;
+    meshRef.current.rotation.x = meshRef.current.rotation.y;
+  });
 
   return (
     <mesh ref={meshRef} scale={1.25}>

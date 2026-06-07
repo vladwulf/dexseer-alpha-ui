@@ -1,6 +1,7 @@
 "use client";
 
-import { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef } from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
 interface MarqueeProps extends ComponentPropsWithoutRef<"div"> {
@@ -26,13 +27,17 @@ export function Marquee({
   ...props
 }: MarqueeProps) {
   // Repeat children inline for seamless scrolling
-  const repeatedChildren = Array(repeat)
-    .fill(0)
-    .map((_, i) => (
-      <div key={i} className="flex shrink-0" style={{ gap }}>
+  const repeatKeys = useMemo(
+    () => Array.from({ length: repeat }, () => crypto.randomUUID()),
+    [repeat],
+  );
+  const repeatedChildren = repeatKeys.map((repeatKey) => {
+    return (
+      <div key={repeatKey} className="flex shrink-0" style={{ gap }}>
         {children}
       </div>
-    ));
+    );
+  });
 
   return (
     <>

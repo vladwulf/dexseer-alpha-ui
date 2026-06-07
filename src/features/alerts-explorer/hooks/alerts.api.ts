@@ -1,7 +1,7 @@
-import { API_URL } from "@/config";
-import type { OHLCVExtended } from "@/types/ohlcv";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { API_URL } from "@/config";
+import type { OHLCVExtended } from "@/types/ohlcv";
 
 export type AlertTimeframe =
   | "1s"
@@ -162,7 +162,13 @@ export function useGetAlertsPaginated({
   return useInfiniteQuery({
     queryKey: ["alerts/explorer/paginated", timeframe, limit, type, assetId],
     queryFn: ({ pageParam = 0 }) =>
-      getAlertsPaginated({ timeframe, limit, offset: pageParam, type, assetId }),
+      getAlertsPaginated({
+        timeframe,
+        limit,
+        offset: pageParam,
+        type,
+        assetId,
+      }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       const nextOffset = lastPage.meta.offset + lastPage.meta.limit;

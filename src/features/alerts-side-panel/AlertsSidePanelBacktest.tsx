@@ -1,10 +1,6 @@
-import { MicroChart } from "@/features/chart/MicroChart";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import kLinesData from "@/patterns/abcd/data/k-lines.json";
-import type { KLine } from "@/patterns/types/binance.types";
+import { Card } from "@/components/ui/card";
+import { MicroChart } from "@/features/chart/MicroChart";
 import type { AlertWithWindow } from "@/types/ohlcv";
 
 type AlertsSidePanelBacktestProps = {
@@ -21,19 +17,31 @@ export function AlertsSidePanelBacktest({
       <div className="p-4 border-b border-border">
         <h2 className="text-xl font-semibold mb-2">Market Alerts</h2>
         <div className="flex gap-2 text-sm text-muted-foreground">
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             All
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Rally
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Pullback
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Breakout
           </button>
         </div>

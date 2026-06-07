@@ -24,7 +24,7 @@ export interface ABCDPoints {
  */
 export function calculateABCDPriceLines(
   points: ABCDPoints,
-  type: "bullish" | "bearish" = "bullish"
+  type: "bullish" | "bearish" = "bullish",
 ): PatternPriceLine[] {
   const { A, B, C, D } = points;
 
@@ -87,7 +87,7 @@ export function calculateABCDPriceLines(
 export function calculateFibonacciLevels(
   high: number,
   low: number,
-  isDowntrend: boolean = false
+  isDowntrend: boolean = false,
 ): PatternPriceLine[] {
   const diff = high - low;
   const fibLevels = [0.236, 0.382, 0.5, 0.618, 0.786];

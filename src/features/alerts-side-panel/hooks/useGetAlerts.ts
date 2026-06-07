@@ -1,6 +1,6 @@
-import { API_URL } from "@/config";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { API_URL } from "@/config";
 import type { Alert } from "@/types/ohlcv";
 
 async function getAlerts(): Promise<Alert[]> {

@@ -1,4 +1,12 @@
 import { useMemo, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useGetPriceChangeDistribution } from "./hooks/analytics.api";
 import type {
   AnalyticsDistributionAsset,
@@ -6,7 +14,6 @@ import type {
   AnalyticsDistributionMetric,
   AnalyticsDistributionResponse,
 } from "./types";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type DistributionRow = {
   key: AnalyticsDistributionBucketKey;
@@ -17,7 +24,11 @@ type DistributionRow = {
   assets: AnalyticsDistributionAsset[];
 };
 
-const BUCKET_ORDER: { key: AnalyticsDistributionBucketKey; side: DistributionRow["side"]; displayLabel: string }[] = [
+const BUCKET_ORDER: {
+  key: AnalyticsDistributionBucketKey;
+  side: DistributionRow["side"];
+  displayLabel: string;
+}[] = [
   { key: "ltNeg10", side: "negative", displayLabel: "<-10%" },
   { key: "fromNeg7to10", side: "negative", displayLabel: "-10% to -7%" },
   { key: "fromNeg5to7", side: "negative", displayLabel: "-7% to -5%" },
@@ -31,20 +42,24 @@ const BUCKET_ORDER: { key: AnalyticsDistributionBucketKey; side: DistributionRow
   { key: "gt10", side: "positive", displayLabel: ">10%" },
 ];
 
-const METRIC_OPTIONS: { value: AnalyticsDistributionMetric; label: string }[] = [
-  { value: "15m", label: "15m" },
-  { value: "30m", label: "30m" },
-  { value: "1h", label: "1h" },
-  { value: "4h", label: "4h" },
-  { value: "1d", label: "1d" },
-];
+const METRIC_OPTIONS: { value: AnalyticsDistributionMetric; label: string }[] =
+  [
+    { value: "15m", label: "15m" },
+    { value: "30m", label: "30m" },
+    { value: "1h", label: "1h" },
+    { value: "4h", label: "4h" },
+    { value: "1d", label: "1d" },
+  ];
 
 function formatPct(value: number, total: number) {
   if (!total) return "0.0%";
   return `${((value / total) * 100).toFixed(1)}%`;
 }
 
-function formatChange(asset: AnalyticsDistributionAsset, metric: AnalyticsDistributionMetric) {
+function formatChange(
+  asset: AnalyticsDistributionAsset,
+  metric: AnalyticsDistributionMetric,
+) {
   const metricFieldMap = {
     "15m": asset.change_15m,
     "30m": asset.change_30m,
@@ -76,7 +91,10 @@ function formatUpdatedAt(value: string | null) {
   });
 }
 
-function getAssetChange(asset: AnalyticsDistributionAsset, metric: AnalyticsDistributionMetric) {
+function getAssetChange(
+  asset: AnalyticsDistributionAsset,
+  metric: AnalyticsDistributionMetric,
+) {
   if (metric === "15m") return asset.change_15m ?? 0;
   if (metric === "30m") return asset.change_30m ?? 0;
   if (metric === "1h") return asset.change_1h ?? 0;
@@ -91,14 +109,20 @@ function sortAssetsByBucketSide(
 ) {
   const sorted = [...assets];
   if (side === "negative") {
-    sorted.sort((a, b) => getAssetChange(a, metric) - getAssetChange(b, metric));
+    sorted.sort(
+      (a, b) => getAssetChange(a, metric) - getAssetChange(b, metric),
+    );
   } else if (side === "positive") {
-    sorted.sort((a, b) => getAssetChange(b, metric) - getAssetChange(a, metric));
+    sorted.sort(
+      (a, b) => getAssetChange(b, metric) - getAssetChange(a, metric),
+    );
   }
   return sorted;
 }
 
-function normalizeRows(data?: AnalyticsDistributionResponse): DistributionRow[] {
+function normalizeRows(
+  data?: AnalyticsDistributionResponse,
+): DistributionRow[] {
   if (!data) {
     return BUCKET_ORDER.map((bucket) => ({
       ...bucket,
@@ -121,8 +145,10 @@ function normalizeRows(data?: AnalyticsDistributionResponse): DistributionRow[] 
 
 export function AnalyticsPerformanceDistriubtion() {
   const [metric, setMetric] = useState<AnalyticsDistributionMetric>("1d");
-  const [activeBucket, setActiveBucket] = useState<AnalyticsDistributionBucketKey | null>(null);
-  const [hoveredBucket, setHoveredBucket] = useState<AnalyticsDistributionBucketKey | null>(null);
+  const [activeBucket, setActiveBucket] =
+    useState<AnalyticsDistributionBucketKey | null>(null);
+  const [hoveredBucket, setHoveredBucket] =
+    useState<AnalyticsDistributionBucketKey | null>(null);
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useGetPriceChangeDistribution(metric);
 
@@ -133,11 +159,21 @@ export function AnalyticsPerformanceDistriubtion() {
 
   const sortedSelectedAssets = useMemo(() => {
     if (!selectedBucket) return [];
-    return sortAssetsByBucketSide(selectedBucket.assets, selectedBucket.side, metric);
+    return sortAssetsByBucketSide(
+      selectedBucket.assets,
+      selectedBucket.side,
+      metric,
+    );
   }, [selectedBucket, metric]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedSelectedAssets.length / PAGE_SIZE));
-  const pagedSelectedAssets = sortedSelectedAssets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedSelectedAssets.length / PAGE_SIZE),
+  );
+  const pagedSelectedAssets = sortedSelectedAssets.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
   return (
     <div style={{ marginTop: 32 }}>
@@ -179,10 +215,26 @@ export function AnalyticsPerformanceDistriubtion() {
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              { label: "Total", value: String(data?.total ?? 0), tone: "oklch(0.96 0 0)" },
-              { label: "Up", value: String(data?.priceUp ?? 0), tone: "oklch(0.72 0.18 142)" },
-              { label: "Flat", value: String(data?.unchanged ?? 0), tone: "oklch(0.72 0.01 95)" },
-              { label: "Down", value: String(data?.priceDown ?? 0), tone: "oklch(0.68 0.20 24)" },
+              {
+                label: "Total",
+                value: String(data?.total ?? 0),
+                tone: "oklch(0.96 0 0)",
+              },
+              {
+                label: "Up",
+                value: String(data?.priceUp ?? 0),
+                tone: "oklch(0.72 0.18 142)",
+              },
+              {
+                label: "Flat",
+                value: String(data?.unchanged ?? 0),
+                tone: "oklch(0.72 0.01 95)",
+              },
+              {
+                label: "Down",
+                value: String(data?.priceDown ?? 0),
+                tone: "oklch(0.68 0.20 24)",
+              },
             ].map((stat) => (
               <div
                 key={stat.label}
@@ -250,7 +302,10 @@ export function AnalyticsPerformanceDistriubtion() {
                 <option
                   key={option.value}
                   value={option.value}
-                  style={{ background: "oklch(0.14 0 0)", color: "oklch(0.86 0 0)" }}
+                  style={{
+                    background: "oklch(0.14 0 0)",
+                    color: "oklch(0.86 0 0)",
+                  }}
                 >
                   {option.label}
                 </option>
@@ -338,18 +393,28 @@ export function AnalyticsPerformanceDistriubtion() {
                 const isSelected = row.key === activeBucket;
                 const isNeutral = row.side === "neutral";
                 const isHovered = row.key === hoveredBucket;
-                const tooltipAssets = sortAssetsByBucketSide(row.assets, row.side, metric).slice(0, 5);
+                const tooltipAssets = sortAssetsByBucketSide(
+                  row.assets,
+                  row.side,
+                  metric,
+                ).slice(0, 5);
 
                 return (
                   <button
                     key={row.key}
                     type="button"
                     onClick={() => {
-                      setActiveBucket((current) => (current === row.key ? null : row.key));
+                      setActiveBucket((current) =>
+                        current === row.key ? null : row.key,
+                      );
                       setPage(1);
                     }}
                     onMouseEnter={() => setHoveredBucket(row.key)}
-                    onMouseLeave={() => setHoveredBucket((current) => (current === row.key ? null : current))}
+                    onMouseLeave={() =>
+                      setHoveredBucket((current) =>
+                        current === row.key ? null : current,
+                      )
+                    }
                     style={{
                       width: "100%",
                       display: "grid",
@@ -358,8 +423,12 @@ export function AnalyticsPerformanceDistriubtion() {
                       alignItems: "center",
                       padding: "8px 10px",
                       borderRadius: 8,
-                      border: isSelected ? "1px solid oklch(0.72 0.18 248 / 35%)" : "1px solid transparent",
-                      background: isSelected ? "oklch(0.72 0.18 248 / 6%)" : "transparent",
+                      border: isSelected
+                        ? "1px solid oklch(0.72 0.18 248 / 35%)"
+                        : "1px solid transparent",
+                      background: isSelected
+                        ? "oklch(0.72 0.18 248 / 6%)"
+                        : "transparent",
                       cursor: "pointer",
                       position: "relative",
                     }}
@@ -378,7 +447,8 @@ export function AnalyticsPerformanceDistriubtion() {
                             width,
                             height: "100%",
                             borderRadius: 4,
-                            background: "linear-gradient(270deg, oklch(0.68 0.20 24), oklch(0.34 0.10 24 / 40%))",
+                            background:
+                              "linear-gradient(270deg, oklch(0.68 0.20 24), oklch(0.34 0.10 24 / 40%))",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "flex-start",
@@ -425,7 +495,8 @@ export function AnalyticsPerformanceDistriubtion() {
                           marginTop: 2,
                         }}
                       >
-                        {formatPct(row.count, data?.total ?? 0)} · {row.assets.length} assets
+                        {formatPct(row.count, data?.total ?? 0)} ·{" "}
+                        {row.assets.length} assets
                       </div>
                     </div>
 
@@ -443,7 +514,8 @@ export function AnalyticsPerformanceDistriubtion() {
                             width,
                             height: "100%",
                             borderRadius: 4,
-                            background: "linear-gradient(90deg, oklch(0.72 0.18 142), oklch(0.32 0.10 142 / 40%))",
+                            background:
+                              "linear-gradient(90deg, oklch(0.72 0.18 142), oklch(0.32 0.10 142 / 40%))",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "flex-end",
@@ -545,7 +617,9 @@ export function AnalyticsPerformanceDistriubtion() {
                                 style={{
                                   fontFamily: "var(--font-mono)",
                                   fontSize: "0.6rem",
-                                  color: formatChange(asset, metric).startsWith("+")
+                                  color: formatChange(asset, metric).startsWith(
+                                    "+",
+                                  )
                                     ? "oklch(0.72 0.18 142)"
                                     : "oklch(0.68 0.20 24)",
                                 }}
@@ -591,7 +665,8 @@ export function AnalyticsPerformanceDistriubtion() {
                         textTransform: "uppercase",
                       }}
                     >
-                      {selectedBucket.displayLabel} · {selectedBucket.count} assets
+                      {selectedBucket.displayLabel} · {selectedBucket.count}{" "}
+                      assets
                     </p>
                   </div>
                   <button
@@ -627,7 +702,9 @@ export function AnalyticsPerformanceDistriubtion() {
                   <TableBody>
                     {sortedSelectedAssets.length ? (
                       pagedSelectedAssets.map((asset) => (
-                        <TableRow key={`${selectedBucket.key}-${asset.asset_id}`}>
+                        <TableRow
+                          key={`${selectedBucket.key}-${asset.asset_id}`}
+                        >
                           <TableCell>
                             <div
                               style={{
@@ -640,15 +717,21 @@ export function AnalyticsPerformanceDistriubtion() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span style={{ fontFamily: "var(--font-mono)", color: "oklch(0.88 0 0)" }}>
+                            <span
+                              style={{
+                                fontFamily: "var(--font-mono)",
+                                color: "oklch(0.88 0 0)",
+                              }}
+                            >
                               ${formatPrice(asset.price)}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span
                               style={{
-                                  fontFamily: "var(--font-mono)",
-                                  color: getAssetChange(asset, metric) >= 0
+                                fontFamily: "var(--font-mono)",
+                                color:
+                                  getAssetChange(asset, metric) >= 0
                                     ? "oklch(0.72 0.18 142)"
                                     : "oklch(0.68 0.20 24)",
                               }}
@@ -661,7 +744,12 @@ export function AnalyticsPerformanceDistriubtion() {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={3}>
-                          <span style={{ fontFamily: "var(--font-mono)", color: "oklch(0.35 0 0)" }}>
+                          <span
+                            style={{
+                              fontFamily: "var(--font-mono)",
+                              color: "oklch(0.35 0 0)",
+                            }}
+                          >
                             No assets
                           </span>
                         </TableCell>
@@ -681,13 +769,16 @@ export function AnalyticsPerformanceDistriubtion() {
                         textTransform: "uppercase",
                       }}
                     >
-                      Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, sortedSelectedAssets.length)} of{" "}
-                      {sortedSelectedAssets.length}
+                      Showing {(page - 1) * PAGE_SIZE + 1}-
+                      {Math.min(page * PAGE_SIZE, sortedSelectedAssets.length)}{" "}
+                      of {sortedSelectedAssets.length}
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setPage((current) => Math.max(1, current - 1))}
+                        onClick={() =>
+                          setPage((current) => Math.max(1, current - 1))
+                        }
                         disabled={page === 1}
                         style={{
                           fontFamily: "var(--font-mono)",
@@ -698,7 +789,8 @@ export function AnalyticsPerformanceDistriubtion() {
                           borderRadius: 4,
                           padding: "4px 10px",
                           background: "transparent",
-                          color: page === 1 ? "oklch(0.28 0 0)" : "oklch(0.48 0 0)",
+                          color:
+                            page === 1 ? "oklch(0.28 0 0)" : "oklch(0.48 0 0)",
                         }}
                       >
                         PREV
@@ -715,7 +807,11 @@ export function AnalyticsPerformanceDistriubtion() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                        onClick={() =>
+                          setPage((current) =>
+                            Math.min(totalPages, current + 1),
+                          )
+                        }
                         disabled={page === totalPages}
                         style={{
                           fontFamily: "var(--font-mono)",
@@ -726,7 +822,10 @@ export function AnalyticsPerformanceDistriubtion() {
                           borderRadius: 4,
                           padding: "4px 10px",
                           background: "transparent",
-                          color: page === totalPages ? "oklch(0.28 0 0)" : "oklch(0.48 0 0)",
+                          color:
+                            page === totalPages
+                              ? "oklch(0.28 0 0)"
+                              : "oklch(0.48 0 0)",
                         }}
                       >
                         NEXT

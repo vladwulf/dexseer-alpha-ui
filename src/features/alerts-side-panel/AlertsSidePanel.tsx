@@ -1,8 +1,7 @@
-import ScrollContainer from "react-indiana-drag-scroll";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useGetAlerts } from "./hooks/useGetAlerts";
+import { Card } from "@/components/ui/card";
 import { AlertChart } from "../chart/AlertChart";
+import { useGetAlerts } from "./hooks/useGetAlerts";
 
 export function AlertsSidePanel() {
   const { data: alerts } = useGetAlerts();
@@ -12,19 +11,31 @@ export function AlertsSidePanel() {
       <div className="p-4 border-b border-border h-26">
         <h2 className="text-xl font-semibold mb-2">Market Alerts</h2>
         <div className="flex gap-2 text-sm text-muted-foreground">
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             All
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Rally
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Pullback
           </button>
           <span>•</span>
-          <button className="hover:text-foreground transition-colors">
+          <button
+            type="button"
+            className="hover:text-foreground transition-colors"
+          >
             Breakout
           </button>
         </div>
@@ -68,7 +79,7 @@ export function AlertsSidePanel() {
             </div>
 
             <div className="h-[180px] w-full">
-              <AlertChart alert={alert} series={alert.ohlc ?? []} />
+              <AlertChart alertTime={alert.time} series={alert.ohlc ?? []} />
             </div>
           </Card>
         ))}

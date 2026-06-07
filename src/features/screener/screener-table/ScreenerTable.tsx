@@ -1,16 +1,17 @@
-import { useState } from "react";
 import type { SortingState, Updater } from "@tanstack/react-table";
+import { useMemo, useState } from "react";
+import { useLiveChartSeries } from "@/hooks/chart/useLiveChartSeries";
 import { SortBy, useGetAssets } from "../hooks/screener.api";
-import type { ScreenerAssetWithChart } from "../types";
-import { getCryptoColumns } from "./columns";
-import { DataTable } from "./data-table";
 import {
+  type RefreshInterval,
   ScreenerConfigs,
   type ScreenerDensity,
   type ScreenerProfile,
-  type RefreshInterval,
   type Timeframe,
 } from "../screener-buttons/ScreenerConfigs";
+import type { ScreenerAssetWithChart } from "../types";
+import { getCryptoColumns } from "./columns";
+import { DataTable } from "./data-table";
 
 /**
  * Maps TanStack Table column accessor keys to backend SortBy values
@@ -69,9 +70,7 @@ const MULTI_TIMEFRAME_SORTABLE_COLUMNS = new Set([
   "volume_delta_1d",
 ]);
 
-const getDefaultSortingForProfile = (
-  profile: ScreenerProfile,
-): SortingState =>
+const getDefaultSortingForProfile = (profile: ScreenerProfile): SortingState =>
   profile === "swing-trading"
     ? [{ id: "change_1d", desc: true }]
     : profile === "day-trading"
@@ -124,23 +123,10 @@ export const ScreenerTable = () => {
   const [profile, setProfile] = useState<ScreenerProfile>("multi-timeframe");
   const [assetNameFilter, setAssetNameFilter] = useState("");
   const [refreshInterval, setRefreshInterval] =
-    useState<RefreshInterval>("5s");
+    useState<RefreshInterval>("live");
   const [density, setDensity] = useState<ScreenerDensity>("compact");
   const { sortBy, direction } = getSortParamsFromSorting(sorting);
   const columns = getCryptoColumns(density, profile);
-
-  const refreshIntervalMs: number | false =
-    refreshInterval === "manual"
-      ? false
-      : refreshInterval === "5s"
-        ? 5000
-        : refreshInterval === "10s"
-          ? 10000
-          : refreshInterval === "30s"
-            ? 30000
-            : refreshInterval === "1m"
-              ? 60000
-              : 300000;
 
   const {
     data: assets,
@@ -151,8 +137,37 @@ export const ScreenerTable = () => {
     direction,
     chartTimeframe: timeframe,
     assetName: assetNameFilter,
-    refetchIntervalMs: refreshIntervalMs,
   });
+  const liveCharts = useLiveChartSeries({
+    enabled: refreshInterval === "live",
+    timeframe,
+    seeds: (assets ?? []).map((asset) => ({
+      assetId: asset.id,
+      data: asset.chart.data,
+    })),
+  });
+  const liveAssets = useMemo(
+    () =>
+      (assets ?? []).map((asset) => {
+        const nextChartData = liveCharts.seriesByAssetId.get(asset.id);
+
+        if (!nextChartData) {
+          return asset;
+        }
+
+        const lastCandle = nextChartData[nextChartData.length - 1];
+
+        return {
+          ...asset,
+          price: lastCandle?.close ?? asset.price,
+          chart: {
+            ...asset.chart,
+            data: nextChartData,
+          },
+        };
+      }),
+    [assets, liveCharts.seriesByAssetId],
+  );
 
   const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
     setSorting((old) => {
@@ -188,7 +203,10 @@ export const ScreenerTable = () => {
         >
           Asset Screener
         </p>
-        <div className="h-px flex-1" style={{ background: "oklch(1 0 0 / 6%)" }} />
+        <div
+          className="h-px flex-1"
+          style={{ background: "oklch(1 0 0 / 6%)" }}
+        />
       </div>
 
       <div
@@ -227,7 +245,7 @@ export const ScreenerTable = () => {
       >
         <DataTable<ScreenerAssetWithChart, unknown>
           columns={columns}
-          data={assets || []}
+          data={liveAssets}
           sorting={sorting}
           onSortingChange={handleSortingChange}
           density={density}

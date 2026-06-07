@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import type * as THREE from "three";
 import { AsciiEffect } from "three/examples/jsm/effects/AsciiEffect.js";
-import * as THREE from "three";
 
 export const SauronEyeRenderer = () => {
   return (
@@ -85,8 +85,8 @@ const SauronEye = () => {
       </mesh>
 
       {/* Inner iris details (concentric circles) */}
-      {[0.28, 0.22, 0.16].map((radius, i) => (
-        <mesh key={i} position={[0, 0, 0.58]}>
+      {[0.28, 0.22, 0.16].map((radius) => (
+        <mesh key={`iris-ring-${radius}`} position={[0, 0, 0.58]}>
           <ringGeometry args={[radius - 0.02, radius, 64]} />
           <meshStandardMaterial color="#ffffff" transparent opacity={0.3} />
         </mesh>
@@ -110,88 +110,108 @@ const SauronEye = () => {
 
       {/* Solid Rays - Long (24 rays evenly spaced) */}
       <group ref={raysGroupRef}>
-        {[...Array(24)].map((_, i) => {
-          const angle = (i / 24) * Math.PI * 2;
-          const baseDistance = 1.8;
-          const x = Math.cos(angle) * baseDistance;
-          const y = Math.sin(angle) * baseDistance;
-          // Vary ray lengths for visual interest
-          const rayLength = i % 3 === 0 ? 1.8 : i % 3 === 1 ? 1.5 : 1.2;
-          const rayWidth = 0.08;
+        {Array.from({ length: 24 }, (_, rayIndex) => rayIndex).map(
+          (rayIndex) => {
+            const angle = (rayIndex / 24) * Math.PI * 2;
+            const baseDistance = 1.8;
+            const x = Math.cos(angle) * baseDistance;
+            const y = Math.sin(angle) * baseDistance;
+            // Vary ray lengths for visual interest
+            const rayLength =
+              rayIndex % 3 === 0 ? 1.8 : rayIndex % 3 === 1 ? 1.5 : 1.2;
+            const rayWidth = 0.08;
 
-          return (
-            <group key={i} position={[x, y, 0]} rotation={[0, 0, angle + Math.PI / 2]}>
-              <mesh>
-                <boxGeometry args={[rayWidth, rayLength, 0.06]} />
-                <meshStandardMaterial color="#ffffff" />
-              </mesh>
-            </group>
-          );
-        })}
+            return (
+              <group
+                key={`long-ray-${rayIndex}`}
+                position={[x, y, 0]}
+                rotation={[0, 0, angle + Math.PI / 2]}
+              >
+                <mesh>
+                  <boxGeometry args={[rayWidth, rayLength, 0.06]} />
+                  <meshStandardMaterial color="#ffffff" />
+                </mesh>
+              </group>
+            );
+          },
+        )}
       </group>
 
       {/* Dashed/Segmented Rays - Medium length (24 rays, offset) */}
       <group rotation={[0, 0, Math.PI / 24]}>
-        {[...Array(24)].map((_, i) => {
-          const angle = (i / 24) * Math.PI * 2;
-          const baseDistance = 1.8;
-          const rayLength = i % 2 === 0 ? 1.3 : 1.0;
+        {Array.from({ length: 24 }, (_, rayIndex) => rayIndex).map(
+          (rayIndex) => {
+            const angle = (rayIndex / 24) * Math.PI * 2;
+            const baseDistance = 1.8;
+            const rayLength = rayIndex % 2 === 0 ? 1.3 : 1.0;
 
-          // Create 3 segments per ray for dashed effect
-          return (
-            <group key={i}>
-              {[0, 1, 2].map((segmentIndex) => {
-                const segmentLength = 0.25;
-                const gapLength = 0.15;
-                const totalSegmentLength = segmentLength + gapLength;
-                const segmentDistance = baseDistance + segmentIndex * totalSegmentLength;
-                const x = Math.cos(angle) * segmentDistance;
-                const y = Math.sin(angle) * segmentDistance;
+            // Create 3 segments per ray for dashed effect
+            return (
+              <group key={`segmented-ray-${rayIndex}`}>
+                {[0, 1, 2].map((segmentIndex) => {
+                  const segmentLength = 0.25;
+                  const gapLength = 0.15;
+                  const totalSegmentLength = segmentLength + gapLength;
+                  const segmentDistance =
+                    baseDistance + segmentIndex * totalSegmentLength;
+                  const x = Math.cos(angle) * segmentDistance;
+                  const y = Math.sin(angle) * segmentDistance;
 
-                // Only render if within ray length
-                if (segmentDistance - baseDistance < rayLength) {
-                  return (
-                    <group
-                      key={segmentIndex}
-                      position={[x, y, 0]}
-                      rotation={[0, 0, angle + Math.PI / 2]}
-                    >
-                      <mesh>
-                        <boxGeometry args={[0.06, segmentLength, 0.05]} />
-                        <meshStandardMaterial
-                          color="#ffffff"
-                          transparent
-                          opacity={0.7}
-                        />
-                      </mesh>
-                    </group>
-                  );
-                }
-                return null;
-              })}
-            </group>
-          );
-        })}
+                  // Only render if within ray length
+                  if (segmentDistance - baseDistance < rayLength) {
+                    return (
+                      <group
+                        key={segmentIndex}
+                        position={[x, y, 0]}
+                        rotation={[0, 0, angle + Math.PI / 2]}
+                      >
+                        <mesh>
+                          <boxGeometry args={[0.06, segmentLength, 0.05]} />
+                          <meshStandardMaterial
+                            color="#ffffff"
+                            transparent
+                            opacity={0.7}
+                          />
+                        </mesh>
+                      </group>
+                    );
+                  }
+                  return null;
+                })}
+              </group>
+            );
+          },
+        )}
       </group>
 
       {/* Short rays close to eye (12 rays) */}
       <group rotation={[0, 0, Math.PI / 12]}>
-        {[...Array(12)].map((_, i) => {
-          const angle = (i / 12) * Math.PI * 2;
-          const baseDistance = 1.5;
-          const x = Math.cos(angle) * baseDistance;
-          const y = Math.sin(angle) * baseDistance;
-          const rayLength = 0.6;
+        {Array.from({ length: 12 }, (_, rayIndex) => rayIndex).map(
+          (rayIndex) => {
+            const angle = (rayIndex / 12) * Math.PI * 2;
+            const baseDistance = 1.5;
+            const x = Math.cos(angle) * baseDistance;
+            const y = Math.sin(angle) * baseDistance;
+            const rayLength = 0.6;
 
-          return (
-            <group key={i} position={[x, y, 0]} rotation={[0, 0, angle + Math.PI / 2]}>
-              <mesh>
-                <boxGeometry args={[0.06, rayLength, 0.05]} />
-                <meshStandardMaterial color="#ffffff" transparent opacity={0.8} />
-              </mesh>
-            </group>
-          );
-        })}
+            return (
+              <group
+                key={`short-ray-${rayIndex}`}
+                position={[x, y, 0]}
+                rotation={[0, 0, angle + Math.PI / 2]}
+              >
+                <mesh>
+                  <boxGeometry args={[0.06, rayLength, 0.05]} />
+                  <meshStandardMaterial
+                    color="#ffffff"
+                    transparent
+                    opacity={0.8}
+                  />
+                </mesh>
+              </group>
+            );
+          },
+        )}
       </group>
     </group>
   );
@@ -205,7 +225,7 @@ const Renderer = () => {
     // Use different ASCII characters for fiery effect
     const effect = new AsciiEffect(
       gl,
-      " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+      " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
     );
 
     effect.domElement.style.position = "absolute";
@@ -239,4 +259,3 @@ const Renderer = () => {
 
   return null;
 };
-

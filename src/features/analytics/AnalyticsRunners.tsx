@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGetRunners, useGetRunnersReplay } from "./hooks/analytics.api";
 import type { RunnerBoard, RunnerEntry, RunnerMetric } from "./types";
 
@@ -48,7 +48,11 @@ const BOARD_OPTIONS: BoardOption[] = [
   },
 ];
 
-function metricValueOf(entry: RunnerEntry, board: RunnerBoard, metric: RunnerMetric): number {
+function metricValueOf(
+  entry: RunnerEntry,
+  board: RunnerBoard,
+  metric: RunnerMetric,
+): number {
   if (board === "volume") {
     return metric === "1d" ? (entry.volume_1d ?? 0) : (entry.volume_4h ?? 0);
   }
@@ -56,7 +60,7 @@ function metricValueOf(entry: RunnerEntry, board: RunnerBoard, metric: RunnerMet
 }
 
 function fmtChange(val: number): string {
-  return (val >= 0 ? "+" : "") + val.toFixed(2) + "%";
+  return `${(val >= 0 ? "+" : "") + val.toFixed(2)}%`;
 }
 
 function fmtVolume(val: number): string {
@@ -69,7 +73,11 @@ function fmtMetricValue(val: number, board: RunnerBoard): string {
 
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 
 function fmtDateTime(iso: string): string {
@@ -89,7 +97,14 @@ function fmtPrice(price: number): string {
   });
 }
 
-type RankColors = { bar: string; tip: string; glow: string; text: string; badgeBg: string; badgeText: string };
+type RankColors = {
+  bar: string;
+  tip: string;
+  glow: string;
+  text: string;
+  badgeBg: string;
+  badgeText: string;
+};
 
 function getRankColors(rank: number): RankColors {
   if (rank === 1)
@@ -121,12 +136,12 @@ function getRankColors(rank: number): RankColors {
     };
   const fade = Math.max(0, 1 - (rank - 4) / 7);
   const l = 0.38 + fade * 0.14;
-  const c = 0.10 + fade * 0.06;
+  const c = 0.1 + fade * 0.06;
   return {
     bar: `linear-gradient(to right, oklch(0.18 0.08 248 / 45%), oklch(${(l - 0.08).toFixed(2)} ${c} 248 / 80%), oklch(${l.toFixed(2)} ${c} 248))`,
     tip: `oklch(${(l + 0.12).toFixed(2)} ${(c + 0.04).toFixed(2)} 248)`,
     glow: `0 0 10px oklch(${l.toFixed(2)} ${c} 248 / ${Math.round(30 + fade * 20)}%)`,
-    text: `oklch(${(l + 0.10).toFixed(2)} ${c} 248)`,
+    text: `oklch(${(l + 0.1).toFixed(2)} ${c} 248)`,
     badgeBg: "transparent",
     badgeText: "oklch(0.28 0 0)",
   };
@@ -134,7 +149,8 @@ function getRankColors(rank: number): RankColors {
 
 function RankBadge({ rank }: { rank: number }) {
   const colors = getRankColors(rank);
-  const label = rank === 1 ? "1ST" : rank === 2 ? "2ND" : rank === 3 ? "3RD" : String(rank);
+  const label =
+    rank === 1 ? "1ST" : rank === 2 ? "2ND" : rank === 3 ? "3RD" : String(rank);
   const hasColor = rank <= 3;
 
   return (
@@ -204,7 +220,9 @@ function RaceLane({
           fontFamily: "var(--font-mono)",
           fontSize: isLeader ? "0.78rem" : "0.66rem",
           fontWeight: isLeader ? 700 : 400,
-          color: isLeader ? "oklch(0.95 0 0)" : `oklch(${0.46 + Math.max(0, (10 - entry.rank) / 14)} 0 0)`,
+          color: isLeader
+            ? "oklch(0.95 0 0)"
+            : `oklch(${0.46 + Math.max(0, (10 - entry.rank) / 14)} 0 0)`,
           width: 72,
           flexShrink: 0,
           letterSpacing: "0.03em",
@@ -256,7 +274,8 @@ function RaceLane({
                 top: 0,
                 height: "100%",
                 width: "55%",
-                background: "linear-gradient(to right, transparent, oklch(1 0 0 / 22%), transparent)",
+                background:
+                  "linear-gradient(to right, transparent, oklch(1 0 0 / 22%), transparent)",
                 animation: "raceShimmer 2s ease-in-out infinite",
               }}
             />
@@ -299,59 +318,62 @@ function RaceLane({
 function SkeletonLanes() {
   return (
     <div>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            paddingTop: 9,
-            paddingBottom: 9,
-            borderBottom: i < 7 ? "1px solid oklch(1 0 0 / 4%)" : "none",
-          }}
-        >
+      {Array.from({ length: 8 }, (_, laneIndex) => laneIndex).map(
+        (laneIndex) => (
           <div
+            key={`runner-skeleton-${laneIndex}`}
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 6,
-              background: "oklch(1 0 0 / 5%)",
-              flexShrink: 0,
-              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              paddingTop: 9,
+              paddingBottom: 9,
+              borderBottom:
+                laneIndex < 7 ? "1px solid oklch(1 0 0 / 4%)" : "none",
             }}
-          />
-          <div
-            style={{
-              width: 72,
-              height: 10,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 2,
-              flexShrink: 0,
-              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
-            }}
-          />
-          <div
-            style={{
-              flex: 1,
-              height: 14,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 4,
-              animation: `pulse 1.6s ${i * 60 + 30}ms ease-in-out infinite`,
-            }}
-          />
-          <div
-            style={{
-              width: 70,
-              height: 10,
-              background: "oklch(1 0 0 / 5%)",
-              borderRadius: 2,
-              flexShrink: 0,
-              animation: `pulse 1.6s ${i * 60}ms ease-in-out infinite`,
-            }}
-          />
-        </div>
-      ))}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 6,
+                background: "oklch(1 0 0 / 5%)",
+                flexShrink: 0,
+                animation: `pulse 1.6s ${laneIndex * 60}ms ease-in-out infinite`,
+              }}
+            />
+            <div
+              style={{
+                width: 72,
+                height: 10,
+                background: "oklch(1 0 0 / 5%)",
+                borderRadius: 2,
+                flexShrink: 0,
+                animation: `pulse 1.6s ${laneIndex * 60}ms ease-in-out infinite`,
+              }}
+            />
+            <div
+              style={{
+                flex: 1,
+                height: 14,
+                background: "oklch(1 0 0 / 5%)",
+                borderRadius: 4,
+                animation: `pulse 1.6s ${laneIndex * 60 + 30}ms ease-in-out infinite`,
+              }}
+            />
+            <div
+              style={{
+                width: 70,
+                height: 10,
+                background: "oklch(1 0 0 / 5%)",
+                borderRadius: 2,
+                flexShrink: 0,
+                animation: `pulse 1.6s ${laneIndex * 60}ms ease-in-out infinite`,
+              }}
+            />
+          </div>
+        ),
+      )}
     </div>
   );
 }
@@ -362,19 +384,24 @@ export function AnalyticsRunners() {
   const [mode, setMode] = useState<"live" | "replay">("live");
   const [frameIdx, setFrameIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const boardMeta = BOARD_OPTIONS.find((option) => option.key === board) ?? BOARD_OPTIONS[0];
+  const boardMeta =
+    BOARD_OPTIONS.find((option) => option.key === board) ?? BOARD_OPTIONS[0];
 
-  const { data: liveData, isLoading: liveLoading, isError: liveError } = useGetRunners(board);
-  const { data: replayData, isLoading: replayLoading, isError: replayError } = useGetRunnersReplay(
-    board,
-    metric,
-    mode === "replay",
-  );
+  const {
+    data: liveData,
+    isLoading: liveLoading,
+    isError: liveError,
+  } = useGetRunners(board);
+  const {
+    data: replayData,
+    isLoading: replayLoading,
+    isError: replayError,
+  } = useGetRunnersReplay(board, metric, mode === "replay");
 
   useEffect(() => {
     setFrameIdx(0);
     setIsPlaying(false);
-  }, [mode, metric]);
+  }, []);
 
   useEffect(() => {
     if (!isPlaying || !replayData) return;
@@ -394,15 +421,22 @@ export function AnalyticsRunners() {
   const isError = mode === "live" ? liveError : replayError;
 
   const entries: RunnerEntry[] =
-    mode === "live" ? (liveData?.[metric]?.entries ?? []) : (replayData?.[frameIdx]?.entries ?? []);
+    mode === "live"
+      ? (liveData?.[metric]?.entries ?? [])
+      : (replayData?.[frameIdx]?.entries ?? []);
 
   const sorted = [...entries].sort((a, b) => a.rank - b.rank);
   const leader = sorted[0] ?? null;
   const leaderValue = leader ? metricValueOf(leader, board, metric) : 0;
-  const maxValue = Math.max(...sorted.map((e) => Math.abs(metricValueOf(e, board, metric))), 0.01);
+  const maxValue = Math.max(
+    ...sorted.map((e) => Math.abs(metricValueOf(e, board, metric))),
+    0.01,
+  );
 
   const updatedAt =
-    mode === "live" ? (liveData?.[metric]?.updatedAt ?? null) : (replayData?.[frameIdx]?.sampledAt ?? null);
+    mode === "live"
+      ? (liveData?.[metric]?.updatedAt ?? null)
+      : (replayData?.[frameIdx]?.sampledAt ?? null);
   const totalFrames = replayData?.length ?? 0;
   const metricLabel = metric === "1d" ? "24h" : "4h";
 
@@ -476,17 +510,29 @@ export function AnalyticsRunners() {
                   border: "1px solid",
                   borderRadius: 4,
                   padding: "4px 10px",
-                  transition: "color 0.15s, background 0.15s, border-color 0.15s",
-                  background: board === option.key ? "oklch(0.72 0.18 248 / 12%)" : "transparent",
-                  borderColor: board === option.key ? "oklch(0.72 0.18 248 / 35%)" : "oklch(1 0 0 / 10%)",
-                  color: board === option.key ? "oklch(0.72 0.18 248)" : "oklch(0.48 0 0)",
+                  transition:
+                    "color 0.15s, background 0.15s, border-color 0.15s",
+                  background:
+                    board === option.key
+                      ? "oklch(0.72 0.18 248 / 12%)"
+                      : "transparent",
+                  borderColor:
+                    board === option.key
+                      ? "oklch(0.72 0.18 248 / 35%)"
+                      : "oklch(1 0 0 / 10%)",
+                  color:
+                    board === option.key
+                      ? "oklch(0.72 0.18 248)"
+                      : "oklch(0.48 0 0)",
                 }}
               >
                 {option.label}
               </button>
             ))}
 
-            <div style={{ width: 1, height: 16, background: "oklch(1 0 0 / 10%)" }} />
+            <div
+              style={{ width: 1, height: 16, background: "oklch(1 0 0 / 10%)" }}
+            />
 
             {(["1d", "4h"] as RunnerMetric[]).map((m) => (
               <button
@@ -501,17 +547,25 @@ export function AnalyticsRunners() {
                   border: "1px solid",
                   borderRadius: 4,
                   padding: "4px 10px",
-                  transition: "color 0.15s, background 0.15s, border-color 0.15s",
-                  background: metric === m ? "oklch(0.72 0.18 248 / 12%)" : "transparent",
-                  borderColor: metric === m ? "oklch(0.72 0.18 248 / 35%)" : "oklch(1 0 0 / 10%)",
-                  color: metric === m ? "oklch(0.72 0.18 248)" : "oklch(0.48 0 0)",
+                  transition:
+                    "color 0.15s, background 0.15s, border-color 0.15s",
+                  background:
+                    metric === m ? "oklch(0.72 0.18 248 / 12%)" : "transparent",
+                  borderColor:
+                    metric === m
+                      ? "oklch(0.72 0.18 248 / 35%)"
+                      : "oklch(1 0 0 / 10%)",
+                  color:
+                    metric === m ? "oklch(0.72 0.18 248)" : "oklch(0.48 0 0)",
                 }}
               >
                 {m.toUpperCase()}
               </button>
             ))}
 
-            <div style={{ width: 1, height: 16, background: "oklch(1 0 0 / 10%)" }} />
+            <div
+              style={{ width: 1, height: 16, background: "oklch(1 0 0 / 10%)" }}
+            />
 
             {(["live", "replay"] as const).map((md) => (
               <button
@@ -526,7 +580,8 @@ export function AnalyticsRunners() {
                   border: "1px solid",
                   borderRadius: 4,
                   padding: "4px 10px",
-                  transition: "color 0.15s, background 0.15s, border-color 0.15s",
+                  transition:
+                    "color 0.15s, background 0.15s, border-color 0.15s",
                   background:
                     mode === md
                       ? md === "live"
@@ -596,7 +651,7 @@ export function AnalyticsRunners() {
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
                   }}
-            >
+                >
                   {boardMeta.panelLabel(metricLabel)}
                 </span>
               </div>
@@ -624,7 +679,9 @@ export function AnalyticsRunners() {
                       animation: "livePulse 1.8s ease-in-out infinite",
                     }}
                   />
-                  {updatedAt ? `Updated ${fmtTime(updatedAt)}` : "Waiting for data"}
+                  {updatedAt
+                    ? `Updated ${fmtTime(updatedAt)}`
+                    : "Waiting for data"}
                 </span>
               )}
 
@@ -656,7 +713,15 @@ export function AnalyticsRunners() {
               >
                 <div style={{ width: 32, flexShrink: 0 }} />
                 <div style={{ width: 72, flexShrink: 0 }} />
-                  <div style={{ flex: 1, display: "flex", justifyContent: "space-between", paddingLeft: 2, paddingRight: 2 }}>
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    paddingLeft: 2,
+                    paddingRight: 2,
+                  }}
+                >
                   {boardMeta.valueTicks.map((tick) => (
                     <span
                       key={tick}
@@ -701,7 +766,9 @@ export function AnalyticsRunners() {
                   textAlign: "center",
                 }}
               >
-                {mode === "replay" ? "No replay data available" : boardMeta.emptyLive}
+                {mode === "replay"
+                  ? "No replay data available"
+                  : boardMeta.emptyLive}
               </div>
             ) : (
               <div>
@@ -730,7 +797,9 @@ export function AnalyticsRunners() {
                 position: "relative",
                 overflow: "hidden",
                 flex: 1,
-                animation: leader ? "leaderPulse 2.8s ease-in-out infinite" : "none",
+                animation: leader
+                  ? "leaderPulse 2.8s ease-in-out infinite"
+                  : "none",
               }}
             >
               {/* Checkered background */}
@@ -764,7 +833,8 @@ export function AnalyticsRunners() {
                     left: 0,
                     right: 0,
                     height: 1,
-                    background: "linear-gradient(to right, transparent, oklch(0.72 0.22 75 / 30%), transparent)",
+                    background:
+                      "linear-gradient(to right, transparent, oklch(0.72 0.22 75 / 30%), transparent)",
                     animation: "scanLine 4s linear infinite",
                     pointerEvents: "none",
                   }}
@@ -851,7 +921,8 @@ export function AnalyticsRunners() {
                         letterSpacing: "-0.04em",
                         lineHeight: 1,
                         marginBottom: 16,
-                        textShadow: "0 0 40px oklch(0.72 0.22 75 / 55%), 0 0 80px oklch(0.72 0.22 75 / 25%)",
+                        textShadow:
+                          "0 0 40px oklch(0.72 0.22 75 / 55%), 0 0 80px oklch(0.72 0.22 75 / 25%)",
                       }}
                     >
                       {fmtMetricValue(leaderValue, board)}
@@ -918,8 +989,11 @@ export function AnalyticsRunners() {
                                   color: c.text,
                                   fontVariantNumeric: "tabular-nums",
                                 }}
-                                >
-                                {fmtMetricValue(metricValueOf(e, board, metric), board)}
+                              >
+                                {fmtMetricValue(
+                                  metricValueOf(e, board, metric),
+                                  board,
+                                )}
                               </span>
                             </div>
                           );
@@ -966,12 +1040,25 @@ export function AnalyticsRunners() {
                 </div>
 
                 {replayLoading ? (
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "oklch(0.32 0 0)" }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.6rem",
+                      color: "oklch(0.32 0 0)",
+                    }}
+                  >
                     Loading frames…
                   </div>
                 ) : replayData && replayData.length > 0 ? (
                   <>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginBottom: 14,
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() => {
@@ -1014,20 +1101,50 @@ export function AnalyticsRunners() {
                         setIsPlaying(false);
                         setFrameIdx(Number(e.target.value));
                       }}
-                      style={{ width: "100%", cursor: "pointer", accentColor: "oklch(0.72 0.24 142)" }}
+                      style={{
+                        width: "100%",
+                        cursor: "pointer",
+                        accentColor: "oklch(0.72 0.24 142)",
+                      }}
                     />
 
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.48rem", color: "oklch(0.26 0 0)" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginTop: 6,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.48rem",
+                          color: "oklch(0.26 0 0)",
+                        }}
+                      >
                         {fmtTime(replayData[0]?.sampledAt ?? null)}
                       </span>
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.48rem", color: "oklch(0.26 0 0)" }}>
-                        {fmtTime(replayData[totalFrames - 1]?.sampledAt ?? null)}
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.48rem",
+                          color: "oklch(0.26 0 0)",
+                        }}
+                      >
+                        {fmtTime(
+                          replayData[totalFrames - 1]?.sampledAt ?? null,
+                        )}
                       </span>
                     </div>
                   </>
                 ) : (
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "oklch(0.32 0 0)" }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.6rem",
+                      color: "oklch(0.32 0 0)",
+                    }}
+                  >
                     No replay data
                   </div>
                 )}

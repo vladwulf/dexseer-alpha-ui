@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { createPortal } from "react-dom";
+import type { Time } from "lightweight-charts";
 import {
-  createChart,
-  ColorType,
   CandlestickSeries,
+  ColorType,
+  createChart,
   HistogramSeries,
 } from "lightweight-charts";
-import type { Time } from "lightweight-charts";
-import { MiniChart } from "./MiniChart";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { OHLCVExtended } from "@/types/ohlcv";
+import { MiniChart } from "./MiniChart";
 
 const hexToRgba = (hex: string, opacity: number): string => {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -18,6 +18,18 @@ const hexToRgba = (hex: string, opacity: number): string => {
 };
 
 const VOLUME_OPACITY = 0.78;
+
+type MicroChartPoint = {
+  time: Time;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  color?: string;
+  borderColor?: string;
+  wickColor?: string;
+};
 
 interface MicroChartProps {
   alertTimestamp: string;
@@ -61,6 +73,7 @@ export function MicroChart({
   height = 40,
   upColor = "#5dc887", // Green for up candles
   downColor = "#e35561", // Red for down candles
+  periods,
   onMouseEnter,
   onMouseLeave,
 }: MicroChartProps) {
@@ -69,14 +82,57 @@ export function MicroChart({
   const candlestickSeriesRef = useRef<ReturnType<
     ReturnType<typeof createChart>["addSeries"]
   > | null>(null);
+  const volumeSeriesRef = useRef<ReturnType<
+    ReturnType<typeof createChart>["addSeries"]
+  > | null>(null);
+  const previousSeriesDataRef = useRef<MicroChartPoint[]>([]);
+
+  const seriesData = useMemo(() => {
+    const alertTimestampUnix = (new Date(alertTimestamp).getTime() /
+      1000) as Time;
+
+    const dataToRender =
+      periods !== undefined ? klines.slice(-periods) : klines;
+
+    return dataToRender
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
+      )
+      .map((kline) => {
+        const time = (new Date(kline.time).getTime() / 1000) as Time;
+        let candleColor: string | undefined;
+
+        if (time === alertTimestampUnix) {
+          candleColor = "yellow";
+        } else if (time > alertTimestampUnix) {
+          candleColor = kline.close > kline.open ? upColor : downColor;
+        } else if (time < alertTimestampUnix) {
+          candleColor =
+            kline.close > kline.open
+              ? hexToRgba(upColor, 0.5)
+              : hexToRgba(downColor, 0.5);
+        }
+
+        return {
+          time,
+          open: kline.open,
+          high: kline.high,
+          low: kline.low,
+          close: kline.close,
+          volume: Number(kline.asset_volume) || 0,
+          color: candleColor,
+          borderColor: candleColor,
+          wickColor: candleColor,
+        };
+      });
+  }, [alertTimestamp, downColor, klines, periods, upColor]);
 
   useEffect(() => {
-    if (!chartContainerRef.current || !klines || klines.length === 0) return;
-
-    // Limit the number of periods to render
-    // const dataToRender = periods
-    //   ? klines.slice(-periods) // Take the last N periods
-    //   : klines;
+    if (!chartContainerRef.current || chartRef.current) return;
 
     // Create chart instance with dark theme
     const chart = createChart(chartContainerRef.current, {
@@ -151,57 +207,6 @@ export function MicroChart({
         minMove: 0.00000001,
       },
     });
-
-    // Convert Binance K-line data to candlestick format
-
-    const alertTimestampUnix = (new Date(alertTimestamp).getTime() /
-      1000) as Time;
-
-    const seriesData = klines
-      .filter(
-        (kline) =>
-          kline.open != null &&
-          kline.high != null &&
-          kline.low != null &&
-          kline.close != null,
-      )
-      .map((kline) => {
-        const time = (new Date(kline.time).getTime() / 1000) as Time;
-        let candleColor = undefined;
-        if (time === alertTimestampUnix) {
-          candleColor = "yellow";
-        } else if (time > alertTimestampUnix) {
-          // up color
-          if (kline.close > kline.open) {
-            candleColor = upColor;
-            // down color
-          } else {
-            candleColor = downColor;
-          }
-        } else if (time < alertTimestampUnix) {
-          // up color
-          if (kline.close > kline.open) {
-            candleColor = hexToRgba(upColor, 0.5);
-            // down color
-          } else {
-            candleColor = hexToRgba(downColor, 0.5);
-          }
-        }
-
-        return {
-          time,
-          open: kline.open,
-          high: kline.high,
-          low: kline.low,
-          close: kline.close,
-          volume: Number(kline.asset_volume) || 0,
-          color: candleColor,
-          borderColor: candleColor,
-          wickColor: candleColor,
-        };
-      });
-
-    candlestickSeries.setData(seriesData);
     candlestickSeries.applyOptions({
       lastValueVisible: false, // hides the price on the right scale
       priceLineVisible: false, // hides the horizontal last price line
@@ -223,17 +228,6 @@ export function MicroChart({
       },
     });
 
-    volumeSeries.setData(
-      seriesData.map((kline) => ({
-        time: kline.time,
-        value: kline.volume,
-        color:
-          kline.close >= kline.open
-            ? hexToRgba(upColor, VOLUME_OPACITY)
-            : hexToRgba(downColor, VOLUME_OPACITY),
-      })),
-    );
-
     // Remove all price lines (including the last price line)
     // Get all price lines and remove them
     const priceLines = candlestickSeries.priceLines();
@@ -247,19 +241,115 @@ export function MicroChart({
     // Store refs
     chartRef.current = chart;
     candlestickSeriesRef.current = candlestickSeries;
+    volumeSeriesRef.current = volumeSeries;
 
     // Cleanup
     return () => {
+      volumeSeriesRef.current = null;
+      candlestickSeriesRef.current = null;
+      chartRef.current = null;
+      previousSeriesDataRef.current = [];
       chart.remove();
     };
-  }, [alertTimestamp, downColor, height, klines, upColor, width]);
+  }, [downColor, height, upColor, width]);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    chartRef.current.applyOptions({ width, height });
+  }, [height, width]);
+
+  useEffect(() => {
+    const candlestickSeries = candlestickSeriesRef.current;
+    const volumeSeries = volumeSeriesRef.current;
+    const chart = chartRef.current;
+
+    if (!candlestickSeries || !volumeSeries || !chart) {
+      return;
+    }
+
+    candlestickSeries.applyOptions({
+      upColor,
+      downColor,
+      borderUpColor: upColor,
+      borderDownColor: downColor,
+      wickUpColor: upColor,
+      wickDownColor: downColor,
+    });
+
+    const nextVolumeData = seriesData.map((kline) => ({
+      time: kline.time,
+      value: kline.volume,
+      color:
+        kline.close >= kline.open
+          ? hexToRgba(upColor, VOLUME_OPACITY)
+          : hexToRgba(downColor, VOLUME_OPACITY),
+    }));
+    const previousSeriesData = previousSeriesDataRef.current;
+    const previousLength = previousSeriesData.length;
+    const nextLength = seriesData.length;
+    const previousLast = previousSeriesData[previousLength - 1];
+    const nextLast = seriesData[nextLength - 1];
+
+    // Skip entirely when chart data hasn't changed (common on WS ticks that
+    // update prices but not klines — avoids unnecessary canvas repaints).
+    if (
+      previousLength === nextLength &&
+      nextLength > 0 &&
+      previousLast?.time === nextLast?.time &&
+      previousLast?.open === nextLast?.open &&
+      previousLast?.high === nextLast?.high &&
+      previousLast?.low === nextLast?.low &&
+      previousLast?.close === nextLast?.close &&
+      previousLast?.volume === nextLast?.volume &&
+      previousLast?.color === nextLast?.color
+    ) {
+      return;
+    }
+
+    const canApplyIncrementalUpdate =
+      previousLength > 0 &&
+      nextLength > 0 &&
+      (nextLength === previousLength || nextLength === previousLength + 1) &&
+      previousSeriesData
+        .slice(0, Math.min(previousLength, nextLength) - 1)
+        .every((point, index) => {
+          const nextPoint = seriesData[index];
+
+          return (
+            point.time === nextPoint?.time &&
+            point.open === nextPoint.open &&
+            point.high === nextPoint.high &&
+            point.low === nextPoint.low &&
+            point.close === nextPoint.close &&
+            point.volume === nextPoint.volume &&
+            point.color === nextPoint.color &&
+            point.borderColor === nextPoint.borderColor &&
+            point.wickColor === nextPoint.wickColor
+          );
+        }) &&
+      ((nextLength === previousLength &&
+        previousLast?.time === nextLast?.time) ||
+        (nextLength === previousLength + 1 &&
+          previousLast?.time !== nextLast?.time));
+
+    if (canApplyIncrementalUpdate && nextLast) {
+      candlestickSeries.update(nextLast);
+      volumeSeries.update(nextVolumeData[nextVolumeData.length - 1]);
+    } else {
+      candlestickSeries.setData(seriesData);
+      volumeSeries.setData(nextVolumeData);
+    }
+
+    previousSeriesDataRef.current = seriesData;
+  }, [downColor, seriesData, upColor]);
 
   return (
     <div
       className="inline-block"
       style={{ width, height }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onPointerEnter={onMouseEnter}
+      onPointerLeave={onMouseLeave}
     >
       <div ref={chartContainerRef} style={{ width, height }} />
     </div>
@@ -392,8 +482,8 @@ export function MicroChartWithModal({
         top: `${position.top}px`,
         left: `${position.left}px`,
       }}
-      onMouseEnter={handleModalMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onPointerEnter={handleModalMouseEnter}
+      onPointerLeave={handleMouseLeave}
     >
       <div className="pointer-events-auto shadow-lg rounded-lg border border-border bg-card p-2">
         <MiniChart
@@ -412,8 +502,8 @@ export function MicroChartWithModal({
     <>
       <div
         ref={containerRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onPointerEnter={handleMouseEnter}
+        onPointerLeave={handleMouseLeave}
         className="inline-block"
       >
         <MicroChart

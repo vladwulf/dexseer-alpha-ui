@@ -1,4 +1,6 @@
+import { useMemo } from "react";
 import { useGetChartBySymbol } from "@/hooks/chart/useGetChart";
+import { useLiveChartSeries } from "@/hooks/chart/useLiveChartSeries";
 import { IndexChart } from "../chart/IndexChart";
 
 interface MarketMoverCardProps {
@@ -7,10 +9,32 @@ interface MarketMoverCardProps {
   ticker: string;
 }
 
-function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) {
+function MarketMoverCard({
+  symbol,
+  displayName,
+  ticker,
+}: MarketMoverCardProps) {
   const { data, isLoading } = useGetChartBySymbol(symbol, "15m", 500);
+  const liveCharts = useLiveChartSeries({
+    timeframe: "15m",
+    seeds:
+      data === undefined
+        ? []
+        : [
+            {
+              assetId: data.asset.id,
+              data: data.ohlcData,
+            },
+          ],
+  });
+  const ohlc = useMemo(() => {
+    if (!data) {
+      return [];
+    }
 
-  const ohlc = data?.ohlcData ?? [];
+    return liveCharts.seriesByAssetId.get(data.asset.id) ?? data.ohlcData;
+  }, [data, liveCharts.seriesByAssetId]);
+
   const currentPrice = ohlc.length > 0 ? ohlc[ohlc.length - 1].close : 0;
   const openPrice = ohlc.length > 0 ? ohlc[0].open : 0;
   const priceChange =
@@ -18,7 +42,8 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
   const isPositive = priceChange >= 0;
 
   const formatPrice = (p: number) => {
-    if (p >= 1000) return p.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    if (p >= 1000)
+      return p.toLocaleString("en-US", { maximumFractionDigits: 2 });
     if (p >= 1) return p.toFixed(2);
     return p.toFixed(4);
   };
@@ -120,7 +145,7 @@ function MarketMoverCard({ symbol, displayName, ticker }: MarketMoverCardProps) 
         <div className="h-28 w-full">
           {ohlc.length > 0 ? (
             <IndexChart
-              symbol={data!.asset.symbol}
+              symbol={symbol}
               klines={ohlc}
               upColor="#5dc887"
               downColor="#e35561"
@@ -158,7 +183,10 @@ export function MarketMovers() {
         >
           Market Overview
         </p>
-        <div className="h-px flex-1" style={{ background: "oklch(1 0 0 / 6%)" }} />
+        <div
+          className="h-px flex-1"
+          style={{ background: "oklch(1 0 0 / 6%)" }}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">

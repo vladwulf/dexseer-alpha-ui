@@ -14,7 +14,7 @@ export type KLine = [
   number, // 8: Number of trades
   string, // 9: Taker buy base asset volume
   string, // 10: Taker buy quote asset volume
-  string // 11: Unused field (ignore)
+  string, // 11: Unused field (ignore)
 ];
 
 /**

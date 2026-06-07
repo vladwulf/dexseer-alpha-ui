@@ -1,23 +1,31 @@
-import { API_URL } from "@/config";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { API_URL } from "@/config";
 import type {
-  AnalyticsDistributionMetric,
-  AnalyticsDistributionResponse,
   AnalyticsBreakoutHoursResponse,
   AnalyticsBtcCorrelationResponse,
-  AnalyticsTimeframeMoversResponse,
+  AnalyticsDistributionMetric,
+  AnalyticsDistributionResponse,
   AnalyticsHourlyVolumeActivityResponse,
   AnalyticsMoversTimeframe,
+  AnalyticsTimeframeMoversResponse,
   AnalyticsVolumeMetric,
-  RunnerBoard,
   ReplayFrame,
+  RunnerBoard,
   RunnerMetric,
   RunnersResponse,
 } from "../types";
 
-async function getHourlyVolumeActivity(metric: AnalyticsVolumeMetric, assetLimit: number, lookbackDays: number) {
-  const params = new URLSearchParams({ metric, assetLimit: String(assetLimit), lookbackDays: String(lookbackDays) });
+async function getHourlyVolumeActivity(
+  metric: AnalyticsVolumeMetric,
+  assetLimit: number,
+  lookbackDays: number,
+) {
+  const params = new URLSearchParams({
+    metric,
+    assetLimit: String(assetLimit),
+    lookbackDays: String(lookbackDays),
+  });
   const response = await axios.get<AnalyticsHourlyVolumeActivityResponse>(
     `${API_URL}/analytics/hourly-volume-activity?${params.toString()}`,
   );
@@ -30,7 +38,11 @@ type Params = {
   lookbackDays?: number;
 };
 
-export const useGetHourlyVolumeActivity = ({ metric, assetLimit = 25, lookbackDays = 14 }: Params) => {
+export const useGetHourlyVolumeActivity = ({
+  metric,
+  assetLimit = 25,
+  lookbackDays = 14,
+}: Params) => {
   return useQuery({
     queryKey: ["analytics-hourly-volume", metric, assetLimit, lookbackDays],
     queryFn: () => getHourlyVolumeActivity(metric, assetLimit, lookbackDays),
@@ -47,7 +59,12 @@ export const useGetTimeframeMovers = ({
   timeframe?: AnalyticsMoversTimeframe;
 } = {}) => {
   return useQuery({
-    queryKey: ["analytics-timeframe-movers", threshold, lookbackDays, timeframe],
+    queryKey: [
+      "analytics-timeframe-movers",
+      threshold,
+      lookbackDays,
+      timeframe,
+    ],
     queryFn: async () => {
       const params = new URLSearchParams({
         threshold: String(threshold),
@@ -62,11 +79,17 @@ export const useGetTimeframeMovers = ({
   });
 };
 
-export const useGetBtcCorrelation = ({ lookbackDays = 7 }: { lookbackDays?: number } = {}) => {
+export const useGetBtcCorrelation = ({
+  lookbackDays = 7,
+}: {
+  lookbackDays?: number;
+} = {}) => {
   return useQuery({
     queryKey: ["analytics-btc-correlation", lookbackDays],
     queryFn: async () => {
-      const params = new URLSearchParams({ lookbackDays: String(lookbackDays) });
+      const params = new URLSearchParams({
+        lookbackDays: String(lookbackDays),
+      });
       const response = await axios.get<AnalyticsBtcCorrelationResponse>(
         `${API_URL}/analytics/btc-correlation?${params.toString()}`,
       );
@@ -75,11 +98,17 @@ export const useGetBtcCorrelation = ({ lookbackDays = 7 }: { lookbackDays?: numb
   });
 };
 
-export const useGetBreakoutHours = ({ lookbackDays = 30 }: { lookbackDays?: number } = {}) => {
+export const useGetBreakoutHours = ({
+  lookbackDays = 30,
+}: {
+  lookbackDays?: number;
+} = {}) => {
   return useQuery({
     queryKey: ["analytics-breakout-hours", lookbackDays],
     queryFn: async () => {
-      const params = new URLSearchParams({ lookbackDays: String(lookbackDays) });
+      const params = new URLSearchParams({
+        lookbackDays: String(lookbackDays),
+      });
       const response = await axios.get<AnalyticsBreakoutHoursResponse>(
         `${API_URL}/analytics/breakout-hours?${params.toString()}`,
       );
@@ -88,7 +117,9 @@ export const useGetBreakoutHours = ({ lookbackDays = 30 }: { lookbackDays?: numb
   });
 };
 
-export const useGetPriceChangeDistribution = (metric: AnalyticsDistributionMetric) => {
+export const useGetPriceChangeDistribution = (
+  metric: AnalyticsDistributionMetric,
+) => {
   return useQuery({
     queryKey: ["screener-price-change-distribution", metric],
     queryFn: async () => {
@@ -121,7 +152,11 @@ export const useGetRunners = (board: RunnerBoard) => {
   });
 };
 
-export const useGetRunnersReplay = (board: RunnerBoard, metric: RunnerMetric, enabled: boolean) => {
+export const useGetRunnersReplay = (
+  board: RunnerBoard,
+  metric: RunnerMetric,
+  enabled: boolean,
+) => {
   return useQuery({
     queryKey: ["screener-runners-replay", board, metric],
     queryFn: async () => {

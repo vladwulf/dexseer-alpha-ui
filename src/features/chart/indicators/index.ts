@@ -40,8 +40,11 @@ export function getEMASeriesData(data: CandlestickData[], periods: number) {
       emaData.push({ time: data[i].time, value: previousEMA });
     } else {
       // Calculate EMA using the formula: EMA = (Close - Previous EMA) * Multiplier + Previous EMA
+      if (previousEMA === null) {
+        continue;
+      }
       const currentEMA: number =
-        (data[i].close - previousEMA!) * multiplier + previousEMA!;
+        (data[i].close - previousEMA) * multiplier + previousEMA;
       previousEMA = currentEMA;
       emaData.push({ time: data[i].time, value: currentEMA });
     }
@@ -55,7 +58,7 @@ export function getEMASeriesData(data: CandlestickData[], periods: number) {
  */
 export function calculateEMAFromValues(
   values: number[],
-  periods: number
+  periods: number,
 ): (number | null)[] {
   const emaData: (number | null)[] = [];
   const multiplier = 2 / (periods + 1);
@@ -74,8 +77,12 @@ export function calculateEMAFromValues(
       emaData.push(previousEMA);
     } else {
       // Calculate EMA
+      if (previousEMA === null) {
+        emaData.push(null);
+        continue;
+      }
       const currentEMA: number =
-        (values[i] - previousEMA!) * multiplier + previousEMA!;
+        (values[i] - previousEMA) * multiplier + previousEMA;
       previousEMA = currentEMA;
       emaData.push(currentEMA);
     }
@@ -109,7 +116,7 @@ export function getMACDSeriesData(
   slowPeriod: number = 26,
   signalPeriod: number = 9,
   positiveColor: string = "rgba(34, 197, 94, 0.5)",
-  negativeColor: string = "rgba(239, 68, 68, 0.5)"
+  negativeColor: string = "rgba(239, 68, 68, 0.5)",
 ): MACDResult {
   // Calculate fast and slow EMAs
   const fastEMA = getEMASeriesData(data, fastPeriod);
@@ -138,8 +145,9 @@ export function getMACDSeriesData(
   const signalLine: { time: CandlestickData["time"]; value?: number }[] = [];
 
   for (let i = 0; i < data.length; i++) {
-    if (signalEMA[i] !== null) {
-      signalLine.push({ time: data[i].time, value: signalEMA[i]! });
+    const signalValue = signalEMA[i];
+    if (signalValue !== null) {
+      signalLine.push({ time: data[i].time, value: signalValue });
     } else {
       signalLine.push({ time: data[i].time });
     }

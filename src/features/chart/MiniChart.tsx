@@ -1,12 +1,14 @@
+import type { CandlestickData, Time } from "lightweight-charts";
+import { CandlestickSeries, ColorType, createChart } from "lightweight-charts";
+import type { ReactElement } from "react";
 import { cloneElement, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { ReactElement } from "react";
-import { createChart, ColorType, CandlestickSeries } from "lightweight-charts";
-import type { CandlestickData, Time } from "lightweight-charts";
 import type { OHLCVExtended } from "@/types/ohlcv";
 
 interface MiniChartProps {
   klines: OHLCVExtended[];
+  width?: number;
+  height?: number;
   upColor?: string;
   downColor?: string;
   /**
@@ -34,6 +36,8 @@ interface MiniChartProps {
  */
 export function MiniChart({
   klines,
+  width = 400,
+  height = 200,
   upColor = "#22c55e", // Default green for up candles
   downColor = "#ef4444", // Default red for down candles
   periods,
@@ -62,7 +66,8 @@ export function MiniChart({
         vertLines: { visible: false },
         horzLines: { visible: false },
       },
-      autoSize: true,
+      width,
+      height,
       timeScale: {
         visible: true,
         borderVisible: false,
@@ -128,8 +133,12 @@ export function MiniChart({
 
     // Convert OHLCVExtended data to candlestick format (based on MicroChart)
     const chartData: CandlestickData[] = dataToRender
-      .filter((kline) =>
-        kline.open != null && kline.high != null && kline.low != null && kline.close != null
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
       )
       .map((kline) => {
         const time = (new Date(kline.time).getTime() / 1000) as Time;
@@ -159,9 +168,15 @@ export function MiniChart({
     return () => {
       chart.remove();
     };
-  }, [klines, upColor, downColor, periods]);
+  }, [downColor, height, klines, periods, upColor, width]);
 
-  return <div ref={chartContainerRef} className="rounded-md h-full w-full" />;
+  return (
+    <div
+      ref={chartContainerRef}
+      className="rounded-md"
+      style={{ width, height }}
+    />
+  );
 }
 
 interface MiniChartModalProps {
@@ -350,8 +365,8 @@ export function MiniChartModal({
         top: `${position.top}px`,
         left: `${position.left}px`,
       }}
-      onMouseEnter={handleModalMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onPointerEnter={handleModalMouseEnter}
+      onPointerLeave={handleMouseLeave}
     >
       <div className="pointer-events-auto border shadow-lg rounded-lg bg-base">
         <MiniChart

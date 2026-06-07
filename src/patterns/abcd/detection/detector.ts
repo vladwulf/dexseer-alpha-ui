@@ -1,5 +1,5 @@
-import type { KLine } from "@/patterns/types/binance.types";
 import type { Time } from "lightweight-charts";
+import type { KLine } from "@/patterns/types/binance.types";
 
 export interface ABCDPattern {
   A: {
@@ -47,7 +47,7 @@ export function detectABCDPatterns(
     maxBarsForPattern?: number;
     minRetracementPercent?: number;
     maxRetracementPercent?: number;
-  } = {}
+  } = {},
 ): ABCDPattern[] {
   const {
     minBarsForPattern = 10,
@@ -134,15 +134,15 @@ export function detectABCDPatterns(
       candles,
       aCandle,
       bCandle,
-      cCandle
+      cCandle,
     );
 
     console.log(
       `Found pattern: A=${aCandle.high.toFixed(
-        6
+        6,
       )} (${aIdx}), B=${bCandle.low.toFixed(
-        6
-      )} (${bIdx}), C=${cCandle.low.toFixed(6)} (${cIdx}), strength=${strength}`
+        6,
+      )} (${bIdx}), C=${cCandle.low.toFixed(6)} (${cIdx}), strength=${strength}`,
     );
 
     patterns.push({
@@ -180,7 +180,7 @@ function calculatePatternStrength(
   _candles: ProcessedCandle[],
   aPoint: ProcessedCandle,
   bPoint: ProcessedCandle,
-  cPoint: ProcessedCandle
+  cPoint: ProcessedCandle,
 ): number {
   let strength = 0;
 
@@ -219,7 +219,7 @@ function calculatePatternStrength(
  */
 export function hasBreakout(
   pattern: ABCDPattern,
-  currentPrice: number
+  currentPrice: number,
 ): boolean {
   return currentPrice > pattern.breakoutLevel;
 }
