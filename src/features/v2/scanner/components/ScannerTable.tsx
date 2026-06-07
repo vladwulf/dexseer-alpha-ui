@@ -4,9 +4,13 @@ import type {
   OnChangeFn,
   SortingState,
 } from "@tanstack/react-table";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { memo, useMemo } from "react";
 import { Link } from "react-router";
-import { MicroChart } from "@/features/chart/MicroChart";
 import {
   Table,
   TableBody,
@@ -15,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { MicroChart } from "@/features/chart/MicroChart";
 import { cn } from "@/lib/utils";
 import {
   formatPrice,
@@ -26,15 +31,66 @@ import type { DensityMode, ScannerAsset, ScannerPreset } from "../types";
 import { Sparkline } from "./Sparkline";
 
 const GAINERS_COLUMNS = new Set([
-  "symbol", "price", "change5m", "change15m", "change1h", "change4h",
-  "change24h", "volume", "rvol", "oiDelta", "funding", "chart",
+  "symbol",
+  "price",
+  "change5m",
+  "change15m",
+  "change1h",
+  "change4h",
+  "change24h",
+  "volume",
+  "rvol",
+  "oiDelta",
+  "funding",
+  "chart",
 ]);
 
 const DEFAULT_COLUMNS = new Set([
-  "symbol", "price", "change5m", "change15m", "change1h", "change4h",
-  "change24h", "volume", "rvol", "oiDelta", "funding", "atrPercent",
-  "btcCorrelation", "alertCount", "setupScore", "sparkline",
+  "symbol",
+  "price",
+  "change5m",
+  "change15m",
+  "change1h",
+  "change4h",
+  "change24h",
+  "volume",
+  "rvol",
+  "oiDelta",
+  "funding",
+  "atrPercent",
+  "btcCorrelation",
+  "alertCount",
+  "setupScore",
+  "sparkline",
 ]);
+
+const ScannerChartCell = memo(function ScannerChartCell({
+  chart,
+}: {
+  chart: ScannerAsset["chart"];
+}) {
+  const lastCandle = chart[chart.length - 1];
+  const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
+  const accentColor = isUp ? "#5dc887" : "#e35561";
+
+  return (
+    <div className="relative inline-block w-[158px] overflow-hidden rounded-[6px] border border-white/8 bg-[#0a0a0a]">
+      <div
+        style={{
+          height: "1px",
+          background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+        }}
+      />
+      <MicroChart
+        klines={chart}
+        alertTimestamp="2000-01-01 00:00:00+00"
+        width={158}
+        height={60}
+        periods={80}
+      />
+    </div>
+  );
+});
 
 const scannerColumns: ColumnDef<ScannerAsset>[] = [
   {
@@ -59,6 +115,14 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
           </div>
         </div>
       );
+    },
+  },
+  {
+    id: "chart",
+    header: "Chart",
+    enableSorting: false,
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
+      return <ScannerChartCell chart={row.original.chart} />;
     },
   },
   {
@@ -178,13 +242,12 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
       const score = row.original.setupScore;
       return (
         <span
-          className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${
-            score >= 80
-              ? "bg-[#5b8ff9] text-white"
-              : score >= 60
-                ? "bg-amber-300 text-black"
-                : "bg-white/10 text-white/78"
-          }`}
+          className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${score >= 80
+            ? "bg-[#5b8ff9] text-white"
+            : score >= 60
+              ? "bg-amber-300 text-black"
+              : "bg-white/10 text-white/78"
+            }`}
         >
           {score}
         </span>
@@ -200,36 +263,6 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
         <Sparkline values={row.original.sparkline} />
       </div>
     ),
-  },
-  {
-    id: "chart",
-    header: "Chart",
-    enableSorting: false,
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
-      const asset = row.original;
-      const lastCandle = asset.chart[asset.chart.length - 1];
-      const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
-      const accentColor = isUp ? "#5dc887" : "#e35561";
-      return (
-        <div
-          className="relative inline-block w-[158px] overflow-hidden rounded-[6px] border border-white/8 bg-[#0a0a0a]"
-        >
-          <div
-            style={{
-              height: "1px",
-              background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
-            }}
-          />
-          <MicroChart
-            klines={asset.chart}
-            alertTimestamp="2000-01-01 00:00:00+00"
-            width={158}
-            height={60}
-            periods={80}
-          />
-        </div>
-      );
-    },
   },
 ];
 
@@ -252,13 +285,18 @@ export function ScannerTable({
   onSelectSymbol,
   onSortingChange,
 }: ScannerTableProps) {
-  const visibleColIds = preset === "Gainers" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
-  const columns = scannerColumns.filter((col) =>
-    "accessorKey" in col
-      ? visibleColIds.has(String(col.accessorKey))
-      : "id" in col
-        ? visibleColIds.has(String(col.id))
-        : true,
+  const visibleColIds =
+    preset === "Gainers" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
+  const columns = useMemo(
+    () =>
+      scannerColumns.filter((col) =>
+        "accessorKey" in col
+          ? visibleColIds.has(String(col.accessorKey))
+          : "id" in col
+            ? visibleColIds.has(String(col.id))
+            : true,
+      ),
+    [visibleColIds],
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -287,7 +325,9 @@ export function ScannerTable({
                   key={header.id}
                   className={cn(
                     "px-3 py-4 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/35",
-                    header.column.getCanSort() ? "cursor-pointer select-none" : "",
+                    header.column.getCanSort()
+                      ? "cursor-pointer select-none"
+                      : "",
                   )}
                   onClick={header.column.getToggleSortingHandler()}
                   style={{
@@ -301,9 +341,9 @@ export function ScannerTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                     {header.column.getCanSort() && (
                       <span
                         style={{
@@ -337,7 +377,7 @@ export function ScannerTable({
                 className={cn(
                   "border-b border-white/6 transition hover:bg-white/[0.03]",
                   isSelected &&
-                    "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]",
+                  "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]",
                   density === "expanded" ? "h-20" : "h-14",
                 )}
                 onClick={() => onSelectSymbol(row.original.symbol)}

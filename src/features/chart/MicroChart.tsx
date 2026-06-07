@@ -19,6 +19,18 @@ const hexToRgba = (hex: string, opacity: number): string => {
 
 const VOLUME_OPACITY = 0.78;
 
+type MicroChartPoint = {
+  time: Time;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  color?: string;
+  borderColor?: string;
+  wickColor?: string;
+};
+
 interface MicroChartProps {
   alertTimestamp: string;
   klines: OHLCVExtended[];
@@ -61,6 +73,7 @@ export function MicroChart({
   height = 40,
   upColor = "#5dc887", // Green for up candles
   downColor = "#e35561", // Red for down candles
+  periods,
   onMouseEnter,
   onMouseLeave,
 }: MicroChartProps) {
@@ -72,12 +85,16 @@ export function MicroChart({
   const volumeSeriesRef = useRef<ReturnType<
     ReturnType<typeof createChart>["addSeries"]
   > | null>(null);
+  const previousSeriesDataRef = useRef<MicroChartPoint[]>([]);
 
   const seriesData = useMemo(() => {
     const alertTimestampUnix = (new Date(alertTimestamp).getTime() /
       1000) as Time;
 
-    return klines
+    const dataToRender =
+      periods !== undefined ? klines.slice(-periods) : klines;
+
+    return dataToRender
       .filter(
         (kline) =>
           kline.open != null &&
@@ -112,7 +129,7 @@ export function MicroChart({
           wickColor: candleColor,
         };
       });
-  }, [alertTimestamp, downColor, klines, upColor]);
+  }, [alertTimestamp, downColor, klines, periods, upColor]);
 
   useEffect(() => {
     if (!chartContainerRef.current || chartRef.current) return;
@@ -231,6 +248,7 @@ export function MicroChart({
       volumeSeriesRef.current = null;
       candlestickSeriesRef.current = null;
       chartRef.current = null;
+      previousSeriesDataRef.current = [];
       chart.remove();
     };
   }, [downColor, height, upColor, width]);
@@ -259,18 +277,71 @@ export function MicroChart({
       wickDownColor: downColor,
     });
 
-    candlestickSeries.setData(seriesData);
-    volumeSeries.setData(
-      seriesData.map((kline) => ({
-        time: kline.time,
-        value: kline.volume,
-        color:
-          kline.close >= kline.open
-            ? hexToRgba(upColor, VOLUME_OPACITY)
-            : hexToRgba(downColor, VOLUME_OPACITY),
-      })),
-    );
-    chart.timeScale().fitContent();
+    const nextVolumeData = seriesData.map((kline) => ({
+      time: kline.time,
+      value: kline.volume,
+      color:
+        kline.close >= kline.open
+          ? hexToRgba(upColor, VOLUME_OPACITY)
+          : hexToRgba(downColor, VOLUME_OPACITY),
+    }));
+    const previousSeriesData = previousSeriesDataRef.current;
+    const previousLength = previousSeriesData.length;
+    const nextLength = seriesData.length;
+    const previousLast = previousSeriesData[previousLength - 1];
+    const nextLast = seriesData[nextLength - 1];
+
+    // Skip entirely when chart data hasn't changed (common on WS ticks that
+    // update prices but not klines — avoids unnecessary canvas repaints).
+    if (
+      previousLength === nextLength &&
+      nextLength > 0 &&
+      previousLast?.time === nextLast?.time &&
+      previousLast?.open === nextLast?.open &&
+      previousLast?.high === nextLast?.high &&
+      previousLast?.low === nextLast?.low &&
+      previousLast?.close === nextLast?.close &&
+      previousLast?.volume === nextLast?.volume &&
+      previousLast?.color === nextLast?.color
+    ) {
+      return;
+    }
+
+    const canApplyIncrementalUpdate =
+      previousLength > 0 &&
+      nextLength > 0 &&
+      (nextLength === previousLength || nextLength === previousLength + 1) &&
+      previousSeriesData
+        .slice(0, Math.min(previousLength, nextLength) - 1)
+        .every((point, index) => {
+          const nextPoint = seriesData[index];
+
+          return (
+            point.time === nextPoint?.time &&
+            point.open === nextPoint.open &&
+            point.high === nextPoint.high &&
+            point.low === nextPoint.low &&
+            point.close === nextPoint.close &&
+            point.volume === nextPoint.volume &&
+            point.color === nextPoint.color &&
+            point.borderColor === nextPoint.borderColor &&
+            point.wickColor === nextPoint.wickColor
+          );
+        }) &&
+      ((nextLength === previousLength &&
+        previousLast?.time === nextLast?.time) ||
+        (nextLength === previousLength + 1 &&
+          previousLast?.time !== nextLast?.time));
+
+    if (canApplyIncrementalUpdate && nextLast) {
+      candlestickSeries.update(nextLast);
+      volumeSeries.update(nextVolumeData[nextVolumeData.length - 1]);
+    } else {
+      candlestickSeries.setData(seriesData);
+      volumeSeries.setData(nextVolumeData);
+    }
+
+    previousSeriesDataRef.current = seriesData;
   }, [downColor, seriesData, upColor]);
 
   return (

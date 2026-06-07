@@ -217,11 +217,8 @@ export function mergeChartSeriesIntoAsset(
 ) {
   if (!chart) return asset;
 
-  const lastCandle = chart[chart.length - 1];
-
   return {
     ...asset,
-    price: lastCandle?.close ?? asset.price,
     chart,
   };
 }
