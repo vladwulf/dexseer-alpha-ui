@@ -17,6 +17,7 @@ import { useScannerState } from "./hooks/useScannerState";
 import {
   getSupportedScannerChartTimeframe,
   mapMarketStripResponse,
+  mergeBatchChartsIntoAssets,
   mergeChartSeriesIntoAsset,
   mergeDetailsIntoAsset,
 } from "./lib/apiAdapters";
@@ -58,17 +59,21 @@ export function ScannerV2Screen() {
       ].sort((left, right) => left - right),
     [filteredAssets],
   );
+  const assetIdsKey = useMemo(
+    () => tableAssetIds.join(","),
+    [tableAssetIds],
+  );
   const tableChartParams = useMemo(() => {
-    if (tableAssetIds.length === 0) {
+    if (!assetIdsKey) {
       return null;
     }
 
     return {
-      asset_ids: tableAssetIds.join(","),
+      asset_ids: assetIdsKey,
       timeframe: chartTimeframe,
       limit: 40,
     };
-  }, [chartTimeframe, tableAssetIds]);
+  }, [chartTimeframe, assetIdsKey]);
   const tableChartsQuery = useGetScannerCharts(tableChartParams);
   const selectedAssetId = selectedAsset?.assetId;
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
@@ -77,22 +82,13 @@ export function ScannerV2Screen() {
   });
   const liveCharts = useLiveScannerCharts({
     timeframe: chartTimeframe,
-    tableAssetIds,
-    tableCharts: tableChartsQuery.data,
+    tableAssetIds: [],
     selectedAssetId,
     detailsChart: detailsChartQuery.data,
   });
   const tableAssets = useMemo(
-    () =>
-      filteredAssets.map((asset) =>
-        asset.assetId === undefined
-          ? asset
-          : mergeChartSeriesIntoAsset(
-              asset,
-              liveCharts.tableChartSeriesByAssetId.get(asset.assetId),
-            ),
-      ),
-    [filteredAssets, liveCharts.tableChartSeriesByAssetId],
+    () => mergeBatchChartsIntoAssets(filteredAssets, tableChartsQuery.data),
+    [filteredAssets, tableChartsQuery.data],
   );
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {

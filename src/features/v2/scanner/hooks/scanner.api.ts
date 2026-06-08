@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { API_URL } from "@/config";
 
@@ -333,6 +333,7 @@ export function useGetScanner(params: ScannerRequest = {}) {
   return useQuery({
     queryKey: ["scanner-v2-list", params],
     queryFn: () => getScanner(params),
+    refetchInterval: 5000,
     ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }
@@ -354,6 +355,7 @@ export function useGetScannerCharts(params: ScannerBatchChartsRequest | null) {
     queryKey: ["scanner-v2-charts", params],
     queryFn: () => getScannerCharts(params as ScannerBatchChartsRequest),
     enabled: params !== null,
+    placeholderData: keepPreviousData,
     ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }

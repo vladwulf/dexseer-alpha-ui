@@ -90,6 +90,15 @@ const ScannerChartCell = memo(function ScannerChartCell({
       />
     </div>
   );
+}, (prev, next) => {
+  const a = prev.chart;
+  const b = next.chart;
+  if (a.length !== b.length) return false;
+  // Compare all candles — if time + close are the same, data is unchanged
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].time !== b[i].time || a[i].close !== b[i].close) return false;
+  }
+  return true;
 });
 
 const scannerColumns: ColumnDef<ScannerAsset>[] = [
@@ -375,7 +384,7 @@ export function ScannerTable({
               <TableRow
                 key={row.id}
                 className={cn(
-                  "border-b border-white/6 transition hover:bg-white/[0.03]",
+                  "border-b border-white/6 hover:bg-white/[0.03]",
                   isSelected &&
                   "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]",
                   density === "expanded" ? "h-20" : "h-14",

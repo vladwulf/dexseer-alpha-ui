@@ -137,6 +137,7 @@ export const ScreenerTable = () => {
     direction,
     chartTimeframe: timeframe,
     assetName: assetNameFilter,
+    refetchIntervalMs: 5000,
   });
   const liveCharts = useLiveChartSeries({
     enabled: refreshInterval === "live",
