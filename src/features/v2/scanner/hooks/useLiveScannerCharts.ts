@@ -176,7 +176,7 @@ export function useLiveScannerCharts({
       return;
     }
 
-    const socket = io(socketUrl);
+    const socket = io(socketUrl, { transports: ["websocket"] });
     socketRef.current = socket;
 
     const handleChartCandle = (payload: ChartCandleEvent) => {

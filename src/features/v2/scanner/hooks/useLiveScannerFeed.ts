@@ -64,7 +64,7 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
       return;
     }
 
-    const socket = io(socketUrl);
+    const socket = io(socketUrl, { transports: ["websocket"] });
     socketRef.current = socket;
 
     const syncRooms = (nextRoomNames: string[]) => {
