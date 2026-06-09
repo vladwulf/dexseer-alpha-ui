@@ -109,8 +109,8 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
       const asset = row.original;
       return (
-        <div className="flex items-center gap-3">
-          <div>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="min-w-0 truncate">
             <Link
               to={`/assets/${asset.symbol}`}
               onClick={(e) => e.stopPropagation()}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useGetScanner } from "../hooks/scanner.api";
 import {
   getScannerPresetKey,
@@ -6,6 +6,7 @@ import {
   mapScannerRowToAsset,
 } from "../lib/apiAdapters";
 import { useScannerTableConfigStore } from "../store/useScannerTableConfigStore";
+import type { ScannerAsset } from "../types";
 
 export function useScannerState() {
   const [search, setSearch] = useState("");
@@ -32,8 +33,28 @@ export function useScannerState() {
     ...scannerSortParams,
   });
 
+  const assetMapRef = useRef<Map<string, ScannerAsset>>(new Map());
+
   const filteredAssets = useMemo(() => {
-    return scannerQuery.data?.entries.map(mapScannerRowToAsset) ?? [];
+    const entries = scannerQuery.data?.entries ?? [];
+    const current = assetMapRef.current;
+    const nextMap = new Map<string, ScannerAsset>();
+    const result: ScannerAsset[] = [];
+
+    for (const row of entries) {
+      const existing = current.get(row.symbol);
+      if (existing) {
+        result.push(existing);
+        nextMap.set(row.symbol, existing);
+      } else {
+        const asset = mapScannerRowToAsset(row);
+        result.push(asset);
+        nextMap.set(row.symbol, asset);
+      }
+    }
+
+    assetMapRef.current = nextMap;
+    return result;
   }, [scannerQuery.data]);
 
   const selectedAsset =

@@ -17,7 +17,6 @@ import { useScannerState } from "./hooks/useScannerState";
 import {
   getSupportedScannerChartTimeframe,
   mapMarketStripResponse,
-  mergeBatchChartsIntoAssets,
   mergeChartSeriesIntoAsset,
   mergeDetailsIntoAsset,
 } from "./lib/apiAdapters";
@@ -82,13 +81,22 @@ export function ScannerV2Screen() {
   });
   const liveCharts = useLiveScannerCharts({
     timeframe: chartTimeframe,
-    tableAssetIds: [],
+    tableAssetIds,
+    tableCharts: tableChartsQuery.data,
     selectedAssetId,
     detailsChart: detailsChartQuery.data,
   });
   const tableAssets = useMemo(
-    () => mergeBatchChartsIntoAssets(filteredAssets, tableChartsQuery.data),
-    [filteredAssets, tableChartsQuery.data],
+    () =>
+      filteredAssets.map((asset) =>
+        asset.assetId === undefined
+          ? asset
+          : mergeChartSeriesIntoAsset(
+              asset,
+              liveCharts.tableChartSeriesByAssetId.get(asset.assetId),
+            ),
+      ),
+    [filteredAssets, liveCharts.tableChartSeriesByAssetId],
   );
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {

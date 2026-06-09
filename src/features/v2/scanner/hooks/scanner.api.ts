@@ -333,7 +333,7 @@ export function useGetScanner(params: ScannerRequest = {}) {
   return useQuery({
     queryKey: ["scanner-v2-list", params],
     queryFn: () => getScanner(params),
-    refetchInterval: 5000,
+    refetchInterval: 10000,
     ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }
