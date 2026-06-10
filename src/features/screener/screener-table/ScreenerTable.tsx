@@ -139,13 +139,18 @@ export const ScreenerTable = () => {
     assetName: assetNameFilter,
     refetchIntervalMs: 5000,
   });
+  const seeds = useMemo(
+    () =>
+      (assets ?? []).map((asset) => ({
+        assetId: asset.id,
+        data: asset.chart.data,
+      })),
+    [assets],
+  );
   const liveCharts = useLiveChartSeries({
     enabled: refreshInterval === "live",
     timeframe,
-    seeds: (assets ?? []).map((asset) => ({
-      assetId: asset.id,
-      data: asset.chart.data,
-    })),
+    seeds,
   });
   const liveAssets = useMemo(
     () =>
