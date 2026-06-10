@@ -240,7 +240,7 @@ export function ScannerMomentumHeatmap({
   selectedSymbol,
   onSelectSymbol,
 }: ScannerMomentumHeatmapProps) {
-  const CONTENT_HEIGHT_CLASS = "h-[380px]";
+  const CONTENT_HEIGHT_CLASS = "min-h-[380px]";
   const [metric, setMetric] = useState<RunnerTimeframe>("1h");
   const { data, isLoading, isError } = useGetStatsRunners({
     timeframes: "1h,4h,1d",
