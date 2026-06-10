@@ -24,6 +24,33 @@ export const SortBy = {
 
 export type SortBy = (typeof SortBy)[keyof typeof SortBy];
 
+type ScreenerAssetResponse = Omit<ScreenerAssetWithChart, "id"> & {
+  id?: number;
+  asset_id?: number;
+};
+
+function normalizeScreenerAsset(
+  asset: ScreenerAssetResponse,
+): ScreenerAssetWithChart {
+  const id = asset.id ?? asset.asset_id;
+
+  if (id === undefined) {
+    throw new Error(`Screener asset ${asset.symbol} is missing an id`);
+  }
+
+  return {
+    ...asset,
+    id,
+    chart: {
+      ...asset.chart,
+      data: asset.chart.data.map((candle) => ({
+        ...candle,
+        asset_id: candle.asset_id ?? id,
+      })),
+    },
+  };
+}
+
 async function getAssets(
   sortBy: SortBy = SortBy.PRICE,
   direction: "asc" | "desc" = "asc",
@@ -37,10 +64,10 @@ async function getAssets(
   if (assetName?.trim()) {
     params.set("assetName", assetName.trim());
   }
-  const response = await axios.get<ScreenerAssetWithChart[]>(
+  const response = await axios.get<ScreenerAssetResponse[]>(
     `${API_URL}/screener/top-assets?${params.toString()}`,
   );
-  return response.data;
+  return response.data.map(normalizeScreenerAsset);
 }
 /**
  * Gets top assets in the screener based on defined fields
