@@ -92,7 +92,7 @@ function ScannerSidePanelBody({
             </span>
             <IndexChart
               symbol={asset.symbol}
-              klines={asset.chart.slice(-500)}
+              klines={asset.chart.slice(-100)}
               upColor="#5dc887"
               downColor="#e35561"
             />
