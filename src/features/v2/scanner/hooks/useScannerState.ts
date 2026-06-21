@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useGetScanner } from "../hooks/scanner.api";
 import {
   getScannerPresetKey,
@@ -6,9 +6,13 @@ import {
   mapScannerRowToAsset,
 } from "../lib/apiAdapters";
 import { useScannerTableConfigStore } from "../store/useScannerTableConfigStore";
-import type { ScannerAsset } from "../types";
+import type { RefreshInterval } from "../types";
 
-export function useScannerState() {
+type UseScannerStateOptions = {
+  refreshInterval: RefreshInterval;
+};
+
+export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
   const [search, setSearch] = useState("");
   const [selectedSymbol, setSelectedSymbol] = useState("");
   const {
@@ -26,35 +30,22 @@ export function useScannerState() {
     setWatchlistFilter,
   } = useScannerTableConfigStore();
   const scannerSortParams = getScannerSortParams(sorting);
-  const scannerQuery = useGetScanner({
-    preset: getScannerPresetKey(preset),
-    search,
-    limit: 20,
-    ...scannerSortParams,
-  });
-
-  const assetMapRef = useRef<Map<string, ScannerAsset>>(new Map());
+  const scannerQuery = useGetScanner(
+    {
+      preset: getScannerPresetKey(preset),
+      search,
+      limit: 20,
+      ...scannerSortParams,
+    },
+    {
+      refetchIntervalMs: refreshInterval === "live" ? 3000 : false,
+    },
+  );
 
   const filteredAssets = useMemo(() => {
-    const entries = scannerQuery.data?.entries ?? [];
-    const current = assetMapRef.current;
-    const nextMap = new Map<string, ScannerAsset>();
-    const result: ScannerAsset[] = [];
-
-    for (const row of entries) {
-      const existing = current.get(row.symbol);
-      if (existing) {
-        result.push(existing);
-        nextMap.set(row.symbol, existing);
-      } else {
-        const asset = mapScannerRowToAsset(row);
-        result.push(asset);
-        nextMap.set(row.symbol, asset);
-      }
-    }
-
-    assetMapRef.current = nextMap;
-    return result;
+    return (scannerQuery.data?.entries ?? []).map((row) =>
+      mapScannerRowToAsset(row),
+    );
   }, [scannerQuery.data]);
 
   const selectedAsset =

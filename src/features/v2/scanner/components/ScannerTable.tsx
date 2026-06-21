@@ -64,42 +64,43 @@ const DEFAULT_COLUMNS = new Set([
   "sparkline",
 ]);
 
-const ScannerChartCell = memo(function ScannerChartCell({
-  chart,
-}: {
-  chart: ScannerAsset["chart"];
-}) {
-  const lastCandle = chart[chart.length - 1];
-  const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
-  const accentColor = isUp ? "#5dc887" : "#e35561";
+const SYMBOL_COLUMN_WIDTH_CLASS = "w-[112px] min-w-[112px]";
 
-  return (
-    <div className="relative inline-block w-[158px] overflow-hidden rounded-[6px] border border-white/8 bg-[#0a0a0a]">
-      <div
-        style={{
-          height: "1px",
-          background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
-        }}
-      />
-      <MicroChart
-        klines={chart}
-        alertTimestamp="2000-01-01 00:00:00+00"
-        width={158}
-        height={60}
-        periods={80}
-      />
-    </div>
-  );
-}, (prev, next) => {
-  const a = prev.chart;
-  const b = next.chart;
-  if (a.length !== b.length) return false;
-  // Compare all candles — if time + close are the same, data is unchanged
-  for (let i = 0; i < a.length; i++) {
-    if (a[i].time !== b[i].time || a[i].close !== b[i].close) return false;
-  }
-  return true;
-});
+const ScannerChartCell = memo(
+  function ScannerChartCell({ chart }: { chart: ScannerAsset["chart"] }) {
+    const lastCandle = chart[chart.length - 1];
+    const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
+    const accentColor = isUp ? "#5dc887" : "#e35561";
+
+    return (
+      <div className="relative inline-block w-[158px] overflow-hidden rounded-[6px] border border-white/8 bg-[#0a0a0a]">
+        <div
+          style={{
+            height: "1px",
+            background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+          }}
+        />
+        <MicroChart
+          klines={chart}
+          alertTimestamp="2000-01-01 00:00:00+00"
+          width={158}
+          height={60}
+          periods={80}
+        />
+      </div>
+    );
+  },
+  (prev, next) => {
+    const a = prev.chart;
+    const b = next.chart;
+    if (a.length !== b.length) return false;
+    // Compare all candles — if time + close are the same, data is unchanged
+    for (let i = 0; i < a.length; i++) {
+      if (a[i].time !== b[i].time || a[i].close !== b[i].close) return false;
+    }
+    return true;
+  },
+);
 
 const scannerColumns: ColumnDef<ScannerAsset>[] = [
   {
@@ -109,7 +110,12 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
       const asset = row.original;
       return (
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div
+          className={cn(
+            "flex items-center gap-3 overflow-hidden",
+            SYMBOL_COLUMN_WIDTH_CLASS,
+          )}
+        >
           <div className="min-w-0 truncate">
             <Link
               to={`/assets/${asset.symbol}`}
@@ -251,12 +257,13 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
       const score = row.original.setupScore;
       return (
         <span
-          className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${score >= 80
-            ? "bg-[#5b8ff9] text-white"
-            : score >= 60
-              ? "bg-amber-300 text-black"
-              : "bg-white/10 text-white/78"
-            }`}
+          className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${
+            score >= 80
+              ? "bg-[#5b8ff9] text-white"
+              : score >= 60
+                ? "bg-amber-300 text-black"
+                : "bg-white/10 text-white/78"
+          }`}
         >
           {score}
         </span>
@@ -334,6 +341,7 @@ export function ScannerTable({
                   key={header.id}
                   className={cn(
                     "px-3 py-4 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/35",
+                    header.column.id === "symbol" && SYMBOL_COLUMN_WIDTH_CLASS,
                     header.column.getCanSort()
                       ? "cursor-pointer select-none"
                       : "",
@@ -350,9 +358,9 @@ export function ScannerTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     {header.column.getCanSort() && (
                       <span
                         style={{
@@ -386,7 +394,7 @@ export function ScannerTable({
                 className={cn(
                   "border-b border-white/6 hover:bg-white/[0.03]",
                   isSelected &&
-                  "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]",
+                    "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]",
                   density === "expanded" ? "h-20" : "h-14",
                 )}
                 onClick={() => onSelectSymbol(row.original.symbol)}
@@ -394,7 +402,10 @@ export function ScannerTable({
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className="whitespace-nowrap px-3 py-3 text-[0.78rem]"
+                    className={cn(
+                      "whitespace-nowrap px-3 py-3 text-[0.78rem]",
+                      cell.column.id === "symbol" && SYMBOL_COLUMN_WIDTH_CLASS,
+                    )}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

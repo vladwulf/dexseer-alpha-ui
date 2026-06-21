@@ -14,6 +14,7 @@ export type ScannerPreset =
   | "High RVOL";
 
 export type DensityMode = "compact" | "expanded";
+export type RefreshInterval = "manual" | "live";
 
 export type SortOption =
   | "Setup score"

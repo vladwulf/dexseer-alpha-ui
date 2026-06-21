@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { API_URL } from "@/config";
 
@@ -9,6 +9,14 @@ const SOCKET_PRIMED_QUERY_OPTIONS = {
   refetchOnMount: false,
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
+} as const;
+
+const NO_FRONTEND_CACHE_QUERY_OPTIONS = {
+  staleTime: 0,
+  gcTime: 0,
+  refetchOnMount: true,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: true,
 } as const;
 
 export type StatsQuote = "USDT";
@@ -241,6 +249,10 @@ export type ScannerDetailsChartResponse = {
   updated_at: string | null;
 };
 
+type ScannerQueryOptions = {
+  refetchIntervalMs?: number | false;
+};
+
 function buildQueryString(params: Record<string, string | number | undefined>) {
   const query = new URLSearchParams();
 
@@ -329,12 +341,17 @@ export function useGetStatsRunners(params: RunnersRequest = {}) {
   });
 }
 
-export function useGetScanner(params: ScannerRequest = {}) {
+export function useGetScanner(
+  params: ScannerRequest = {},
+  options: ScannerQueryOptions = {},
+) {
+  const { refetchIntervalMs = 3000 } = options;
+
   return useQuery({
     queryKey: ["scanner-v2-list", params],
     queryFn: () => getScanner(params),
-    refetchInterval: 10000,
-    ...SOCKET_PRIMED_QUERY_OPTIONS,
+    refetchInterval: refetchIntervalMs,
+    ...NO_FRONTEND_CACHE_QUERY_OPTIONS,
   });
 }
 
@@ -350,13 +367,18 @@ export function useGetScannerChart(
   });
 }
 
-export function useGetScannerCharts(params: ScannerBatchChartsRequest | null) {
+export function useGetScannerCharts(
+  params: ScannerBatchChartsRequest | null,
+  options: ScannerQueryOptions = {},
+) {
+  const { refetchIntervalMs = 3000 } = options;
+
   return useQuery({
     queryKey: ["scanner-v2-charts", params],
     queryFn: () => getScannerCharts(params as ScannerBatchChartsRequest),
     enabled: params !== null,
-    placeholderData: keepPreviousData,
-    ...SOCKET_PRIMED_QUERY_OPTIONS,
+    refetchInterval: refetchIntervalMs,
+    ...NO_FRONTEND_CACHE_QUERY_OPTIONS,
   });
 }
 
@@ -372,11 +394,15 @@ export function useGetScannerAssetDetails(assetId: number | null | undefined) {
 export function useGetScannerAssetDetailsChart(
   assetId: number | null | undefined,
   params: ScannerDetailsChartRequest = {},
+  options: ScannerQueryOptions = {},
 ) {
+  const { refetchIntervalMs = 3000 } = options;
+
   return useQuery({
     queryKey: ["scanner-v2-asset-details-chart", assetId, params],
     queryFn: () => getScannerAssetDetailsChart(assetId ?? 0, params),
     enabled: assetId !== null && assetId !== undefined,
+    refetchInterval: refetchIntervalMs,
     ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }

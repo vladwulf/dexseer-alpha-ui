@@ -6,14 +6,18 @@ import type { ScannerControlsProps } from "./types";
 
 export function ScannerControls({
   density,
+  isRefreshing,
   minVolume: _minVolume,
   preset,
+  refreshInterval,
   search,
   timeframe,
   watchlistFilter: _watchlistFilter,
   onDensityChange,
+  onManualRefresh,
   onMinVolumeChange: _onMinVolumeChange,
   onPresetChange,
+  onRefreshIntervalChange,
   onSearchChange,
   onTimeframeChange,
   onWatchlistFilterChange: _onWatchlistFilterChange,
@@ -33,7 +37,11 @@ export function ScannerControls({
             />
             <ActionButtons
               density={density}
+              isRefreshing={isRefreshing}
+              refreshInterval={refreshInterval}
               onDensityChange={onDensityChange}
+              onManualRefresh={onManualRefresh}
+              onRefreshIntervalChange={onRefreshIntervalChange}
             />
           </div>
         </div>

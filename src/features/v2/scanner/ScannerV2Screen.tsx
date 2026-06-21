@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
 import { ScannerMomentumHeatmap } from "./components/ScannerMomentumHeatmap";
@@ -11,18 +11,21 @@ import {
   useGetScannerCharts,
 } from "./hooks/scanner.api";
 import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
-import { useLiveScannerCharts } from "./hooks/useLiveScannerCharts";
 import { useLiveScannerFeed } from "./hooks/useLiveScannerFeed";
 import { useScannerState } from "./hooks/useScannerState";
 import {
   getSupportedScannerChartTimeframe,
   mapMarketStripResponse,
-  mergeChartSeriesIntoAsset,
+  mapScannerCandlesToOhlcv,
   mergeDetailsIntoAsset,
+  mergePolledChartSeries,
 } from "./lib/apiAdapters";
 
 export function ScannerV2Screen() {
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState<"manual" | "live">(
+    "live",
+  );
   const isMobileScanner = useIsMobileScanner();
   const marketStripQuery = useGetMarketStrip();
   const {
@@ -44,9 +47,11 @@ export function ScannerV2Screen() {
     setSorting,
     setTimeframe,
     setWatchlistFilter,
-  } = useScannerState();
+    scannerQuery,
+  } = useScannerState({ refreshInterval });
   const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
   useLiveScannerFeed({ preset });
+  const refetchIntervalMs = refreshInterval === "live" ? 3000 : false;
   const tableAssetIds = useMemo(
     () =>
       [
@@ -58,10 +63,7 @@ export function ScannerV2Screen() {
       ].sort((left, right) => left - right),
     [filteredAssets],
   );
-  const assetIdsKey = useMemo(
-    () => tableAssetIds.join(","),
-    [tableAssetIds],
-  );
+  const assetIdsKey = useMemo(() => tableAssetIds.join(","), [tableAssetIds]);
   const tableChartParams = useMemo(() => {
     if (!assetIdsKey) {
       return null;
@@ -73,40 +75,74 @@ export function ScannerV2Screen() {
       limit: 40,
     };
   }, [chartTimeframe, assetIdsKey]);
-  const tableChartsQuery = useGetScannerCharts(tableChartParams);
+  const tableChartsQuery = useGetScannerCharts(tableChartParams, {
+    refetchIntervalMs,
+  });
   const selectedAssetId = selectedAsset?.assetId;
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
-  const detailsChartQuery = useGetScannerAssetDetailsChart(selectedAssetId, {
-    timeframe: chartTimeframe,
-  });
-  const liveCharts = useLiveScannerCharts({
-    timeframe: chartTimeframe,
-    tableAssetIds,
-    tableCharts: tableChartsQuery.data,
+  const detailsChartQuery = useGetScannerAssetDetailsChart(
     selectedAssetId,
-    detailsChart: detailsChartQuery.data,
-  });
-  const tableAssets = useMemo(
-    () =>
-      filteredAssets.map((asset) =>
-        asset.assetId === undefined
-          ? asset
-          : mergeChartSeriesIntoAsset(
-              asset,
-              liveCharts.tableChartSeriesByAssetId.get(asset.assetId),
-            ),
-      ),
-    [filteredAssets, liveCharts.tableChartSeriesByAssetId],
+    {
+      timeframe: chartTimeframe,
+    },
+    {
+      refetchIntervalMs,
+    },
   );
+  const tableChartSeriesRef = useRef<
+    Map<number, (typeof filteredAssets)[number]["chart"]>
+  >(new Map());
+  const tableAssets = useMemo(() => {
+    const incomingCharts = new Map(
+      (tableChartsQuery.data?.assets ?? [])
+        .filter((assetChart) => assetChart.status === "ok")
+        .map((assetChart) => [
+          assetChart.asset_id,
+          mapScannerCandlesToOhlcv(assetChart.asset_id, assetChart.candles),
+        ]),
+    );
+
+    const nextChartSeriesByAssetId = new Map<
+      number,
+      (typeof filteredAssets)[number]["chart"]
+    >();
+    const nextAssets = filteredAssets.map((asset) => {
+      if (asset.assetId === undefined) {
+        return asset;
+      }
+
+      const mergedChart = mergePolledChartSeries(
+        tableChartSeriesRef.current.get(asset.assetId),
+        incomingCharts.get(asset.assetId),
+      );
+
+      nextChartSeriesByAssetId.set(asset.assetId, mergedChart);
+
+      return {
+        ...asset,
+        chart: mergedChart,
+      };
+    });
+
+    tableChartSeriesRef.current = nextChartSeriesByAssetId;
+
+    return nextAssets;
+  }, [filteredAssets, tableChartsQuery.data]);
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;
 
-    return mergeChartSeriesIntoAsset(
-      mergeDetailsIntoAsset(selectedAsset, detailsQuery.data),
-      liveCharts.detailsChartSeries,
-    );
-  }, [detailsQuery.data, liveCharts.detailsChartSeries, selectedAsset]);
+    const detailsChart = detailsChartQuery.data;
+    const chart =
+      detailsChart && detailsChart.asset_id === selectedAsset.assetId
+        ? mapScannerCandlesToOhlcv(detailsChart.asset_id, detailsChart.candles)
+        : undefined;
+
+    return {
+      ...mergeDetailsIntoAsset(selectedAsset, detailsQuery.data),
+      chart: chart ?? selectedAsset.chart,
+    };
+  }, [detailsChartQuery.data, detailsQuery.data, selectedAsset]);
 
   const handleSelectSymbol = (symbol: string) => {
     setSelectedSymbol(symbol);
@@ -114,6 +150,21 @@ export function ScannerV2Screen() {
       setMobilePanelOpen(true);
     }
   };
+
+  const handleManualRefresh = () => {
+    void scannerQuery.refetch();
+    void tableChartsQuery.refetch();
+    void detailsQuery.refetch();
+    void detailsChartQuery.refetch();
+    void marketStripQuery.refetch();
+  };
+
+  const isRefreshing =
+    scannerQuery.isFetching ||
+    tableChartsQuery.isFetching ||
+    detailsQuery.isFetching ||
+    detailsChartQuery.isFetching ||
+    marketStripQuery.isFetching;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
@@ -131,14 +182,18 @@ export function ScannerV2Screen() {
 
           <ScannerControls
             density={density}
+            isRefreshing={isRefreshing}
             minVolume={minVolume}
             preset={preset}
+            refreshInterval={refreshInterval}
             search={search}
             timeframe={timeframe}
             watchlistFilter={watchlistFilter}
             onDensityChange={setDensity}
+            onManualRefresh={handleManualRefresh}
             onMinVolumeChange={setMinVolume}
             onPresetChange={setPreset}
+            onRefreshIntervalChange={setRefreshInterval}
             onSearchChange={setSearch}
             onTimeframeChange={setTimeframe}
             onWatchlistFilterChange={setWatchlistFilter}

@@ -235,6 +235,67 @@ export function mergeChartIntoAsset(
   );
 }
 
+function hasSameCandleShape(left: OHLCVExtended, right: OHLCVExtended) {
+  return (
+    left.time === right.time &&
+    left.open === right.open &&
+    left.high === right.high &&
+    left.low === right.low &&
+    left.close === right.close &&
+    left.asset_volume === right.asset_volume &&
+    left.quote_volume === right.quote_volume
+  );
+}
+
+export function mergePolledChartSeries(
+  current: OHLCVExtended[] | undefined,
+  incoming: OHLCVExtended[] | undefined,
+) {
+  if (!incoming || incoming.length === 0) {
+    return current ?? [];
+  }
+
+  if (!current || current.length === 0) {
+    return incoming;
+  }
+
+  const currentByTime = new Map(
+    current.map((candle, index) => [candle.time, index] as const),
+  );
+  const next = [...current];
+  let didChange = false;
+  let canMergeIncrementally = true;
+
+  for (const candle of incoming) {
+    const existingIndex = currentByTime.get(candle.time);
+
+    if (existingIndex !== undefined) {
+      if (!hasSameCandleShape(next[existingIndex], candle)) {
+        next[existingIndex] = candle;
+        didChange = true;
+      }
+      continue;
+    }
+
+    const lastCurrentCandle = next[next.length - 1];
+
+    if (!lastCurrentCandle || candle.time > lastCurrentCandle.time) {
+      next.push(candle);
+      didChange = true;
+      continue;
+    }
+
+    canMergeIncrementally = false;
+    break;
+  }
+
+  if (!canMergeIncrementally) {
+    return incoming;
+  }
+
+  return didChange ? next : current;
+}
+
 export function mergeBatchChartsIntoAssets(
   assets: ScannerAsset[],
   charts?: ScannerBatchChartsResponse,
