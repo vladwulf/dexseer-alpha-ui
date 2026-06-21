@@ -6,7 +6,7 @@ import type { ScannerControlsProps } from "./types";
 
 export function ScannerControls({
   density,
-  isRefreshing,
+  isManualRefreshing,
   minVolume: _minVolume,
   preset,
   refreshInterval,
@@ -37,7 +37,7 @@ export function ScannerControls({
             />
             <ActionButtons
               density={density}
-              isRefreshing={isRefreshing}
+              isRefreshing={isManualRefreshing}
               refreshInterval={refreshInterval}
               onDensityChange={onDensityChange}
               onManualRefresh={onManualRefresh}

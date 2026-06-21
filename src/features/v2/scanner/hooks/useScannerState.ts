@@ -34,7 +34,7 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
     {
       preset: getScannerPresetKey(preset),
       search,
-      limit: 20,
+      limit: 15,
       ...scannerSortParams,
     },
     {

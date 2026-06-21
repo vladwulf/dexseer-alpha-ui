@@ -9,7 +9,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import {
   Table,
@@ -292,6 +292,78 @@ type ScannerTableProps = {
   onSortingChange: OnChangeFn<SortingState>;
 };
 
+type EntryKind = "first-appearance" | "reentry";
+type EntryFlash = { firstAppearance: Set<string>; reentry: Set<string> };
+
+function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
+  // Symbols ever seen this session — never cleared
+  const everSeenRef = useRef<Set<string>>(new Set());
+  const prevSymbolsRef = useRef<Set<string> | null>(null);
+  const [flash, setFlash] = useState<EntryFlash>({
+    firstAppearance: new Set(),
+    reentry: new Set(),
+  });
+
+  useEffect(() => {
+    const currentSymbols = new Set(assets.map((a) => a.symbol));
+
+    if (prevSymbolsRef.current === null) {
+      // Baseline — mark all as seen, no animation
+      prevSymbolsRef.current = currentSymbols;
+      for (const s of currentSymbols) everSeenRef.current.add(s);
+      return;
+    }
+
+    const firstAppearance: string[] = [];
+    const reentry: string[] = [];
+
+    for (const s of currentSymbols) {
+      if (!prevSymbolsRef.current.has(s)) {
+        if (everSeenRef.current.has(s)) {
+          reentry.push(s);
+        } else {
+          firstAppearance.push(s);
+        }
+        everSeenRef.current.add(s);
+      }
+    }
+
+    prevSymbolsRef.current = currentSymbols;
+
+    if (firstAppearance.length === 0 && reentry.length === 0) return;
+
+    const clearAfter = (kind: EntryKind, symbols: string[]) => {
+      if (symbols.length === 0) return () => {};
+      setFlash((prev) => {
+        const key = kind === "first-appearance" ? "firstAppearance" : "reentry";
+        const next = new Set(prev[key]);
+        for (const s of symbols) next.add(s);
+        return { ...prev, [key]: next };
+      });
+      const timer = setTimeout(() => {
+        setFlash((prev) => {
+          const key =
+            kind === "first-appearance" ? "firstAppearance" : "reentry";
+          const next = new Set(prev[key]);
+          for (const s of symbols) next.delete(s);
+          return { ...prev, [key]: next };
+        });
+      }, 2400);
+      return () => clearTimeout(timer);
+    };
+
+    const clearFirst = clearAfter("first-appearance", firstAppearance);
+    const clearRe = clearAfter("reentry", reentry);
+
+    return () => {
+      clearFirst();
+      clearRe();
+    };
+  }, [assets]);
+
+  return flash;
+}
+
 export function ScannerTable({
   assets,
   density,
@@ -301,6 +373,7 @@ export function ScannerTable({
   onSelectSymbol,
   onSortingChange,
 }: ScannerTableProps) {
+  const { firstAppearance, reentry } = useEntryFlash(assets);
   const visibleColIds =
     preset === "Gainers" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
   const columns = useMemo(
@@ -395,6 +468,12 @@ export function ScannerTable({
                   "border-b border-white/6 hover:bg-white/[0.03]",
                   isSelected &&
                     "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]",
+                  !isSelected &&
+                    firstAppearance.has(row.original.symbol) &&
+                    "scanner-row-first-appearance",
+                  !isSelected &&
+                    reentry.has(row.original.symbol) &&
+                    "scanner-row-reentry",
                   density === "expanded" ? "h-20" : "h-14",
                 )}
                 onClick={() => onSelectSymbol(row.original.symbol)}

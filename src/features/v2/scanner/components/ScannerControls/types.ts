@@ -11,7 +11,7 @@ import type {
 
 export type ScannerControlsProps = {
   density: DensityMode;
-  isRefreshing: boolean;
+  isManualRefreshing: boolean;
   minVolume: (typeof MIN_VOLUME_OPTIONS)[number];
   preset: ScannerPreset;
   refreshInterval: RefreshInterval;

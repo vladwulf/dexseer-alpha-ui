@@ -23,6 +23,7 @@ import {
 
 export function ScannerV2Screen() {
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<"manual" | "live">(
     "live",
   );
@@ -152,19 +153,22 @@ export function ScannerV2Screen() {
   };
 
   const handleManualRefresh = () => {
-    void scannerQuery.refetch();
-    void tableChartsQuery.refetch();
-    void detailsQuery.refetch();
-    void detailsChartQuery.refetch();
-    void marketStripQuery.refetch();
-  };
+    if (isManualRefreshing) {
+      return;
+    }
 
-  const isRefreshing =
-    scannerQuery.isFetching ||
-    tableChartsQuery.isFetching ||
-    detailsQuery.isFetching ||
-    detailsChartQuery.isFetching ||
-    marketStripQuery.isFetching;
+    setIsManualRefreshing(true);
+
+    void Promise.all([
+      scannerQuery.refetch(),
+      tableChartsQuery.refetch(),
+      detailsQuery.refetch(),
+      detailsChartQuery.refetch(),
+      marketStripQuery.refetch(),
+    ]).finally(() => {
+      setIsManualRefreshing(false);
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
@@ -182,7 +186,7 @@ export function ScannerV2Screen() {
 
           <ScannerControls
             density={density}
-            isRefreshing={isRefreshing}
+            isManualRefreshing={isManualRefreshing}
             minVolume={minVolume}
             preset={preset}
             refreshInterval={refreshInterval}
