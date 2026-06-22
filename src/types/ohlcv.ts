@@ -23,6 +23,7 @@ export type OHLCV = {
 
 export type OHLCVExtended = {
   asset_id: number;
+  instrument_id?: string;
   time: string;
   open: number;
   high: number;
@@ -57,6 +58,7 @@ export interface Alert {
 
 export type Asset = {
   id: number;
+  instrument_id?: string;
   created_at: string;
   last_ohlc_update: string;
   symbol: string;

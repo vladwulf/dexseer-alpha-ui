@@ -143,6 +143,7 @@ export const ScreenerTable = () => {
     () =>
       (assets ?? []).map((asset) => ({
         assetId: asset.id,
+        instrumentId: asset.chart.instrument_id ?? asset.instrument_id,
         data: asset.chart.data,
       })),
     [assets],

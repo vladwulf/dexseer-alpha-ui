@@ -40,6 +40,7 @@ export type ScannerAlert = {
 
 export type ScannerAsset = {
   assetId?: number;
+  instrumentId?: string;
   symbol: string;
   market: "PERP";
   price: number;

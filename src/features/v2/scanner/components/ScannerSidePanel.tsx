@@ -7,6 +7,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { IndexChart } from "@/features/chart/IndexChart";
+import { useLiveChartSeries } from "@/hooks/chart/useLiveChartSeries";
 import { formatPrice, formatSigned, numberFormat } from "../lib/formatters";
 import type { ScannerAsset, ScannerTimeframe } from "../types";
 import { ActionButton } from "./ActionButton";
@@ -28,9 +29,11 @@ type ScannerSidePanelProps = {
 function ScannerSidePanelBody({
   asset,
   timeframe,
+  klines,
 }: {
   asset: ScannerAsset;
   timeframe: ScannerTimeframe;
+  klines: typeof asset.chart;
 }) {
   return (
     <div className="px-4 py-4">
@@ -92,7 +95,7 @@ function ScannerSidePanelBody({
             </span>
             <IndexChart
               symbol={asset.symbol}
-              klines={asset.chart.slice(-100)}
+              klines={klines}
               upColor="#5dc887"
               downColor="#e35561"
             />
@@ -219,14 +222,35 @@ export function ScannerSidePanel({
   onMobileOpenChange,
   timeframe,
 }: ScannerSidePanelProps) {
+  const { seriesByAssetId } = useLiveChartSeries({
+    timeframe,
+    seeds: asset?.assetId
+      ? [
+          {
+            assetId: asset.assetId,
+            instrumentId: asset.instrumentId ?? asset.chart[0]?.instrument_id,
+            data: asset.chart,
+          },
+        ]
+      : [],
+  });
+
   if (!asset) {
     return null;
   }
 
+  const klines =
+    (asset.assetId ? seriesByAssetId.get(asset.assetId) : undefined) ??
+    asset.chart;
+
   return (
     <>
       <aside className="hidden overflow-y-auto bg-[#040404] xl:block xl:w-[350px] xl:shrink-0 2xl:w-[450px]">
-        <ScannerSidePanelBody asset={asset} timeframe={timeframe} />
+        <ScannerSidePanelBody
+          asset={asset}
+          timeframe={timeframe}
+          klines={klines}
+        />
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
@@ -239,7 +263,11 @@ export function ScannerSidePanel({
             Asset intelligence details for the selected scanner symbol.
           </SheetDescription>
           <div className="pr-10 xl:hidden">
-            <ScannerSidePanelBody asset={asset} timeframe={timeframe} />
+            <ScannerSidePanelBody
+              asset={asset}
+              timeframe={timeframe}
+              klines={klines}
+            />
           </div>
         </SheetContent>
       </Sheet>

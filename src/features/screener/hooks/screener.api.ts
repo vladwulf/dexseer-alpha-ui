@@ -46,6 +46,10 @@ function normalizeScreenerAsset(
       data: asset.chart.data.map((candle) => ({
         ...candle,
         asset_id: candle.asset_id ?? id,
+        instrument_id:
+          candle.instrument_id ??
+          asset.chart.instrument_id ??
+          asset.instrument_id,
       })),
     },
   };

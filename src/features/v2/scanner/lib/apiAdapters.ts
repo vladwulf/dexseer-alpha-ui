@@ -178,10 +178,12 @@ export function mergeDetailsIntoAsset(
 
 function mapCandleToOhlcv(
   assetId: number,
+  instrumentId: string | undefined,
   candle: ScannerCandle,
 ): OHLCVExtended {
   return {
     asset_id: assetId,
+    instrument_id: instrumentId,
     time: candle.time,
     open: candle.open,
     high: candle.high,
@@ -206,9 +208,12 @@ function mapCandleToOhlcv(
 
 export function mapScannerCandlesToOhlcv(
   assetId: number,
+  instrumentId: string | undefined,
   candles: ScannerCandle[],
 ) {
-  return candles.map((candle) => mapCandleToOhlcv(assetId, candle));
+  return candles.map((candle) =>
+    mapCandleToOhlcv(assetId, instrumentId, candle),
+  );
 }
 
 export function mergeChartSeriesIntoAsset(
@@ -219,6 +224,7 @@ export function mergeChartSeriesIntoAsset(
 
   return {
     ...asset,
+    instrumentId: chart[0]?.instrument_id ?? asset.instrumentId,
     chart,
   };
 }
@@ -231,7 +237,11 @@ export function mergeChartIntoAsset(
 
   return mergeChartSeriesIntoAsset(
     asset,
-    mapScannerCandlesToOhlcv(chart.asset_id, chart.candles),
+    mapScannerCandlesToOhlcv(
+      chart.asset_id,
+      chart.instrument_id,
+      chart.candles,
+    ),
   );
 }
 
@@ -308,7 +318,11 @@ export function mergeBatchChartsIntoAssets(
       .map((assetChart) => [
         assetChart.asset_id,
         assetChart.candles.map((candle) =>
-          mapCandleToOhlcv(assetChart.asset_id, candle),
+          mapCandleToOhlcv(
+            assetChart.asset_id,
+            assetChart.instrument_id,
+            candle,
+          ),
         ),
       ]),
   );

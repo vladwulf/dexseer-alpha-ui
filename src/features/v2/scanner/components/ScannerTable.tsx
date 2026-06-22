@@ -94,10 +94,21 @@ const ScannerChartCell = memo(
     const a = prev.chart;
     const b = next.chart;
     if (a.length !== b.length) return false;
-    // Compare all candles — if time + close are the same, data is unchanged
+
     for (let i = 0; i < a.length; i++) {
-      if (a[i].time !== b[i].time || a[i].close !== b[i].close) return false;
+      if (
+        a[i].time !== b[i].time ||
+        a[i].open !== b[i].open ||
+        a[i].high !== b[i].high ||
+        a[i].low !== b[i].low ||
+        a[i].close !== b[i].close ||
+        a[i].asset_volume !== b[i].asset_volume ||
+        a[i].quote_volume !== b[i].quote_volume
+      ) {
+        return false;
+      }
     }
+
     return true;
   },
 );

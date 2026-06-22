@@ -341,6 +341,7 @@ export function MicroChart({
       volumeSeries.setData(nextVolumeData);
     }
 
+    chart.timeScale().fitContent();
     previousSeriesDataRef.current = seriesData;
   }, [downColor, seriesData, upColor]);
 

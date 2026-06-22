@@ -18,7 +18,6 @@ import {
   mapMarketStripResponse,
   mapScannerCandlesToOhlcv,
   mergeDetailsIntoAsset,
-  mergePolledChartSeries,
 } from "./lib/apiAdapters";
 
 export function ScannerV2Screen() {
@@ -73,7 +72,9 @@ export function ScannerV2Screen() {
     return {
       asset_ids: assetIdsKey,
       timeframe: chartTimeframe,
-      limit: 40,
+      // Ask for one extra slot so the current open candle can coexist with the
+      // last 40 persisted candles when the backend includes live Redis buckets.
+      limit: 41,
     };
   }, [chartTimeframe, assetIdsKey]);
   const tableChartsQuery = useGetScannerCharts(tableChartParams, {
@@ -81,15 +82,9 @@ export function ScannerV2Screen() {
   });
   const selectedAssetId = selectedAsset?.assetId;
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
-  const detailsChartQuery = useGetScannerAssetDetailsChart(
-    selectedAssetId,
-    {
-      timeframe: chartTimeframe,
-    },
-    {
-      refetchIntervalMs,
-    },
-  );
+  const detailsChartQuery = useGetScannerAssetDetailsChart(selectedAssetId, {
+    timeframe: chartTimeframe,
+  });
   const tableChartSeriesRef = useRef<
     Map<number, (typeof filteredAssets)[number]["chart"]>
   >(new Map());
@@ -99,7 +94,11 @@ export function ScannerV2Screen() {
         .filter((assetChart) => assetChart.status === "ok")
         .map((assetChart) => [
           assetChart.asset_id,
-          mapScannerCandlesToOhlcv(assetChart.asset_id, assetChart.candles),
+          mapScannerCandlesToOhlcv(
+            assetChart.asset_id,
+            assetChart.instrument_id,
+            assetChart.candles,
+          ),
         ]),
     );
 
@@ -112,15 +111,16 @@ export function ScannerV2Screen() {
         return asset;
       }
 
-      const mergedChart = mergePolledChartSeries(
-        tableChartSeriesRef.current.get(asset.assetId),
-        incomingCharts.get(asset.assetId),
-      );
+      const mergedChart =
+        incomingCharts.get(asset.assetId) ??
+        tableChartSeriesRef.current.get(asset.assetId) ??
+        asset.chart;
 
       nextChartSeriesByAssetId.set(asset.assetId, mergedChart);
 
       return {
         ...asset,
+        instrumentId: mergedChart[0]?.instrument_id ?? asset.instrumentId,
         chart: mergedChart,
       };
     });
@@ -136,11 +136,16 @@ export function ScannerV2Screen() {
     const detailsChart = detailsChartQuery.data;
     const chart =
       detailsChart && detailsChart.asset_id === selectedAsset.assetId
-        ? mapScannerCandlesToOhlcv(detailsChart.asset_id, detailsChart.candles)
+        ? mapScannerCandlesToOhlcv(
+            detailsChart.asset_id,
+            detailsChart.instrument_id,
+            detailsChart.candles,
+          )
         : undefined;
 
     return {
       ...mergeDetailsIntoAsset(selectedAsset, detailsQuery.data),
+      instrumentId: detailsChart?.instrument_id ?? selectedAsset.instrumentId,
       chart: chart ?? selectedAsset.chart,
     };
   }, [detailsChartQuery.data, detailsQuery.data, selectedAsset]);

@@ -177,6 +177,7 @@ export type ScannerBatchChartsRequest = {
 export type ScannerBatchChartAsset =
   | {
       asset_id: number;
+      instrument_id?: string;
       symbol: string;
       status: "ok";
       updated_at: string | null;
@@ -200,6 +201,7 @@ export type ScannerBatchChartsResponse = {
 
 export type ScannerChartResponse = {
   asset_id: number;
+  instrument_id?: string;
   symbol: string;
   timeframe: ScannerChartTimeframe;
   updated_at: string | null;
@@ -238,6 +240,7 @@ export type ScannerDetailsChartRequest = {
 
 export type ScannerDetailsChartResponse = {
   asset_id: number;
+  instrument_id?: string;
   symbol: string;
   timeframe: ScannerChartTimeframe;
   candles: ScannerCandle[];

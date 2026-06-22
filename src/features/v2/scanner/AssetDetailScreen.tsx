@@ -109,7 +109,11 @@ export function AssetDetailScreen() {
     const detailsChart = detailsChartQuery.data;
     const chart =
       detailsChart && detailsChart.asset_id === baseAsset.assetId
-        ? mapScannerCandlesToOhlcv(detailsChart.asset_id, detailsChart.candles)
+        ? mapScannerCandlesToOhlcv(
+            detailsChart.asset_id,
+            detailsChart.instrument_id,
+            detailsChart.candles,
+          )
         : undefined;
 
     return mergeChartSeriesIntoAsset(

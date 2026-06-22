@@ -2,6 +2,7 @@ import type { OHLCVExtended } from "@/types/ohlcv";
 
 export type ScreenerAsset = {
   id: number;
+  instrument_id?: string;
   created_at: string;
   last_ohlc_update: string;
   symbol: string;
@@ -33,6 +34,7 @@ export type ScreenerAsset = {
 export type ScreenerAssetWithChart = ScreenerAsset & {
   chart: {
     timeframe: string;
+    instrument_id?: string;
     data: OHLCVExtended[];
   };
 };

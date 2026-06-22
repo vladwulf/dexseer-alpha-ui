@@ -16,6 +16,7 @@ type LiveScannerCandle = {
 
 type ChartCandleEvent = {
   asset_id: number;
+  instrument_id?: string;
   symbol: string;
   timeframe: string;
   candle: LiveScannerCandle;
@@ -25,6 +26,7 @@ type ChartCandleEvent = {
 
 type ChartSeed = {
   assetId: number;
+  instrumentId?: string;
   data: OHLCVExtended[];
 };
 
@@ -42,10 +44,12 @@ function getWsNamespaceUrl() {
 
 function mapLiveCandleToOhlcv(
   assetId: number,
+  instrumentId: string | undefined,
   candle: LiveScannerCandle,
 ): OHLCVExtended {
   return {
     asset_id: assetId,
+    instrument_id: instrumentId,
     time: candle.time,
     open: candle.open,
     high: candle.high,
@@ -97,8 +101,8 @@ function mergeCandleIntoSeries(
   return next.length > maxPoints ? next.slice(next.length - maxPoints) : next;
 }
 
-function buildRoomName(timeframe: string, assetId: number) {
-  return `chart:${timeframe}:${assetId}`;
+function buildRoomName(timeframe: string, instrumentId: string) {
+  return `chart:${timeframe}:${instrumentId}`;
 }
 
 export function useLiveChartSeries({
@@ -111,13 +115,16 @@ export function useLiveChartSeries({
   >(new Map());
   const socketRef = useRef<Socket | null>(null);
   const roomNamesRef = useRef<string[]>([]);
+  const assetIdByInstrumentIdRef = useRef<Map<string, number>>(new Map());
+  const seedKeyByAssetIdRef = useRef<Map<number, string>>(new Map());
   const subscribedRoomsRef = useRef<Set<string>>(new Set());
   const roomNames = useMemo(
     () =>
       seeds
-        .map((seed) => seed.assetId)
-        .sort((left, right) => left - right)
-        .map((assetId) => buildRoomName(timeframe, assetId)),
+        .map((seed) => seed.instrumentId)
+        .filter((instrumentId): instrumentId is string => Boolean(instrumentId))
+        .sort((left, right) => left.localeCompare(right))
+        .map((instrumentId) => buildRoomName(timeframe, instrumentId)),
     [seeds, timeframe],
   );
 
@@ -126,8 +133,35 @@ export function useLiveChartSeries({
   }, [roomNames]);
 
   useEffect(() => {
-    setSeriesByAssetId(new Map(seeds.map((seed) => [seed.assetId, seed.data])));
-  }, [seeds]);
+    assetIdByInstrumentIdRef.current = new Map(
+      seeds
+        .filter((seed): seed is ChartSeed & { instrumentId: string } =>
+          Boolean(seed.instrumentId),
+        )
+        .map((seed) => [seed.instrumentId, seed.assetId]),
+    );
+
+    setSeriesByAssetId((current) => {
+      const next = new Map<number, OHLCVExtended[]>();
+      const nextSeedKeyByAssetId = new Map<number, string>();
+
+      for (const seed of seeds) {
+        const seedKey = `${timeframe}:${seed.assetId}:${seed.instrumentId ?? ""}`;
+        const previousSeedKey = seedKeyByAssetIdRef.current.get(seed.assetId);
+
+        nextSeedKeyByAssetId.set(seed.assetId, seedKey);
+        next.set(
+          seed.assetId,
+          previousSeedKey === seedKey
+            ? (current.get(seed.assetId) ?? seed.data)
+            : seed.data,
+        );
+      }
+
+      seedKeyByAssetIdRef.current = nextSeedKeyByAssetId;
+      return next;
+    });
+  }, [seeds, timeframe]);
 
   useEffect(() => {
     if (!enabled) {
@@ -167,20 +201,33 @@ export function useLiveChartSeries({
         return;
       }
 
-      const nextCandle = mapLiveCandleToOhlcv(payload.asset_id, payload.candle);
+      if (!payload.instrument_id) {
+        return;
+      }
+
+      const assetId = assetIdByInstrumentIdRef.current.get(
+        payload.instrument_id,
+      );
+
+      if (assetId === undefined) {
+        return;
+      }
+
+      const nextCandle = mapLiveCandleToOhlcv(
+        assetId,
+        payload.instrument_id,
+        payload.candle,
+      );
 
       setSeriesByAssetId((current) => {
-        if (!current.has(payload.asset_id)) {
+        if (!current.has(assetId)) {
           return current;
         }
 
         const next = new Map(current);
         next.set(
-          payload.asset_id,
-          mergeCandleIntoSeries(
-            current.get(payload.asset_id) ?? [],
-            nextCandle,
-          ),
+          assetId,
+          mergeCandleIntoSeries(current.get(assetId) ?? [], nextCandle),
         );
         return next;
       });

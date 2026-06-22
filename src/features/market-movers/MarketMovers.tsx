@@ -23,6 +23,7 @@ function MarketMoverCard({
         : [
             {
               assetId: data.asset.id,
+              instrumentId: data.asset.instrument_id,
               data: data.ohlcData,
             },
           ],
