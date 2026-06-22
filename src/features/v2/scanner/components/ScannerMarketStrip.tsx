@@ -75,10 +75,12 @@ function getSessionState(
   const time = h * 60 + m;
   const { start: preStart, end: preEnd } = toMinutes(pre);
 
-  if (market.some((session) => {
-    const { start, end } = toMinutes(session);
-    return time >= start && time < end;
-  })) {
+  if (
+    market.some((session) => {
+      const { start, end } = toMinutes(session);
+      return time >= start && time < end;
+    })
+  ) {
     return "market";
   }
 
@@ -151,13 +153,13 @@ export function ScannerMarketStrip({
   const [, tick] = useState(0);
 
   useEffect(() => {
-    const msUntilNextMinute = 60_000 - (Date.now() % 60_000);
+    const msUntilNextSecond = 1_000 - (Date.now() % 1_000);
     let intervalId: ReturnType<typeof setInterval> | undefined;
 
     const timeoutId = setTimeout(() => {
       tick((n) => n + 1);
-      intervalId = setInterval(() => tick((n) => n + 1), 60_000);
-    }, msUntilNextMinute);
+      intervalId = setInterval(() => tick((n) => n + 1), 1_000);
+    }, msUntilNextSecond);
 
     return () => {
       clearTimeout(timeoutId);
@@ -202,8 +204,9 @@ export function ScannerMarketStrip({
               {Array.from({ length: 10 }, (_, index) => index).map((index) => (
                 <span
                   key={`breadth-${index < 6 ? "up" : "down"}-${index}`}
-                  className={`h-6 w-1.5 ${index < breadthBars ? "bg-[#79c68c]/80" : "bg-[#e35561]/65"
-                    }`}
+                  className={`h-6 w-1.5 ${
+                    index < breadthBars ? "bg-[#79c68c]/80" : "bg-[#e35561]/65"
+                  }`}
                 />
               ))}
             </div>
@@ -233,10 +236,11 @@ export function ScannerMarketStrip({
                                 : "oklch(1 0 0 / 20%)",
                           boxShadow:
                             state !== "closed"
-                              ? `0 0 5px ${state === "market"
-                                ? "oklch(0.72 0.25 145 / 50%)"
-                                : "oklch(0.78 0.2 85 / 50%)"
-                              }`
+                              ? `0 0 5px ${
+                                  state === "market"
+                                    ? "oklch(0.72 0.25 145 / 50%)"
+                                    : "oklch(0.78 0.2 85 / 50%)"
+                                }`
                               : "none",
                         }}
                       />

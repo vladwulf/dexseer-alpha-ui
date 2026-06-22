@@ -22,7 +22,19 @@ function getWsNamespaceUrl() {
 }
 
 function getScannerRoomName(preset: ScannerPreset) {
+  if (preset === "Classic Rolling") {
+    return null;
+  }
+
   return `screener:scanner:${getScannerPresetKey(preset)}:v1`;
+}
+
+function getScannerEventName(preset: ScannerPreset) {
+  if (preset === "Classic Rolling") {
+    return null;
+  }
+
+  return `screener.scanner.${getScannerPresetKey(preset)}.v1`;
 }
 
 function isScannerListQueryKey(value: unknown): value is [
@@ -47,7 +59,12 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
   const subscribedRoomsRef = useRef<Set<string>>(new Set());
-  const roomNames = useMemo(() => [getScannerRoomName(preset)], [preset]);
+  const roomNames = useMemo(() => {
+    const roomName = getScannerRoomName(preset);
+
+    return roomName ? [roomName] : [];
+  }, [preset]);
+  const eventName = useMemo(() => getScannerEventName(preset), [preset]);
 
   useEffect(() => {
     const socketUrl = getWsNamespaceUrl();
@@ -103,10 +120,10 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
       }
     };
 
-    socket.on(
-      `screener.scanner.${getScannerPresetKey(preset)}.v1`,
-      handleScanner,
-    );
+    if (eventName) {
+      socket.on(eventName, handleScanner);
+    }
+
     socket.on("connect", () => {
       syncRooms(roomNames);
     });
@@ -116,10 +133,9 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
     }
 
     return () => {
-      socket.off(
-        `screener.scanner.${getScannerPresetKey(preset)}.v1`,
-        handleScanner,
-      );
+      if (eventName) {
+        socket.off(eventName, handleScanner);
+      }
 
       for (const room of subscribedRoomsRef.current) {
         socket.emit("unsubscribe", room);
@@ -129,7 +145,7 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [preset, queryClient, roomNames]);
+  }, [eventName, queryClient, roomNames]);
 
   useEffect(() => {
     const socket = socketRef.current;
