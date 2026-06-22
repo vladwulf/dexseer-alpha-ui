@@ -307,9 +307,13 @@ type ScannerTableProps = {
 type EntryKind = "first-appearance" | "index-change";
 type EntryFlash = { firstAppearance: Set<string>; indexChange: Set<string> };
 
-function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
+function useEntryFlash(
+  assets: ScannerAsset[],
+  sorting: SortingState,
+): EntryFlash {
   const prevIndexRef = useRef<Map<string, number> | null>(null);
   const isArmedRef = useRef(false);
+  const prevSortingRef = useRef(sorting);
   const [flash, setFlash] = useState<EntryFlash>({
     firstAppearance: new Set(),
     indexChange: new Set(),
@@ -324,6 +328,19 @@ function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
   }, []);
 
   useEffect(() => {
+    const sortingChanged =
+      prevSortingRef.current.length !== sorting.length ||
+      prevSortingRef.current.some(
+        (s, i) => s.id !== sorting[i].id || s.desc !== sorting[i].desc,
+      );
+    prevSortingRef.current = sorting;
+
+    if (sortingChanged) {
+      prevIndexRef.current = null;
+      setFlash({ firstAppearance: new Set(), indexChange: new Set() });
+      return;
+    }
+
     const currentIndex = new Map(assets.map((a, i) => [a.symbol, i] as const));
 
     if (prevIndexRef.current === null || !isArmedRef.current) {
@@ -376,7 +393,7 @@ function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
       clearFirst();
       clearIdx();
     };
-  }, [assets]);
+  }, [assets, sorting]);
 
   return flash;
 }
@@ -390,7 +407,7 @@ export function ScannerTable({
   onSelectSymbol,
   onSortingChange,
 }: ScannerTableProps) {
-  const { firstAppearance, indexChange } = useEntryFlash(assets);
+  const { firstAppearance, indexChange } = useEntryFlash(assets, sorting);
   const visibleColIds =
     preset === "Classic Rolling" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
   const columns = useMemo(
