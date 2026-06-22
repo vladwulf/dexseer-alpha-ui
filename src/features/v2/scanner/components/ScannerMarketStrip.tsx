@@ -63,13 +63,14 @@ function getSessionState(
   tz: string,
   pre: SessionWindow,
   market: readonly SessionWindow[],
+  now: Date,
 ): SessionState {
   const parts = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "numeric",
     hour12: false,
     timeZone: tz,
-  }).formatToParts(new Date());
+  }).formatToParts(now);
   const h = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
   const m = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
   const time = h * 60 + m;
@@ -105,13 +106,13 @@ const SESSION_COLORS: Record<
   closed: { label: "text-white/35", dot: "bg-white/20", glow: "none" },
 };
 
-function formatHubTime(tz: string) {
+function formatHubTime(tz: string, now: Date) {
   return new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
     timeZone: tz,
-  }).format(new Date());
+  }).format(now);
 }
 
 function fmt(t: readonly [number, number]) {
@@ -150,25 +151,16 @@ export function ScannerMarketStrip({
   items,
   updatedAt,
 }: ScannerMarketStripProps) {
-  const [, tick] = useState(0);
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const msUntilNextSecond = 1_000 - (Date.now() % 1_000);
-    let intervalId: ReturnType<typeof setInterval> | undefined;
-
+    const intervalId = setInterval(() => setNow(new Date()), 1_000);
     const onVisible = () => {
-      if (document.visibilityState === "visible") tick((n) => n + 1);
+      if (document.visibilityState === "visible") setNow(new Date());
     };
     document.addEventListener("visibilitychange", onVisible);
-
-    const timeoutId = setTimeout(() => {
-      tick((n) => n + 1);
-      intervalId = setInterval(() => tick((n) => n + 1), 1_000);
-    }, msUntilNextSecond);
-
     return () => {
-      clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
+      clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
@@ -225,7 +217,7 @@ export function ScannerMarketStrip({
         <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           <TooltipProvider delayDuration={200}>
             {HUBS.map((hub) => {
-              const state = getSessionState(hub.tz, hub.pre, hub.market);
+              const state = getSessionState(hub.tz, hub.pre, hub.market, now);
               const colors = SESSION_COLORS[state];
               return (
                 <Tooltip key={hub.label}>
@@ -252,7 +244,7 @@ export function ScannerMarketStrip({
                       />
                       <span className={colors.label}>{hub.label}</span>
                       <span className="text-white/80">
-                        {formatHubTime(hub.tz)}
+                        {formatHubTime(hub.tz, now)}
                       </span>
                     </div>
                   </TooltipTrigger>
