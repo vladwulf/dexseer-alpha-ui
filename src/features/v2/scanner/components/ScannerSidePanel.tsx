@@ -16,6 +16,8 @@ import { Pill } from "./Pill";
 import { SessionBars } from "./SessionBars";
 import { StatCard } from "./StatCard";
 
+const SIDE_PANEL_MAX_CANDLES = 80;
+
 const panelChipClassName =
   "inline-flex h-7 items-center rounded-[4px] border px-[9px] py-0 font-[var(--font-mono)] text-[0.7rem] font-medium tracking-[0.05em]";
 
@@ -35,6 +37,8 @@ function ScannerSidePanelBody({
   timeframe: ScannerTimeframe;
   klines: typeof asset.chart;
 }) {
+  const visibleKlines = klines.slice(-SIDE_PANEL_MAX_CANDLES);
+
   return (
     <div className="px-4 py-4">
       <div className="mb-4 flex items-start justify-between gap-3">
@@ -95,7 +99,7 @@ function ScannerSidePanelBody({
             </span>
             <IndexChart
               symbol={asset.symbol}
-              klines={klines}
+              klines={visibleKlines}
               upColor="#5dc887"
               downColor="#e35561"
             />

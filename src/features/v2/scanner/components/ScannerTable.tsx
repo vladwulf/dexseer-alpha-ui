@@ -65,6 +65,7 @@ const DEFAULT_COLUMNS = new Set([
 ]);
 
 const SYMBOL_COLUMN_WIDTH_CLASS = "w-[112px] min-w-[112px]";
+const TABLE_CHART_MAX_CANDLES = 100;
 
 const ScannerChartCell = memo(
   function ScannerChartCell({ chart }: { chart: ScannerAsset["chart"] }) {
@@ -85,7 +86,7 @@ const ScannerChartCell = memo(
           alertTimestamp="2000-01-01 00:00:00+00"
           width={158}
           height={60}
-          periods={80}
+          periods={TABLE_CHART_MAX_CANDLES}
         />
       </div>
     );
