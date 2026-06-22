@@ -156,6 +156,11 @@ export function ScannerMarketStrip({
     const msUntilNextSecond = 1_000 - (Date.now() % 1_000);
     let intervalId: ReturnType<typeof setInterval> | undefined;
 
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick((n) => n + 1);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
     const timeoutId = setTimeout(() => {
       tick((n) => n + 1);
       intervalId = setInterval(() => tick((n) => n + 1), 1_000);
@@ -164,6 +169,7 @@ export function ScannerMarketStrip({
     return () => {
       clearTimeout(timeoutId);
       if (intervalId) clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 

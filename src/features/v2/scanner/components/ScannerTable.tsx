@@ -292,17 +292,15 @@ type ScannerTableProps = {
   onSortingChange: OnChangeFn<SortingState>;
 };
 
-type EntryKind = "first-appearance" | "reentry";
-type EntryFlash = { firstAppearance: Set<string>; reentry: Set<string> };
+type EntryKind = "first-appearance" | "index-change";
+type EntryFlash = { firstAppearance: Set<string>; indexChange: Set<string> };
 
 function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
-  // Symbols ever seen this session — never cleared
-  const everSeenRef = useRef<Set<string>>(new Set());
-  const prevSymbolsRef = useRef<Set<string> | null>(null);
+  const prevIndexRef = useRef<Map<string, number> | null>(null);
   const isArmedRef = useRef(false);
   const [flash, setFlash] = useState<EntryFlash>({
     firstAppearance: new Set(),
-    reentry: new Set(),
+    indexChange: new Set(),
   });
 
   useEffect(() => {
@@ -314,37 +312,35 @@ function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
   }, []);
 
   useEffect(() => {
-    const currentSymbols = new Set(assets.map((a) => a.symbol));
+    const currentIndex = new Map(assets.map((a, i) => [a.symbol, i] as const));
 
-    if (prevSymbolsRef.current === null || !isArmedRef.current) {
-      // Startup baseline — collect current rows without animation until live updates are armed.
-      prevSymbolsRef.current = currentSymbols;
-      for (const s of currentSymbols) everSeenRef.current.add(s);
+    if (prevIndexRef.current === null || !isArmedRef.current) {
+      prevIndexRef.current = currentIndex;
       return;
     }
 
     const firstAppearance: string[] = [];
-    const reentry: string[] = [];
+    const indexChange: string[] = [];
 
-    for (const s of currentSymbols) {
-      if (!prevSymbolsRef.current.has(s)) {
-        if (everSeenRef.current.has(s)) {
-          reentry.push(s);
-        } else {
-          firstAppearance.push(s);
-        }
-        everSeenRef.current.add(s);
+    for (const [symbol, currentIdx] of currentIndex) {
+      const prevIdx = prevIndexRef.current.get(symbol);
+
+      if (prevIdx === undefined) {
+        firstAppearance.push(symbol);
+      } else if (prevIdx !== currentIdx) {
+        indexChange.push(symbol);
       }
     }
 
-    prevSymbolsRef.current = currentSymbols;
+    prevIndexRef.current = currentIndex;
 
-    if (firstAppearance.length === 0 && reentry.length === 0) return;
+    if (firstAppearance.length === 0 && indexChange.length === 0) return;
 
     const clearAfter = (kind: EntryKind, symbols: string[]) => {
       if (symbols.length === 0) return () => {};
       setFlash((prev) => {
-        const key = kind === "first-appearance" ? "firstAppearance" : "reentry";
+        const key =
+          kind === "first-appearance" ? "firstAppearance" : "indexChange";
         const next = new Set(prev[key]);
         for (const s of symbols) next.add(s);
         return { ...prev, [key]: next };
@@ -352,7 +348,7 @@ function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
       const timer = setTimeout(() => {
         setFlash((prev) => {
           const key =
-            kind === "first-appearance" ? "firstAppearance" : "reentry";
+            kind === "first-appearance" ? "firstAppearance" : "indexChange";
           const next = new Set(prev[key]);
           for (const s of symbols) next.delete(s);
           return { ...prev, [key]: next };
@@ -362,11 +358,11 @@ function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
     };
 
     const clearFirst = clearAfter("first-appearance", firstAppearance);
-    const clearRe = clearAfter("reentry", reentry);
+    const clearIdx = clearAfter("index-change", indexChange);
 
     return () => {
       clearFirst();
-      clearRe();
+      clearIdx();
     };
   }, [assets]);
 
@@ -382,7 +378,7 @@ export function ScannerTable({
   onSelectSymbol,
   onSortingChange,
 }: ScannerTableProps) {
-  const { firstAppearance, reentry } = useEntryFlash(assets);
+  const { firstAppearance, indexChange } = useEntryFlash(assets);
   const visibleColIds =
     preset === "Classic Rolling" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
   const columns = useMemo(
@@ -481,8 +477,8 @@ export function ScannerTable({
                     firstAppearance.has(row.original.symbol) &&
                     "scanner-row-first-appearance",
                   !isSelected &&
-                    reentry.has(row.original.symbol) &&
-                    "scanner-row-reentry",
+                    indexChange.has(row.original.symbol) &&
+                    "scanner-row-index-change",
                   density === "expanded" ? "h-20" : "h-14",
                 )}
                 onClick={() => onSelectSymbol(row.original.symbol)}
