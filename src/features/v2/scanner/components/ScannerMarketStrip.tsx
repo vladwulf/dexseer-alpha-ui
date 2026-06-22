@@ -19,13 +19,14 @@ type ScannerMarketStripProps = {
   updatedAt?: string | null;
 };
 
-type SessionState = "premarket" | "market" | "closed";
+type SessionState = "premarket" | "market" | "afterhours" | "closed";
 type SessionWindow = readonly [number, number, number, number];
 type Hub = {
   label: string;
   tz: string;
   pre: SessionWindow;
   market: readonly SessionWindow[];
+  post: readonly SessionWindow[];
 };
 
 const HUBS: readonly Hub[] = [
@@ -34,12 +35,14 @@ const HUBS: readonly Hub[] = [
     tz: "America/New_York",
     pre: [4, 0, 9, 30],
     market: [[9, 30, 16, 0]],
+    post: [[16, 0, 20, 0]],
   },
   {
     label: "LDN",
     tz: "Europe/London",
     pre: [7, 50, 8, 0],
     market: [[8, 0, 16, 30]],
+    post: [],
   },
   {
     label: "TKY",
@@ -49,6 +52,7 @@ const HUBS: readonly Hub[] = [
       [9, 0, 11, 30],
       [12, 30, 15, 30],
     ],
+    post: [],
   },
 ] as const;
 
@@ -63,6 +67,7 @@ function getSessionState(
   tz: string,
   pre: SessionWindow,
   market: readonly SessionWindow[],
+  post: readonly SessionWindow[],
   now: Date,
 ): SessionState {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -86,6 +91,14 @@ function getSessionState(
   }
 
   if (time >= preStart && time < preEnd) return "premarket";
+  if (
+    post.some((session) => {
+      const { start, end } = toMinutes(session);
+      return time >= start && time < end;
+    })
+  ) {
+    return "afterhours";
+  }
   return "closed";
 }
 
@@ -102,6 +115,11 @@ const SESSION_COLORS: Record<
     label: "text-[#facc15]",
     dot: "bg-[#facc15]",
     glow: "0 0 6px #facc15/40",
+  },
+  afterhours: {
+    label: "text-[#f59e0b]",
+    dot: "bg-[#f59e0b]",
+    glow: "0 0 6px #f59e0b/40",
   },
   closed: { label: "text-white/35", dot: "bg-white/20", glow: "none" },
 };
@@ -128,12 +146,17 @@ function tooltipText(
   state: SessionState,
   pre: SessionWindow,
   market: readonly SessionWindow[],
+  post: readonly SessionWindow[],
 ) {
   const marketRange = market.map(formatWindow).join(", ");
+  const postRange = post.map(formatWindow).join(", ");
 
   if (state === "market") return `${label} Market · ${marketRange}`;
   if (state === "premarket") return `${label} Premarket · ${formatWindow(pre)}`;
-  return `${label} Closed · Premarket ${formatWindow(pre)}`;
+  if (state === "afterhours") return `${label} After Hours · ${postRange}`;
+  return postRange
+    ? `${label} Closed · Premarket ${formatWindow(pre)} · After Hours ${postRange}`
+    : `${label} Closed · Premarket ${formatWindow(pre)}`;
 }
 
 function formatUpdatedAt(updatedAt?: string | null) {
@@ -217,7 +240,13 @@ export function ScannerMarketStrip({
         <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           <TooltipProvider delayDuration={200}>
             {HUBS.map((hub) => {
-              const state = getSessionState(hub.tz, hub.pre, hub.market, now);
+              const state = getSessionState(
+                hub.tz,
+                hub.pre,
+                hub.market,
+                hub.post,
+                now,
+              );
               const colors = SESSION_COLORS[state];
               return (
                 <Tooltip key={hub.label}>
@@ -231,13 +260,17 @@ export function ScannerMarketStrip({
                               ? "#4ade80"
                               : state === "premarket"
                                 ? "#facc15"
+                                : state === "afterhours"
+                                  ? "#f59e0b"
                                 : "oklch(1 0 0 / 20%)",
                           boxShadow:
                             state !== "closed"
                               ? `0 0 5px ${
                                   state === "market"
                                     ? "oklch(0.72 0.25 145 / 50%)"
-                                    : "oklch(0.78 0.2 85 / 50%)"
+                                    : state === "premarket"
+                                      ? "oklch(0.78 0.2 85 / 50%)"
+                                      : "oklch(0.75 0.18 60 / 50%)"
                                 }`
                               : "none",
                         }}
@@ -249,7 +282,13 @@ export function ScannerMarketStrip({
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" align="end">
-                    {tooltipText(hub.label, state, hub.pre, hub.market)}
+                    {tooltipText(
+                      hub.label,
+                      state,
+                      hub.pre,
+                      hub.market,
+                      hub.post,
+                    )}
                   </TooltipContent>
                 </Tooltip>
               );
