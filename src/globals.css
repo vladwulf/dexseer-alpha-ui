@@ -82,7 +82,7 @@
   }
 }
 
-@keyframes scanner-reentry {
+@keyframes scanner-index-change {
   0% {
     background-color: rgba(251, 191, 36, 0.13);
     box-shadow: inset 2px 0 0 0 rgba(251, 191, 36, 0.6);
@@ -97,13 +97,13 @@
   animation: scanner-first-appearance 2.4s ease-out forwards;
 }
 
-.scanner-row-reentry {
-  animation: scanner-reentry 2.4s ease-out forwards;
+.scanner-row-index-change {
+  animation: scanner-index-change 2.4s ease-out forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .scanner-row-first-appearance,
-  .scanner-row-reentry {
+  .scanner-row-index-change {
     animation: none;
   }
 }
