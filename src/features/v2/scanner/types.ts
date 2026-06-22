@@ -3,7 +3,7 @@ import type { OHLCVExtended } from "@/types/ohlcv";
 export type ScannerTimeframe = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
 
 export type ScannerPreset =
-  | "Gainers"
+  | "Classic Rolling"
   | "Momentum"
   | "Breakouts"
   | "Pullbacks"

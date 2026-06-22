@@ -257,7 +257,8 @@ export function ScannerMomentumHeatmap({
     .slice(0, 10);
   const metricLabel = metric === "1h" ? "1h" : metric === "1d" ? "24h" : "4h";
 
-  const noData = !isLoading && !isError && gainers.length === 0 && losers.length === 0;
+  const noData =
+    !isLoading && !isError && gainers.length === 0 && losers.length === 0;
 
   return (
     <section className="border-b border-white/8 px-4 py-5 md:px-6">
@@ -277,10 +278,11 @@ export function ScannerMomentumHeatmap({
                 key={nextMetric}
                 type="button"
                 onClick={() => setMetric(nextMetric)}
-                className={`rounded-[4px] border px-[10px] py-[4px] font-[var(--font-mono)] text-[0.6rem] tracking-[0.08em] transition-colors ${metric === nextMetric
-                  ? "border-[oklch(0.72_0.18_248/0.35)] bg-[oklch(0.72_0.18_248/0.12)] text-[oklch(0.72_0.18_248)]"
-                  : "border-white/10 bg-transparent text-white/40"
-                  }`}
+                className={`rounded-[4px] border px-[10px] py-[4px] font-[var(--font-mono)] text-[0.6rem] tracking-[0.08em] transition-colors ${
+                  metric === nextMetric
+                    ? "border-[oklch(0.72_0.18_248/0.35)] bg-[oklch(0.72_0.18_248/0.12)] text-[oklch(0.72_0.18_248)]"
+                    : "border-white/10 bg-transparent text-white/40"
+                }`}
               >
                 {nextMetric.toUpperCase()}
               </button>
@@ -299,7 +301,9 @@ export function ScannerMomentumHeatmap({
               Failed to load live gainers/losers
             </div>
           ) : isLoading ? (
-            <div className={`grid ${CONTENT_HEIGHT_CLASS} gap-4 xl:grid-cols-2`}>
+            <div
+              className={`grid ${CONTENT_HEIGHT_CLASS} gap-4 xl:grid-cols-2`}
+            >
               {["gainers", "losers"].map((column) => (
                 <div
                   key={`scanner-heatmap-skeleton-${column}`}
@@ -314,7 +318,9 @@ export function ScannerMomentumHeatmap({
               No gainers/losers data for {metricLabel}
             </div>
           ) : (
-            <div className={`grid ${CONTENT_HEIGHT_CLASS} gap-4 xl:grid-cols-2`}>
+            <div
+              className={`grid ${CONTENT_HEIGHT_CLASS} gap-4 xl:grid-cols-2`}
+            >
               <MosaicColumn
                 assets={gainers}
                 label="Gainers"

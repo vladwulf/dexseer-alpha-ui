@@ -329,7 +329,8 @@ export function useGetMarketStrip(params: MarketStripRequest = {}) {
   return useQuery({
     queryKey: ["scanner-v2-market-strip", params],
     queryFn: () => getMarketStrip(params),
-    ...SOCKET_PRIMED_QUERY_OPTIONS,
+    refetchInterval: 15_000,
+    staleTime: 10_000,
   });
 }
 
@@ -337,7 +338,8 @@ export function useGetStatsRunners(params: RunnersRequest = {}) {
   return useQuery({
     queryKey: ["scanner-v2-runners", params],
     queryFn: () => getRunners(params),
-    ...SOCKET_PRIMED_QUERY_OPTIONS,
+    refetchInterval: 15_000,
+    staleTime: 10_000,
   });
 }
 

@@ -292,74 +292,77 @@ const getExtendedMetrics = (
   ];
 };
 
-const ScreenerChartCell = memo(function ScreenerChartCell({
-  data,
-  symbol,
-}: {
-  data: OHLCVExtended[];
-  symbol: string;
-}) {
-  const ticker = symbol.replace("USDT", "");
-  const lastCandle = data[data.length - 1];
-  const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
-  const accentColor = isUp ? "#5dc887" : "#e35561";
+const ScreenerChartCell = memo(
+  function ScreenerChartCell({
+    data,
+    symbol,
+  }: {
+    data: OHLCVExtended[];
+    symbol: string;
+  }) {
+    const ticker = symbol.replace("USDT", "");
+    const lastCandle = data[data.length - 1];
+    const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
+    const accentColor = isUp ? "#5dc887" : "#e35561";
 
-  return (
-    <div style={{ display: "flex", justifyContent: "center" }}>
-      <div
-        style={{
-          position: "relative",
-          display: "inline-block",
-          borderRadius: "6px",
-          overflow: "hidden",
-          border: "1px solid oklch(1 0 0 / 7%)",
-          background: "#0a0a0a",
-        }}
-      >
+    return (
+      <div style={{ display: "flex", justifyContent: "center" }}>
         <div
           style={{
-            height: "1px",
-            background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
-          }}
-        />
-        <MicroChart
-          klines={data}
-          alertTimestamp="2026-01-17 09:53:00+00"
-          width={158}
-          height={74}
-          periods={100}
-        />
-        <Link
-          to={`/chart?symbol=${symbol}&timeframe=1m`}
-          style={{
-            position: "absolute",
-            top: 7,
-            left: 7,
-            fontFamily: "var(--font-display)",
-            fontSize: "0.72rem",
-            fontWeight: 700,
-            letterSpacing: "0.04em",
-            color: "oklch(0.96 0 0)",
-            textDecoration: "none",
-            lineHeight: 1,
-            textShadow: "0 1px 6px rgba(0,0,0,0.9)",
+            position: "relative",
+            display: "inline-block",
+            borderRadius: "6px",
+            overflow: "hidden",
+            border: "1px solid oklch(1 0 0 / 7%)",
+            background: "#0a0a0a",
           }}
         >
-          {ticker}
-        </Link>
+          <div
+            style={{
+              height: "1px",
+              background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+            }}
+          />
+          <MicroChart
+            klines={data}
+            alertTimestamp="2026-01-17 09:53:00+00"
+            width={158}
+            height={74}
+            periods={100}
+          />
+          <Link
+            to={`/chart?symbol=${symbol}&timeframe=1m`}
+            style={{
+              position: "absolute",
+              top: 7,
+              left: 7,
+              fontFamily: "var(--font-display)",
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              color: "oklch(0.96 0 0)",
+              textDecoration: "none",
+              lineHeight: 1,
+              textShadow: "0 1px 6px rgba(0,0,0,0.9)",
+            }}
+          >
+            {ticker}
+          </Link>
+        </div>
       </div>
-    </div>
-  );
-}, (prev, next) => {
-  if (prev.symbol !== next.symbol) return false;
-  const a = prev.data;
-  const b = next.data;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i].time !== b[i].time || a[i].close !== b[i].close) return false;
-  }
-  return true;
-});
+    );
+  },
+  (prev, next) => {
+    if (prev.symbol !== next.symbol) return false;
+    const a = prev.data;
+    const b = next.data;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i].time !== b[i].time || a[i].close !== b[i].close) return false;
+    }
+    return true;
+  },
+);
 
 export const getCryptoColumns = (
   density: ScreenerDensity = "compact",

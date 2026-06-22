@@ -20,7 +20,7 @@ import type {
 } from "../types";
 
 const presetKeyByLabel: Record<ScannerPreset, ScannerPresetKey> = {
-  Gainers: "gainers",
+  "Classic Rolling": "gainers",
   Momentum: "momentum",
   Breakouts: "breakouts",
   Pullbacks: "pullbacks",

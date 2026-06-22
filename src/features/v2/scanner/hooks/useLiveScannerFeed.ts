@@ -5,8 +5,6 @@ import { API_URL } from "@/config";
 import { getScannerPresetKey } from "../lib/apiAdapters";
 import type { ScannerPreset } from "../types";
 import type {
-  MarketStripResponse,
-  RunnersResponse,
   ScannerPresetKey,
   ScannerResponse,
   ScannerSortBy,
@@ -16,9 +14,6 @@ import type {
 type UseLiveScannerFeedParams = {
   preset: ScannerPreset;
 };
-
-const MARKET_STRIP_ROOM = "screener:stats:market-strip:v1";
-const RUNNERS_ROOM = "screener:stats:runners:v1";
 
 function getWsNamespaceUrl() {
   if (!API_URL) return null;
@@ -52,10 +47,7 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
   const subscribedRoomsRef = useRef<Set<string>>(new Set());
-  const roomNames = useMemo(
-    () => [MARKET_STRIP_ROOM, RUNNERS_ROOM, getScannerRoomName(preset)],
-    [preset],
-  );
+  const roomNames = useMemo(() => [getScannerRoomName(preset)], [preset]);
 
   useEffect(() => {
     const socketUrl = getWsNamespaceUrl();
@@ -86,17 +78,6 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
       subscribedRoomsRef.current = nextRooms;
     };
 
-    const handleMarketStrip = (payload: MarketStripResponse) => {
-      queryClient.setQueriesData(
-        { queryKey: ["scanner-v2-market-strip"] },
-        payload,
-      );
-    };
-
-    const handleRunners = (payload: RunnersResponse) => {
-      queryClient.setQueriesData({ queryKey: ["scanner-v2-runners"] }, payload);
-    };
-
     const handleScanner = (payload: ScannerResponse) => {
       for (const query of queryClient
         .getQueryCache()
@@ -122,8 +103,6 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
       }
     };
 
-    socket.on("screener.stats.market-strip.v1", handleMarketStrip);
-    socket.on("screener.stats.runners.v1", handleRunners);
     socket.on(
       `screener.scanner.${getScannerPresetKey(preset)}.v1`,
       handleScanner,
@@ -137,8 +116,6 @@ export function useLiveScannerFeed({ preset }: UseLiveScannerFeedParams) {
     }
 
     return () => {
-      socket.off("screener.stats.market-strip.v1", handleMarketStrip);
-      socket.off("screener.stats.runners.v1", handleRunners);
       socket.off(
         `screener.scanner.${getScannerPresetKey(preset)}.v1`,
         handleScanner,

@@ -29,7 +29,7 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
     (set) => ({
       density: "compact",
       minVolume: MIN_VOLUME_OPTIONS[1],
-      preset: "Gainers",
+      preset: "Classic Rolling",
       sorting: DEFAULT_SORTING,
       timeframe: "1h",
       watchlistFilter: WATCHLIST_OPTIONS[0],

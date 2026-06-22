@@ -299,16 +299,25 @@ function useEntryFlash(assets: ScannerAsset[]): EntryFlash {
   // Symbols ever seen this session — never cleared
   const everSeenRef = useRef<Set<string>>(new Set());
   const prevSymbolsRef = useRef<Set<string> | null>(null);
+  const isArmedRef = useRef(false);
   const [flash, setFlash] = useState<EntryFlash>({
     firstAppearance: new Set(),
     reentry: new Set(),
   });
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      isArmedRef.current = true;
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     const currentSymbols = new Set(assets.map((a) => a.symbol));
 
-    if (prevSymbolsRef.current === null) {
-      // Baseline — mark all as seen, no animation
+    if (prevSymbolsRef.current === null || !isArmedRef.current) {
+      // Startup baseline — collect current rows without animation until live updates are armed.
       prevSymbolsRef.current = currentSymbols;
       for (const s of currentSymbols) everSeenRef.current.add(s);
       return;
@@ -375,7 +384,7 @@ export function ScannerTable({
 }: ScannerTableProps) {
   const { firstAppearance, reentry } = useEntryFlash(assets);
   const visibleColIds =
-    preset === "Gainers" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
+    preset === "Classic Rolling" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
   const columns = useMemo(
     () =>
       scannerColumns.filter((col) =>
