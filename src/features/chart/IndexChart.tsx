@@ -106,6 +106,13 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
 
     // Convert OHLCVExtended data to candlestick format (based on MicroChart)
     const chartData: CandlestickData[] = klines
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
+      )
       .map((kline) => {
         const time = parseCandleTime(kline.time) as Time;
         return {

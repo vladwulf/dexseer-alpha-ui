@@ -169,6 +169,13 @@ export function AlertChart({
 
     // Map OHLC data to candlestick format with opacity variations
     const candlestickData = series
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
+      )
       .map((kline) => {
         const time = parseCandleTime(kline.time) as Time;
         let candleColor: string | undefined;
