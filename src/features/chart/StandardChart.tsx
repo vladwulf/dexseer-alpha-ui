@@ -11,6 +11,7 @@ import {
   HistogramSeries,
 } from "lightweight-charts";
 import { useEffect, useRef } from "react";
+import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { getEMASeriesData, getMACDSeriesData } from "./indicators";
 import { MARibbonIndicator } from "./indicators/ma-ribbon-plugin";
@@ -188,9 +189,8 @@ export function StandardChart({
           kline.close != null,
       )
       .map((kline) => {
-        const timestamp = new Date(kline.time).getTime() / 1000;
         return {
-          time: Math.floor(timestamp) as Time,
+          time: parseCandleTime(kline.time) as Time,
           open: Number(kline.open),
           high: Number(kline.high),
           low: Number(kline.low),

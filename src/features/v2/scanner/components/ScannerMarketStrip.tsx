@@ -263,7 +263,7 @@ export function ScannerMarketStrip({
                                 ? "#facc15"
                                 : state === "afterhours"
                                   ? "#f59e0b"
-                                : "oklch(1 0 0 / 20%)",
+                                  : "oklch(1 0 0 / 20%)",
                           boxShadow:
                             state !== "closed"
                               ? `0 0 5px ${

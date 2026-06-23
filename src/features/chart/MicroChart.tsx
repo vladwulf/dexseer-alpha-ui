@@ -7,6 +7,7 @@ import {
 } from "lightweight-charts";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { MiniChart } from "./MiniChart";
 
@@ -88,8 +89,7 @@ export function MicroChart({
   const previousSeriesDataRef = useRef<MicroChartPoint[]>([]);
 
   const seriesData = useMemo(() => {
-    const alertTimestampUnix = (new Date(alertTimestamp).getTime() /
-      1000) as Time;
+    const alertTimestampUnix = parseCandleTime(alertTimestamp) as Time;
 
     const dataToRender =
       periods !== undefined ? klines.slice(-periods) : klines;
@@ -103,7 +103,7 @@ export function MicroChart({
           kline.close != null,
       )
       .map((kline) => {
-        const time = (new Date(kline.time).getTime() / 1000) as Time;
+        const time = parseCandleTime(kline.time) as Time;
         let candleColor: string | undefined;
 
         if (time === alertTimestampUnix) {
@@ -128,7 +128,8 @@ export function MicroChart({
           borderColor: candleColor,
           wickColor: candleColor,
         };
-      });
+      })
+      .sort((a, b) => (a.time as number) - (b.time as number));
   }, [alertTimestamp, downColor, klines, periods, upColor]);
 
   useEffect(() => {

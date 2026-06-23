@@ -3,14 +3,7 @@ import axios from "axios";
 import { API_URL } from "@/config";
 import type { OHLCVExtended } from "@/types/ohlcv";
 
-export type AlertTimeframe =
-  | "1m"
-  | "5m"
-  | "15m"
-  | "30m"
-  | "1h"
-  | "4h"
-  | "1d";
+export type AlertTimeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 
 export type AlertDirection = string;
 export type AlertType = string;

@@ -6,6 +6,7 @@ import {
   HistogramSeries,
 } from "lightweight-charts";
 import { useEffect, useRef } from "react";
+import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { MARibbonIndicator } from "./indicators/ma-ribbon-plugin";
 
@@ -164,36 +165,38 @@ export function AlertChart({
     });
 
     // Convert alert timestamp to Unix timestamp for comparison
-    const alertTimestampUnix = (new Date(alertTime).getTime() / 1000) as Time;
+    const alertTimestampUnix = parseCandleTime(alertTime) as Time;
 
     // Map OHLC data to candlestick format with opacity variations
-    const candlestickData = series.map((kline) => {
-      const time = (new Date(kline.time).getTime() / 1000) as Time;
-      let candleColor: string | undefined;
+    const candlestickData = series
+      .map((kline) => {
+        const time = parseCandleTime(kline.time) as Time;
+        let candleColor: string | undefined;
 
-      if (time === alertTimestampUnix) {
-        // Highlight the alert candle
-        candleColor = "yellow";
-      } else if (time > alertTimestampUnix) {
-        // After alert: normal opacity
-        candleColor = kline.close > kline.open ? upColor : downColor;
-      } else {
-        // Before alert: lower opacity (0.5)
-        const baseColor = kline.close > kline.open ? upColor : downColor;
-        candleColor = hexToRgba(baseColor, 0.3);
-      }
+        if (time === alertTimestampUnix) {
+          // Highlight the alert candle
+          candleColor = "yellow";
+        } else if (time > alertTimestampUnix) {
+          // After alert: normal opacity
+          candleColor = kline.close > kline.open ? upColor : downColor;
+        } else {
+          // Before alert: lower opacity (0.5)
+          const baseColor = kline.close > kline.open ? upColor : downColor;
+          candleColor = hexToRgba(baseColor, 0.3);
+        }
 
-      return {
-        time,
-        open: kline.open,
-        high: kline.high,
-        low: kline.low,
-        close: kline.close,
-        color: candleColor,
-        borderColor: candleColor,
-        wickColor: candleColor,
-      };
-    });
+        return {
+          time,
+          open: kline.open,
+          high: kline.high,
+          low: kline.low,
+          close: kline.close,
+          color: candleColor,
+          borderColor: candleColor,
+          wickColor: candleColor,
+        };
+      })
+      .sort((a, b) => (a.time as number) - (b.time as number));
 
     candlestickSeries.setData(candlestickData);
 

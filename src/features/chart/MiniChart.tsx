@@ -3,6 +3,7 @@ import { CandlestickSeries, ColorType, createChart } from "lightweight-charts";
 import type { ReactElement } from "react";
 import { cloneElement, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
 
 interface MiniChartProps {
@@ -141,7 +142,7 @@ export function MiniChart({
           kline.close != null,
       )
       .map((kline) => {
-        const time = (new Date(kline.time).getTime() / 1000) as Time;
+        const time = parseCandleTime(kline.time) as Time;
         return {
           time,
           open: kline.open,
@@ -149,7 +150,8 @@ export function MiniChart({
           low: kline.low,
           close: kline.close,
         };
-      });
+      })
+      .sort((a, b) => (a.time as number) - (b.time as number));
 
     candlestickSeries.setData(chartData);
     candlestickSeries.applyOptions({
