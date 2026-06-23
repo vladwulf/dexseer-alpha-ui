@@ -221,19 +221,20 @@ export function ScannerMarketStrip({
             <span className="text-[0.72rem] uppercase tracking-[0.12em] text-white/45">
               breadth
             </span>
-            <div className="flex gap-1">
-              {Array.from({ length: 10 }, (_, index) => index).map((index) => (
-                <span
-                  key={`breadth-${index < 6 ? "up" : "down"}-${index}`}
-                  className={`h-6 w-1.5 ${
-                    index < breadthBars ? "bg-[#79c68c]/80" : "bg-[#e35561]/65"
-                  }`}
+            <div className="flex items-center gap-2">
+              <span className="font-[var(--font-mono)] text-[0.72rem] text-[#79c68c]/80 tabular-nums">
+                {breadth?.gainers ?? 0}
+              </span>
+              <div className="relative h-1.5 w-16 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full bg-[#79c68c]/70 transition-[width] duration-500"
+                  style={{ width: `${breadthBars * 10}%` }}
                 />
-              ))}
+              </div>
+              <span className="font-[var(--font-mono)] text-[0.72rem] text-[#e35561]/65 tabular-nums">
+                {breadth?.losers ?? 0}
+              </span>
             </div>
-            <span className="font-[var(--font-mono)] text-[0.82rem] text-white/78">
-              {breadth?.ratio ?? "- / -"}
-            </span>
           </div>
         </div>
 
@@ -294,12 +295,24 @@ export function ScannerMarketStrip({
               );
             })}
           </TooltipProvider>
-          <span className="text-white/20">|</span>
+          <div className="h-3 w-px bg-white/15" />
           <div className="flex items-center gap-1.5 font-[var(--font-mono)] text-[0.7rem]">
-            <span className="text-white/45">Local</span>
-            <span className="inline-block w-28 text-right text-[0.82rem] text-white/55">
-              {formatUpdatedAt(updatedAt)}
-            </span>
+            {!updatedAt ? (
+              <>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ade80]/50" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#4ade80]/80" />
+                </span>
+                <span className="text-[#4ade80]/70">Live</span>
+              </>
+            ) : (
+              <>
+                <span className="text-white/35">updated</span>
+                <span className="font-[var(--font-mono)] text-[0.82rem] text-white/55 tabular-nums">
+                  {formatUpdatedAt(updatedAt)}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>

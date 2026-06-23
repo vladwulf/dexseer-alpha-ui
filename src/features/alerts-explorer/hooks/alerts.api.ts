@@ -4,7 +4,6 @@ import { API_URL } from "@/config";
 import type { OHLCVExtended } from "@/types/ohlcv";
 
 export type AlertTimeframe =
-  | "1s"
   | "1m"
   | "5m"
   | "15m"
@@ -13,35 +12,32 @@ export type AlertTimeframe =
   | "4h"
   | "1d";
 
-export type AlertType =
-  | "dailyHighBreak"
-  | "dailyLowBreak"
-  | "previousDayHighBreak"
-  | "previousDayLowBreak"
-  | "percentUp10Today"
-  | "percentDown10Today"
-  | "runningUpNow"
-  | "runningDownNow"
-  | "dailyVolumeSpike4x"
-  | "4hHighBreak"
-  | "4hLowBreak"
-  | "15minHighBreak"
-  | "15minLowBreak"
-  | "1hHighBreak"
-  | "1hLowBreak";
+export type AlertDirection = string;
+export type AlertType = string;
 
 export type AlertListItem = {
   id: string;
   created_at: string;
   time: string;
-  timeframe: string;
-  asset_id: number;
-  type: AlertType | string;
+  timeframe: AlertTimeframe;
+  strategy_id: string;
+  strategy_version: number;
+  direction: AlertDirection;
+  type: AlertType;
   price: number;
-  asset: {
-    id: number;
-    symbol: string;
-  } | null;
+  instrument: {
+    venue: string;
+    market_type: string;
+    instrument_id: string;
+    instrument_symbol: string;
+    base_asset_id: string;
+    base_asset_symbol: string;
+    quote_asset_id: string;
+    quote_asset_symbol: string;
+    source: string;
+  };
+  trigger_values: Record<string, unknown>;
+  thresholds: Record<string, unknown>;
 };
 
 export type AlertsResponse = {
@@ -54,8 +50,8 @@ export type AlertsResponse = {
 };
 
 export type AlertChartRow = {
+  instrument_id: string;
   time: string;
-  asset_id: number | string;
   open: number | string;
   high: number | string;
   low: number | string;
@@ -82,7 +78,7 @@ type GetAlertsParams = {
   limit?: number;
   offset?: number;
   type?: string;
-  assetId?: number;
+  instrumentId?: string;
 };
 
 const toNumber = (value: number | string | null | undefined) => {
@@ -105,7 +101,8 @@ const toBoolean = (value: boolean | number | string | null | undefined) => {
 };
 
 const normalizeChartRow = (row: AlertChartRow): OHLCVExtended => ({
-  asset_id: toNumber(row.asset_id),
+  asset_id: 0,
+  instrument_id: row.instrument_id,
   time: row.time,
   open: toNumber(row.open),
   high: toNumber(row.high),
@@ -132,7 +129,7 @@ async function getAlertsPaginated({
   limit = 50,
   offset = 0,
   type,
-  assetId,
+  instrumentId,
 }: GetAlertsParams) {
   const response = await axios.get<AlertsResponse>(`${API_URL}/alerts`, {
     params: {
@@ -140,7 +137,7 @@ async function getAlertsPaginated({
       limit,
       offset,
       type: type || undefined,
-      assetId,
+      instrumentId,
     },
   });
   return response.data;
@@ -157,17 +154,23 @@ export function useGetAlertsPaginated({
   timeframe,
   limit = 50,
   type,
-  assetId,
+  instrumentId,
 }: Omit<GetAlertsParams, "offset">) {
   return useInfiniteQuery({
-    queryKey: ["alerts/explorer/paginated", timeframe, limit, type, assetId],
+    queryKey: [
+      "alerts/explorer/paginated",
+      timeframe,
+      limit,
+      type,
+      instrumentId,
+    ],
     queryFn: ({ pageParam = 0 }) =>
       getAlertsPaginated({
         timeframe,
         limit,
         offset: pageParam,
         type,
-        assetId,
+        instrumentId,
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {

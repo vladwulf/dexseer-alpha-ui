@@ -1,22 +1,16 @@
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { AlertsChartWrapper } from "./AlertChartWrapper";
-import {
-  type AlertTimeframe,
-  type AlertType,
-  useGetAlertsPaginated,
-} from "./hooks/alerts.api";
+import { type AlertTimeframe, useGetAlertsPaginated } from "./hooks/alerts.api";
 
 const TIMEFRAMES: AlertTimeframe[] = [
   "1m",
@@ -28,25 +22,6 @@ const TIMEFRAMES: AlertTimeframe[] = [
   "1d",
 ];
 
-const ALERT_TYPES: Array<AlertType | "all"> = [
-  "all",
-  "dailyHighBreak",
-  "dailyLowBreak",
-  "previousDayHighBreak",
-  "previousDayLowBreak",
-  "percentUp10Today",
-  "percentDown10Today",
-  "runningUpNow",
-  "runningDownNow",
-  "dailyVolumeSpike4x",
-  "4hHighBreak",
-  "4hLowBreak",
-  "15minHighBreak",
-  "15minLowBreak",
-  "1hHighBreak",
-  "1hLowBreak",
-];
-
 const PAGE_SIZE = 50;
 
 const formatPrice = (price: number) =>
@@ -55,13 +30,7 @@ const formatPrice = (price: number) =>
     maximumFractionDigits: 6,
   }).format(price);
 
-const formatType = (type: string) =>
-  type
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/^./, (letter) => letter.toUpperCase());
-
-const alertTypeLabel = (type: AlertType | "all") =>
-  type === "all" ? "All Types" : formatType(type);
+const formatType = (type: string) => type.replace(/_/g, " ");
 
 const formatDateTime = (value: string) => {
   if (!value) return "N/A";
@@ -79,17 +48,8 @@ const formatDateTime = (value: string) => {
 
 export function AlertsPannel() {
   const [timeframe, setTimeframe] = useState<AlertTimeframe>("15m");
-  const [alertType, setAlertType] = useState<AlertType | "all">("all");
-  const [assetIdInput, setAssetIdInput] = useState("");
-
-  const assetId = useMemo(() => {
-    const trimmed = assetIdInput.trim();
-    if (!trimmed) return undefined;
-    const numericValue = Number(trimmed);
-    return Number.isInteger(numericValue) && numericValue > 0
-      ? numericValue
-      : undefined;
-  }, [assetIdInput]);
+  const [typeInput, setTypeInput] = useState("");
+  const [instrumentIdInput, setInstrumentIdInput] = useState("");
 
   const {
     data,
@@ -101,14 +61,13 @@ export function AlertsPannel() {
   } = useGetAlertsPaginated({
     timeframe,
     limit: PAGE_SIZE,
-    type: alertType === "all" ? undefined : alertType,
-    assetId,
+    type: typeInput.trim() || undefined,
+    instrumentId: instrumentIdInput.trim() || undefined,
   });
 
   const alerts = data?.pages.flatMap((p) => p.data) ?? [];
   const total = data?.pages[0]?.meta.total ?? 0;
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const selectedAlertTypeLabel = alertTypeLabel(alertType);
 
   useEffect(() => {
     if (!hasNextPage || isFetchingNextPage || !loadMoreRef.current) return;
@@ -180,90 +139,18 @@ export function AlertsPannel() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.62rem",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "oklch(0.45 0 0)",
-              }}
-            >
-              Type
-            </span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    height: 32,
-                    padding: "0 10px",
-                    borderRadius: 4,
-                    border: "1px solid oklch(1 0 0 / 8%)",
-                    background:
-                      alertType !== "all"
-                        ? "oklch(0.72 0.18 248 / 10%)"
-                        : "#0d0d0d",
-                    cursor: "pointer",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.68rem",
-                    fontWeight: 500,
-                    letterSpacing: "0.05em",
-                    color:
-                      alertType !== "all"
-                        ? "oklch(0.72 0.18 248)"
-                        : "oklch(0.48 0 0)",
-                    transition: "all 0.12s",
-                  }}
-                >
-                  {selectedAlertTypeLabel}
-                  <ChevronDown size={10} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuLabel
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.65rem",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  Alert Type
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={alertType}
-                  onValueChange={(value) =>
-                    setAlertType(value as AlertType | "all")
-                  }
-                >
-                  {ALERT_TYPES.map((item) => (
-                    <DropdownMenuRadioItem
-                      key={item}
-                      value={item}
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.7rem",
-                      }}
-                    >
-                      {alertTypeLabel(item)}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <Input
+            value={typeInput}
+            onChange={(event) => setTypeInput(event.target.value)}
+            placeholder="Type"
+            className="h-8 w-full rounded font-mono text-xs xl:w-32"
+          />
 
           <Input
-            inputMode="numeric"
-            value={assetIdInput}
-            onChange={(event) => setAssetIdInput(event.target.value)}
-            placeholder="Asset ID"
-            className="h-8 w-full rounded font-mono text-xs xl:w-28"
+            value={instrumentIdInput}
+            onChange={(event) => setInstrumentIdInput(event.target.value)}
+            placeholder="Instrument ID"
+            className="h-8 w-full rounded font-mono text-xs xl:w-56"
           />
         </div>
       </div>
@@ -331,7 +218,7 @@ export function AlertsPannel() {
       )}
 
       {alerts.map((alert) => {
-        const symbol = alert.asset?.symbol ?? `Asset ${alert.asset_id}`;
+        const symbol = alert.instrument.instrument_symbol;
 
         return (
           <div
@@ -382,31 +269,75 @@ export function AlertsPannel() {
                   >
                     ${formatPrice(alert.price)}
                   </p>
+                  <p
+                    className="truncate"
+                    title={alert.instrument.instrument_id}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.68rem",
+                      color: "oklch(0.52 0 0)",
+                      marginTop: "6px",
+                    }}
+                  >
+                    {alert.instrument.instrument_id}
+                  </p>
                 </div>
 
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.65rem",
-                    fontWeight: 600,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "oklch(0.72 0.18 248)",
-                    background: "oklch(0.72 0.18 248 / 10%)",
-                    border: "1px solid oklch(0.72 0.18 248 / 25%)",
-                    borderRadius: "4px",
-                    padding: "5px 10px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {formatType(alert.type)}
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        height: 32,
+                        padding: "0 10px",
+                        borderRadius: 4,
+                        border: "1px solid oklch(0.72 0.18 248 / 25%)",
+                        background: "oklch(0.72 0.18 248 / 10%)",
+                        cursor: "pointer",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.65rem",
+                        fontWeight: 600,
+                        letterSpacing: "0.08em",
+                        color: "oklch(0.72 0.18 248)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {formatType(alert.type)}
+                      <ChevronDown size={10} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72">
+                    <DropdownMenuLabel
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.1em",
+                      }}
+                    >
+                      Alert Details
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <div className="space-y-2 px-2 py-1 font-mono text-xs">
+                      <p>Strategy: {alert.strategy_id}</p>
+                      <p>Direction: {alert.direction}</p>
+                      <p>Version: {alert.strategy_version}</p>
+                      <p>Venue: {alert.instrument.venue}</p>
+                      <p>Market: {alert.instrument.market_type}</p>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="grid gap-2 sm:grid-cols-4">
                 {[
                   { label: "Alert ID", value: alert.id },
-                  { label: "Asset ID", value: String(alert.asset_id) },
+                  {
+                    label: "Instrument",
+                    value: alert.instrument.instrument_symbol,
+                  },
                   { label: "Timeframe", value: alert.timeframe },
                   { label: "Time", value: formatDateTime(alert.time) },
                 ].map(({ label, value }) => (
