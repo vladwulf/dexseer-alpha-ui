@@ -15,6 +15,7 @@ import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { getEMASeriesData, getMACDSeriesData } from "./indicators";
 import { MARibbonIndicator } from "./indicators/ma-ribbon-plugin";
+import { normalizeChartData } from "./normalizeChartData";
 
 interface ChartEvent {
   type: string;
@@ -180,25 +181,27 @@ export function StandardChart({
     });
 
     // Convert Binance K-line data to candlestick format
-    const chartData: (CandlestickData & { volume: number })[] = dataToRender
-      .filter(
-        (kline) =>
-          kline.open != null &&
-          kline.high != null &&
-          kline.low != null &&
-          kline.close != null,
-      )
-      .map((kline) => {
-        return {
-          time: parseCandleTime(kline.time) as Time,
-          open: Number(kline.open),
-          high: Number(kline.high),
-          low: Number(kline.low),
-          close: Number(kline.close),
-          volume: Number(kline.asset_volume),
-        };
-      })
-      .sort((a, b) => (a.time as number) - (b.time as number)); // Ensure data is sorted by time
+    const chartData: (CandlestickData & { volume: number })[] =
+      normalizeChartData(
+        dataToRender
+          .filter(
+            (kline) =>
+              kline.open != null &&
+              kline.high != null &&
+              kline.low != null &&
+              kline.close != null,
+          )
+          .map((kline) => {
+            return {
+              time: parseCandleTime(kline.time) as Time,
+              open: Number(kline.open),
+              high: Number(kline.high),
+              low: Number(kline.low),
+              close: Number(kline.close),
+              volume: Number(kline.asset_volume),
+            };
+          }),
+      );
 
     if (events && events.length > 0) {
       createSeriesMarkers(

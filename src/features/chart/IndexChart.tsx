@@ -8,6 +8,7 @@ import {
 import { useEffect, useRef } from "react";
 import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
+import { normalizeChartData } from "./normalizeChartData";
 
 type ChartProps = {
   klines: OHLCVExtended[];
@@ -105,25 +106,26 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     });
 
     // Convert OHLCVExtended data to candlestick format (based on MicroChart)
-    const chartData: CandlestickData[] = klines
-      .filter(
-        (kline) =>
-          kline.open != null &&
-          kline.high != null &&
-          kline.low != null &&
-          kline.close != null,
-      )
-      .map((kline) => {
-        const time = parseCandleTime(kline.time) as Time;
-        return {
-          time,
-          open: kline.open,
-          high: kline.high,
-          low: kline.low,
-          close: kline.close,
-        };
-      })
-      .sort((a, b) => (a.time as number) - (b.time as number));
+    const chartData: CandlestickData[] = normalizeChartData(
+      klines
+        .filter(
+          (kline) =>
+            kline.open != null &&
+            kline.high != null &&
+            kline.low != null &&
+            kline.close != null,
+        )
+        .map((kline) => {
+          const time = parseCandleTime(kline.time) as Time;
+          return {
+            time,
+            open: kline.open,
+            high: kline.high,
+            low: kline.low,
+            close: kline.close,
+          };
+        }),
+    );
 
     candlestickSeries.setData(chartData);
     candlestickSeries.applyOptions({

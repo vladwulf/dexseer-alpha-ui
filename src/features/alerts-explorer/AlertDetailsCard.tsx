@@ -12,7 +12,7 @@ type Props = {
 };
 export const AlertDetailsCard: React.FC<Props> = (props) => {
   const { alertId, alertTime, alertType, assetId, symbol } = props;
-  const { data: chart } = useGetAlertChart(String(alertId), "15m");
+  const { data: chart } = useGetAlertChart(symbol, "15m");
 
   return (
     <Card className="p-3 bg-black transition-colors cursor-pointer rounded-md border-0 ">

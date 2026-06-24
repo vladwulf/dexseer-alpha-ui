@@ -6,12 +6,13 @@ import { useGetAlertChart } from "./hooks/alerts.api";
 type Props = {
   alertTime: string;
   alertId: string;
+  symbol: string;
   expectedInstrumentId: string;
   timeframe: AlertTimeframe;
 };
 
 export function AlertsChartWrapper(props: Props) {
-  const chartData = useGetAlertChart(props.alertId, props.timeframe);
+  const chartData = useGetAlertChart(props.symbol, props.timeframe);
 
   useEffect(() => {
     if (!import.meta.env.DEV || !chartData.data?.length) return;

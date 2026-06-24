@@ -410,6 +410,7 @@ export function AlertsPannel() {
               <AlertsChartWrapper
                 alertTime={alert.time}
                 alertId={alert.id}
+                symbol={symbol}
                 expectedInstrumentId={alert.instrument.instrument_id}
                 timeframe={timeframe}
               />
