@@ -9,5 +9,10 @@
  *   - "2000-01-01 00:00:00+00"    (space-separated with timezone)
  */
 export function parseCandleTime(time: string): number {
-  return Math.floor(new Date(time.replace(" ", "T")).getTime() / 1000);
+  const normalized = time.replace(" ", "T");
+  // API returns UTC timestamps without a tz indicator
+  if (/[Z+-]/.test(normalized)) {
+    return Math.floor(new Date(normalized).getTime() / 1000);
+  }
+  return Math.floor(new Date(`${normalized}Z`).getTime() / 1000);
 }

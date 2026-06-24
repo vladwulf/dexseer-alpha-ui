@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import type { AlertChartActiveCandle } from "../chart/AlertChart";
 import { AlertsChartWrapper } from "./AlertChartWrapper";
 import { type AlertTimeframe, useGetAlertsPaginated } from "./hooks/alerts.api";
 
@@ -44,6 +45,23 @@ const formatDateTime = (value: string) => {
     minute: "2-digit",
     hour12: false,
   });
+};
+
+const formatChartNumber = (value: number | null | undefined, digits = 2) => {
+  if (value == null) return "-";
+  return value.toFixed(digits);
+};
+
+const formatVolume = (value: number) => {
+  if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
+  if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
+  if (value >= 1e3) return `${(value / 1e3).toFixed(2)}K`;
+  return value.toFixed(2);
+};
+
+const formatBool = (value: boolean | null | undefined) => {
+  if (value == null) return "-";
+  return value ? "Y" : "N";
 };
 
 export function AlertsPannel() {
@@ -403,18 +421,13 @@ export function AlertsPannel() {
               </div>
             </div>
 
-            <div
-              className="h-[320px] w-full min-w-0 overflow-hidden"
-              style={{ borderTop: "1px solid oklch(1 0 0 / 5%)" }}
-            >
-              <AlertsChartWrapper
-                alertTime={alert.time}
-                alertId={alert.id}
-                symbol={symbol}
-                expectedInstrumentId={alert.instrument.instrument_id}
-                timeframe={timeframe}
-              />
-            </div>
+            <AlertChartSection
+              alertTime={alert.time}
+              alertPrice={alert.price}
+              alertId={alert.id}
+              expectedInstrumentId={alert.instrument.instrument_id}
+              timeframe={timeframe}
+            />
           </div>
         );
       })}
@@ -445,6 +458,225 @@ export function AlertsPannel() {
         >
           End of signal feed
         </p>
+      )}
+    </div>
+  );
+}
+
+function AlertChartSection({
+  alertTime,
+  alertPrice,
+  alertId,
+  expectedInstrumentId,
+  timeframe,
+}: {
+  alertTime: string;
+  alertPrice: number;
+  alertId: string;
+  expectedInstrumentId: string;
+  timeframe: AlertTimeframe;
+}) {
+  const [activeCandle, setActiveCandle] =
+    useState<AlertChartActiveCandle | null>(null);
+
+  return (
+    <>
+      <div
+        className="h-[320px] w-full min-w-0 overflow-hidden"
+        style={{ borderTop: "1px solid oklch(1 0 0 / 5%)" }}
+      >
+        <AlertsChartWrapper
+          alertTime={alertTime}
+          alertPrice={alertPrice}
+          alertId={alertId}
+          expectedInstrumentId={expectedInstrumentId}
+          timeframe={timeframe}
+          onActiveCandleChange={setActiveCandle}
+          showLegend={false}
+        />
+      </div>
+      <AlertChartFooter activeCandle={activeCandle} alertPrice={alertPrice} />
+    </>
+  );
+}
+
+function AlertChartFooter({
+  activeCandle,
+  alertPrice,
+}: {
+  activeCandle: AlertChartActiveCandle | null;
+  alertPrice: number;
+}) {
+  const candle = activeCandle?.candle;
+  const metricGroups = candle
+    ? [
+        {
+          label: "Price",
+          metrics: [
+            { label: "O", value: formatPrice(candle.open) },
+            { label: "H", value: formatPrice(candle.high) },
+            { label: "L", value: formatPrice(candle.low) },
+            { label: "C", value: formatPrice(candle.close) },
+          ],
+        },
+        {
+          label: "Volume",
+          metrics: [
+            { label: "Vol", value: formatVolume(candle.asset_volume) },
+            {
+              label: "1p",
+              value: `${formatChartNumber(candle.rel_vol_1p, 1)}x`,
+            },
+            {
+              label: "16p",
+              value: `${formatChartNumber(candle.rel_vol_16p, 1)}x`,
+            },
+            {
+              label: "96p",
+              value: `${formatChartNumber(candle.rel_vol_96p, 1)}x`,
+            },
+          ],
+        },
+        {
+          label: "EMA",
+          metrics: [
+            { label: "9", value: formatChartNumber(candle.ema9, 4) },
+            { label: "20", value: formatChartNumber(candle.ema20, 4) },
+            { label: "50", value: formatChartNumber(candle.ema50, 4) },
+            { label: "100", value: formatChartNumber(candle.ema100, 4) },
+            { label: "200", value: formatChartNumber(candle.ema200, 4) },
+          ],
+        },
+        {
+          label: "MACD",
+          metrics: [
+            { label: "Line", value: formatChartNumber(candle.macd_line, 4) },
+            {
+              label: "Signal",
+              value: formatChartNumber(candle.macd_signal, 4),
+            },
+            {
+              label: "Hist",
+              value: formatChartNumber(candle.macd_histogram, 4),
+            },
+            {
+              label: "Slope",
+              value: formatChartNumber(candle.macd_signal_slope, 4),
+            },
+          ],
+        },
+        {
+          label: "Regime",
+          metrics: [
+            { label: "ATR", value: formatChartNumber(candle.atr14, 4) },
+            { label: "ADX", value: formatChartNumber(candle.adx14, 1) },
+            {
+              label: "Chop",
+              value: formatChartNumber(candle.choppiness_index_14, 1),
+            },
+            { label: "RngZ", value: formatChartNumber(candle.range_z, 2) },
+            {
+              label: "RVZ",
+              value: formatChartNumber(candle.rvol_z_sustained, 2),
+            },
+            { label: "MvZ", value: formatChartNumber(candle.move_z, 2) },
+          ],
+        },
+        {
+          label: "Breakout",
+          metrics: [
+            {
+              label: "16p",
+              value: `up:${formatBool(candle.is_16p_breakout)} dn:${formatBool(candle.is_16p_breakdown)}`,
+            },
+            {
+              label: "96p",
+              value: `up:${formatBool(candle.is_96p_breakout)} dn:${formatBool(candle.is_96p_breakdown)}`,
+            },
+          ],
+        },
+      ]
+    : [];
+
+  return (
+    <div
+      style={{
+        borderTop: "1px solid oklch(1 0 0 / 5%)",
+        padding: "10px 12px",
+        fontFamily: "var(--font-mono)",
+        fontSize: "0.68rem",
+        color: "oklch(0.72 0.18 248 / 80%)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "4px 12px",
+          marginBottom: activeCandle ? 8 : 0,
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: "#3b82f6",
+            opacity: 0.7,
+          }}
+        />
+        <span>Alert @ ${formatPrice(alertPrice)}</span>
+        {activeCandle && (
+          <span style={{ color: "oklch(0.65 0 0)" }}>
+            Candle {activeCandle.timeDisplay}
+          </span>
+        )}
+      </div>
+
+      {metricGroups.length > 0 && (
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {metricGroups.map((group) => (
+            <div
+              key={group.label}
+              className="rounded px-2 py-1.5"
+              style={{
+                background: "oklch(1 0 0 / 2%)",
+                border: "1px solid oklch(1 0 0 / 5%)",
+              }}
+            >
+              <div
+                style={{
+                  marginBottom: 4,
+                  color: "oklch(0.45 0 0)",
+                  fontSize: "0.56rem",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                }}
+              >
+                {group.label}
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))",
+                  gap: "3px 10px",
+                  color: "oklch(0.72 0 0)",
+                }}
+              >
+                {group.metrics.map((metric) => (
+                  <span key={`${group.label}-${metric.label}`}>
+                    <span style={{ color: "oklch(0.5 0 0)" }}>
+                      {metric.label}:
+                    </span>{" "}
+                    {metric.value}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

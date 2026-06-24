@@ -32,6 +32,7 @@ export type OHLCVExtended = {
   analytics_updated_at: string | null;
   asset_volume: number;
   quote_volume: number;
+  rel_vol_1p: number | null;
   rel_vol_16p: number | null;
   rel_vol_96p: number | null;
   is_16p_breakout: boolean;
@@ -40,9 +41,19 @@ export type OHLCVExtended = {
   is_96p_breakdown: boolean;
   ema9: number | null;
   ema20: number | null;
+  ema50: number | null;
+  ema100: number | null;
+  ema200: number | null;
   macd_signal: number | null;
   macd_line: number | null;
   macd_histogram: number | null;
+  macd_signal_slope: number | null;
+  atr14: number | null;
+  choppiness_index_14: number | null;
+  adx14: number | null;
+  range_z: number | null;
+  rvol_z_sustained: number | null;
+  move_z: number | null;
 };
 
 export interface Alert {

@@ -1,18 +1,20 @@
 import { useEffect } from "react";
-import { AlertChart } from "../chart/AlertChart";
+import { AlertChart, type AlertChartActiveCandle } from "../chart/AlertChart";
 import type { AlertTimeframe } from "./hooks/alerts.api";
 import { useGetAlertChart } from "./hooks/alerts.api";
 
 type Props = {
   alertTime: string;
+  alertPrice: number;
   alertId: string;
-  symbol: string;
   expectedInstrumentId: string;
   timeframe: AlertTimeframe;
+  showLegend?: boolean;
+  onActiveCandleChange?: (activeCandle: AlertChartActiveCandle) => void;
 };
 
 export function AlertsChartWrapper(props: Props) {
-  const chartData = useGetAlertChart(props.symbol, props.timeframe);
+  const chartData = useGetAlertChart(props.alertId, props.timeframe);
 
   useEffect(() => {
     if (!import.meta.env.DEV || !chartData.data?.length) return;
@@ -75,7 +77,10 @@ export function AlertsChartWrapper(props: Props) {
         Boolean(chartData.data?.length) && (
           <AlertChart
             alertTime={props.alertTime}
+            alertPrice={props.alertPrice}
+            onActiveCandleChange={props.onActiveCandleChange}
             series={chartData.data ?? []}
+            showLegend={props.showLegend}
           />
         )}
     </div>

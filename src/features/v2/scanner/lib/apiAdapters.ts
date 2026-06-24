@@ -192,6 +192,7 @@ function mapCandleToOhlcv(
     analytics_updated_at: null,
     asset_volume: candle.volume_base ?? 0,
     quote_volume: candle.volume_quote ?? 0,
+    rel_vol_1p: null,
     rel_vol_16p: null,
     rel_vol_96p: null,
     is_16p_breakout: false,
@@ -200,9 +201,19 @@ function mapCandleToOhlcv(
     is_96p_breakdown: false,
     ema9: null,
     ema20: null,
+    ema50: null,
+    ema100: null,
+    ema200: null,
     macd_signal: null,
     macd_line: null,
     macd_histogram: null,
+    macd_signal_slope: null,
+    atr14: null,
+    choppiness_index_14: null,
+    adx14: null,
+    range_z: null,
+    rvol_z_sustained: null,
+    move_z: null,
   };
 }
 

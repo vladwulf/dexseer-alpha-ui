@@ -58,6 +58,7 @@ function mapLiveCandleToOhlcv(
     analytics_updated_at: null,
     asset_volume: candle.asset_volume,
     quote_volume: candle.quote_volume,
+    rel_vol_1p: null,
     rel_vol_16p: null,
     rel_vol_96p: null,
     is_16p_breakout: false,
@@ -66,9 +67,19 @@ function mapLiveCandleToOhlcv(
     is_96p_breakdown: false,
     ema9: null,
     ema20: null,
+    ema50: null,
+    ema100: null,
+    ema200: null,
     macd_signal: null,
     macd_line: null,
     macd_histogram: null,
+    macd_signal_slope: null,
+    atr14: null,
+    choppiness_index_14: null,
+    adx14: null,
+    range_z: null,
+    rvol_z_sustained: null,
+    move_z: null,
   };
 }
 

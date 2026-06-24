@@ -18,6 +18,9 @@ interface RibbonRendererData {
   color?: string;
 }
 
+const isDrawablePoint = (point: RibbonRendererData) =>
+  point.x >= 0 && point.upper >= 0 && point.lower >= 0;
+
 class MARibbonPaneRenderer implements IPrimitivePaneRenderer {
   _viewData: RibbonViewData;
 
@@ -43,6 +46,10 @@ class MARibbonPaneRenderer implements IPrimitivePaneRenderer {
         const p1 = points[i];
         const p2 = points[i + 1];
 
+        if (!isDrawablePoint(p1) || !isDrawablePoint(p2)) {
+          continue;
+        }
+
         // Create a segment between current and next point
         const segment = new Path2D();
         segment.moveTo(p1.x, p1.upper);
@@ -61,19 +68,24 @@ class MARibbonPaneRenderer implements IPrimitivePaneRenderer {
       if (this._viewData.options.lineWidth > 0) {
         ctx.strokeStyle = this._viewData.options.lineColor;
         ctx.lineWidth = this._viewData.options.lineWidth;
+        const drawablePoints = points.filter(isDrawablePoint);
+
+        if (drawablePoints.length < 2) {
+          return;
+        }
 
         // Draw upper line
         ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].upper);
-        for (const point of points) {
+        ctx.moveTo(drawablePoints[0].x, drawablePoints[0].upper);
+        for (const point of drawablePoints) {
           ctx.lineTo(point.x, point.upper);
         }
         ctx.stroke();
 
         // Draw lower line
         ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].lower);
-        for (const point of points) {
+        ctx.moveTo(drawablePoints[0].x, drawablePoints[0].lower);
+        for (const point of drawablePoints) {
           ctx.lineTo(point.x, point.lower);
         }
         ctx.stroke();

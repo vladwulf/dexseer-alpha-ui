@@ -52,6 +52,7 @@ export type AlertChartRow = {
   close: number | string;
   asset_volume: number | string;
   quote_volume: number | string;
+  rel_vol_1p?: number | string | null;
   rel_vol_16p?: number | string | null;
   rel_vol_96p?: number | string | null;
   is_16p_break_up?: boolean | number | string | null;
@@ -64,10 +65,19 @@ export type AlertChartRow = {
   is_96p_breakdown?: boolean | number | string | null;
   ema9?: number | string | null;
   ema20?: number | string | null;
+  ema50?: number | string | null;
+  ema100?: number | string | null;
+  ema200?: number | string | null;
   macd_signal?: number | string | null;
   macd_line?: number | string | null;
   macd_histogram?: number | string | null;
+  macd_signal_slope?: number | string | null;
   atr14?: number | string | null;
+  choppiness_index_14?: number | string | null;
+  adx14?: number | string | null;
+  range_z?: number | string | null;
+  rvol_z_sustained?: number | string | null;
+  move_z?: number | string | null;
   [key: string]: unknown;
 };
 
@@ -77,10 +87,6 @@ type GetAlertsParams = {
   offset?: number;
   type?: string;
   instrumentId?: string;
-};
-
-type ChartBySymbolResponse = {
-  ohlcData: AlertChartRow[];
 };
 
 const toNumber = (value: number | string | null | undefined) => {
@@ -113,6 +119,7 @@ const normalizeChartRow = (row: AlertChartRow): OHLCVExtended => ({
   analytics_updated_at: null,
   asset_volume: toNumber(row.asset_volume),
   quote_volume: toNumber(row.quote_volume),
+  rel_vol_1p: toNullableNumber(row.rel_vol_1p),
   rel_vol_16p: toNullableNumber(row.rel_vol_16p),
   rel_vol_96p: toNullableNumber(row.rel_vol_96p),
   is_16p_breakout: toBoolean(row.is_16p_breakout ?? row.is_16p_break_up),
@@ -121,9 +128,19 @@ const normalizeChartRow = (row: AlertChartRow): OHLCVExtended => ({
   is_96p_breakdown: toBoolean(row.is_96p_breakdown ?? row.is_96p_break_down),
   ema9: toNullableNumber(row.ema9),
   ema20: toNullableNumber(row.ema20),
+  ema50: toNullableNumber(row.ema50),
+  ema100: toNullableNumber(row.ema100),
+  ema200: toNullableNumber(row.ema200),
   macd_signal: toNullableNumber(row.macd_signal),
   macd_line: toNullableNumber(row.macd_line),
   macd_histogram: toNullableNumber(row.macd_histogram),
+  macd_signal_slope: toNullableNumber(row.macd_signal_slope),
+  atr14: toNullableNumber(row.atr14),
+  choppiness_index_14: toNullableNumber(row.choppiness_index_14),
+  adx14: toNullableNumber(row.adx14),
+  range_z: toNullableNumber(row.range_z),
+  rvol_z_sustained: toNullableNumber(row.rvol_z_sustained),
+  move_z: toNullableNumber(row.move_z),
 });
 
 async function getAlertsPaginated({
@@ -145,15 +162,11 @@ async function getAlertsPaginated({
   return response.data;
 }
 
-async function getAlertChart(symbol: string, timeframe: AlertTimeframe) {
-  const response = await axios.get<ChartBySymbolResponse>(`${API_URL}/charts`, {
-    params: {
-      symbol,
-      timeframe,
-      limit: 120,
-    },
-  });
-  return response.data.ohlcData.map(normalizeChartRow);
+async function getAlertChart(alertId: string, timeframe: AlertTimeframe) {
+  const response = await axios.get<AlertChartRow[]>(
+    `${API_URL}/alerts/${alertId}/chart/${timeframe}`,
+  );
+  return response.data.map(normalizeChartRow);
 }
 
 export function useGetAlertsPaginated({
@@ -187,12 +200,12 @@ export function useGetAlertsPaginated({
 }
 
 export function useGetAlertChart(
-  symbol: string | undefined,
+  alertId: string | undefined,
   timeframe: AlertTimeframe,
 ) {
   return useQuery({
-    enabled: Boolean(symbol),
-    queryKey: ["alerts/explorer/chart", symbol, timeframe],
-    queryFn: () => getAlertChart(symbol as string, timeframe),
+    enabled: Boolean(alertId),
+    queryKey: ["alerts/explorer/chart", alertId, timeframe],
+    queryFn: () => getAlertChart(alertId as string, timeframe),
   });
 }
