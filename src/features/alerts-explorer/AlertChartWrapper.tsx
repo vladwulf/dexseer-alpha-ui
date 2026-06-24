@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { AlertChart } from "../chart/AlertChart";
 import type { AlertTimeframe } from "./hooks/alerts.api";
 import { useGetAlertChart } from "./hooks/alerts.api";
@@ -5,11 +6,25 @@ import { useGetAlertChart } from "./hooks/alerts.api";
 type Props = {
   alertTime: string;
   alertId: string;
+  expectedInstrumentId: string;
   timeframe: AlertTimeframe;
 };
 
 export function AlertsChartWrapper(props: Props) {
   const chartData = useGetAlertChart(props.alertId, props.timeframe);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || !chartData.data?.length) return;
+
+    const chartInstrumentId = chartData.data[0]?.instrument_id;
+    if (chartInstrumentId && chartInstrumentId !== props.expectedInstrumentId) {
+      console.warn("Alert chart instrument mismatch", {
+        alertId: props.alertId,
+        expectedInstrumentId: props.expectedInstrumentId,
+        chartInstrumentId,
+      });
+    }
+  }, [chartData.data, props.alertId, props.expectedInstrumentId]);
 
   return (
     <div className="h-full min-w-0 overflow-hidden">

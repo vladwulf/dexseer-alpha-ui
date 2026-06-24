@@ -70,6 +70,26 @@ export function AlertsPannel() {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    if (!import.meta.env.DEV || alerts.length === 0) return;
+
+    const countsById = new Map<string, number>();
+    for (const alert of alerts) {
+      countsById.set(alert.id, (countsById.get(alert.id) ?? 0) + 1);
+    }
+
+    const duplicateIds = Array.from(countsById.entries()).filter(
+      ([, count]) => count > 1,
+    );
+
+    if (duplicateIds.length > 0) {
+      console.warn("Alerts explorer received duplicate alert ids", {
+        duplicateIds,
+        totalAlerts: alerts.length,
+      });
+    }
+  }, [alerts]);
+
+  useEffect(() => {
     if (!hasNextPage || isFetchingNextPage || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
@@ -222,7 +242,12 @@ export function AlertsPannel() {
 
         return (
           <div
-            key={alert.id}
+            key={[
+              alert.id,
+              alert.instrument.instrument_id,
+              alert.time,
+              alert.type,
+            ].join(":")}
             className="w-full overflow-hidden transition-all duration-200"
             style={{
               background: "#0a0a0a",
@@ -385,6 +410,7 @@ export function AlertsPannel() {
               <AlertsChartWrapper
                 alertTime={alert.time}
                 alertId={alert.id}
+                expectedInstrumentId={alert.instrument.instrument_id}
                 timeframe={timeframe}
               />
             </div>
