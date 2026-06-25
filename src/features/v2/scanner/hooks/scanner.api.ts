@@ -328,14 +328,14 @@ async function getRunners(params: RunnersRequest = {}) {
 
 async function getScanner(params: ScannerRequest = {}) {
   const response = await axios.get<ScannerResponse>(
-    `${FRONTEND_API_BASE}/scanner${buildQueryString(params)}`,
+    `${FRONTEND_API_BASE}/scanners/movers${buildQueryString(params)}`,
   );
   return response.data;
 }
 
 async function getMomentumScanner(params: MomentumScannerRequest = {}) {
   const response = await axios.get<MomentumScannerResponse>(
-    `${FRONTEND_API_BASE}/scanner/momentum${buildQueryString(params)}`,
+    `${FRONTEND_API_BASE}/scanners/momentum${buildQueryString(params)}`,
   );
   return response.data;
 }
@@ -361,7 +361,7 @@ async function getScannerCharts(params: ScannerBatchChartsRequest) {
 
 async function getScannerAssetDetails(assetId: number) {
   const response = await axios.get<ScannerAssetDetailsResponse>(
-    `${FRONTEND_API_BASE}/scanner/assets/${assetId}/details`,
+    `${FRONTEND_API_BASE}/scanners/movers/assets/${assetId}/details`,
   );
   return response.data;
 }
