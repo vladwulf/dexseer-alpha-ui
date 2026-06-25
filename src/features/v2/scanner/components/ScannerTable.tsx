@@ -21,12 +21,7 @@ import {
 } from "@/components/ui/table";
 import { MicroChart } from "@/features/chart/MicroChart";
 import { cn } from "@/lib/utils";
-import {
-  formatPrice,
-  formatSigned,
-  getChangeTone,
-  numberFormat,
-} from "../lib/formatters";
+import { formatPrice, formatSigned, numberFormat } from "../lib/formatters";
 import type { DensityMode, ScannerAsset, ScannerPreset } from "../types";
 import { Sparkline } from "./Sparkline";
 
@@ -64,8 +59,355 @@ const DEFAULT_COLUMNS = new Set([
   "sparkline",
 ]);
 
+const MOMENTUM_COLUMNS = new Set([
+  "symbol",
+  "chart",
+  "price",
+  "setupScore",
+  "momentumScore1m",
+  "momentumScore5m",
+  "momentumScore15m",
+  "alignedTimeframes",
+  "momentumRvolZ",
+  "momentumMoveZ",
+  "momentumRangeZ",
+  "momentumChoppiness",
+]);
+
 const SYMBOL_COLUMN_WIDTH_CLASS = "w-[112px] min-w-[112px]";
 const TABLE_CHART_MAX_CANDLES = 100;
+
+function scoreColor(pct: number) {
+  return pct >= 70
+    ? "#5dc887"
+    : pct >= 40
+      ? "#f5a623"
+      : "rgba(255,255,255,0.32)";
+}
+
+function ScoreBadge({ value }: { value: number }) {
+  const pct = Math.min(100, Math.max(0, value));
+  const color = scoreColor(pct);
+  const bg =
+    pct >= 70
+      ? "rgba(93,200,135,0.12)"
+      : pct >= 40
+        ? "rgba(245,166,35,0.10)"
+        : "rgba(255,255,255,0.06)";
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        style={{
+          color,
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          background: bg,
+          borderRadius: 4,
+          padding: "2px 7px",
+        }}
+      >
+        {pct.toFixed(0)}
+      </span>
+      <div
+        style={{
+          width: 28,
+          height: 3,
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 999,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: color,
+            borderRadius: 999,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MomentumScoreCell({ value }: { value: number | undefined }) {
+  if (value === undefined) return <span className="text-white/20">—</span>;
+  const pct = Math.min(100, Math.max(0, value));
+  const color = scoreColor(pct);
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        style={{
+          color,
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.75rem",
+        }}
+      >
+        {pct.toFixed(0)}
+      </span>
+      <div
+        style={{
+          width: 22,
+          height: 2,
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 999,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: color,
+            borderRadius: 999,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AlignedTfIndicator({ value }: { value: number | undefined }) {
+  if (value === undefined) return <span className="text-white/20">—</span>;
+  const timeframes = ["1m", "5m", "15m"] as const;
+  const total = timeframes.length;
+  const filled = Math.min(total, Math.max(0, value));
+  return (
+    <div className="flex items-center gap-1">
+      {timeframes.map((timeframe, i) => (
+        <div
+          key={timeframe}
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: 2,
+            background: i < filled ? "#5dc887" : "rgba(255,255,255,0.11)",
+          }}
+        />
+      ))}
+      <span
+        style={{
+          color: "rgba(255,255,255,0.32)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.65rem",
+          marginLeft: 4,
+        }}
+      >
+        {filled}/{total}
+      </span>
+    </div>
+  );
+}
+
+function ZScoreCell({ value }: { value: number | null | undefined }) {
+  if (value === null || value === undefined)
+    return <span className="text-white/20">—</span>;
+  const abs = Math.abs(value);
+  const pos = value > 0;
+  const color =
+    abs >= 2
+      ? pos
+        ? "#5dc887"
+        : "#e35561"
+      : abs >= 1
+        ? pos
+          ? "rgba(93,200,135,0.72)"
+          : "rgba(227,85,97,0.72)"
+        : "rgba(255,255,255,0.42)";
+  return (
+    <span
+      style={{ color, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
+    >
+      {pos ? "+" : ""}
+      {value.toFixed(2)}
+    </span>
+  );
+}
+
+function ChangePctCell({ value }: { value: number }) {
+  if (value === 0)
+    return (
+      <span
+        style={{
+          color: "rgba(255,255,255,0.22)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.75rem",
+        }}
+      >
+        0.00%
+      </span>
+    );
+  const isPos = value > 0;
+  const intensity = Math.min(Math.abs(value) / 8, 1);
+  const textColor = isPos ? "#5dc887" : "#e35561";
+  const bgAlpha = 0.03 + intensity * 0.11;
+  const bg = isPos
+    ? `rgba(93,200,135,${bgAlpha.toFixed(3)})`
+    : `rgba(227,85,97,${bgAlpha.toFixed(3)})`;
+  return (
+    <span
+      style={{
+        color: textColor,
+        background: bg,
+        fontFamily: "var(--font-mono)",
+        fontSize: "0.75rem",
+        fontWeight: 500,
+        borderRadius: 4,
+        padding: "2px 5px",
+        display: "inline-block",
+      }}
+    >
+      {formatSigned(value)}
+    </span>
+  );
+}
+
+function RvolCell({ value }: { value: number }) {
+  const normalized = Math.min(Math.max(value - 1, 0) / 4, 1);
+  const color =
+    normalized > 0.6
+      ? "#5dc887"
+      : normalized > 0.25
+        ? "#f5a623"
+        : "rgba(245,166,35,0.72)";
+  const barColor = normalized > 0.6 ? "#5dc887" : "#f5a623";
+  const barWidth = Math.max(normalized * 100, value >= 1 ? 6 : 0);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <span
+        style={{
+          color,
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.75rem",
+          fontWeight: 600,
+        }}
+      >
+        {value.toFixed(1)}x
+      </span>
+      <div
+        style={{
+          width: 20,
+          height: 2,
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: 999,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${barWidth}%`,
+            height: "100%",
+            background: barColor,
+            borderRadius: 999,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function OiDeltaCell({ value }: { value: number }) {
+  const abs = Math.abs(value);
+  const isPos = value > 0;
+  const textColor =
+    abs >= 5
+      ? isPos
+        ? "#5dc887"
+        : "#e35561"
+      : abs >= 2
+        ? isPos
+          ? "rgba(93,200,135,0.72)"
+          : "rgba(227,85,97,0.72)"
+        : "rgba(255,255,255,0.38)";
+  return (
+    <span
+      style={{
+        color: textColor,
+        fontFamily: "var(--font-mono)",
+        fontSize: "0.75rem",
+      }}
+    >
+      {formatSigned(value)}
+    </span>
+  );
+}
+
+function FundingCell({ value }: { value: number }) {
+  // Positive funding = longs pay shorts (overheated longs → red)
+  // Negative funding = shorts pay longs (overheated shorts → green)
+  const isHot = value > 0.03;
+  const isSqueeze = value < -0.02;
+  const textColor = isHot
+    ? "#e35561"
+    : isSqueeze
+      ? "#5dc887"
+      : value > 0
+        ? "rgba(227,85,97,0.58)"
+        : value < 0
+          ? "rgba(93,200,135,0.58)"
+          : "rgba(255,255,255,0.38)";
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+      <span
+        style={{
+          color: textColor,
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.75rem",
+        }}
+      >
+        {formatSigned(value, "%")}
+      </span>
+      {(isHot || isSqueeze) && (
+        <span
+          style={{
+            fontSize: "0.58rem",
+            color: textColor,
+            opacity: 0.75,
+            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {isHot ? "HOT" : "SQZ"}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ChoppinessCell({ value }: { value: number | null | undefined }) {
+  if (value === null || value === undefined)
+    return <span className="text-white/20">—</span>;
+  const trending = value < 38.2;
+  const choppy = value > 61.8;
+  const color = trending
+    ? "#5dc887"
+    : choppy
+      ? "#e35561"
+      : "rgba(255,255,255,0.42)";
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        style={{ color, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
+      >
+        {value.toFixed(1)}
+      </span>
+      {(trending || choppy) && (
+        <span
+          style={{
+            color,
+            fontSize: "0.58rem",
+            opacity: 0.72,
+            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {trending ? "TREND" : "CHOP"}
+        </span>
+      )}
+    </div>
+  );
+}
 
 const ScannerChartCell = memo(
   function ScannerChartCell({ chart }: { chart: ScannerAsset["chart"] }) {
@@ -165,45 +507,35 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     accessorKey: "change5m",
     header: "5m %",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span className={getChangeTone(row.original.change5m)}>
-        {formatSigned(row.original.change5m)}
-      </span>
+      <ChangePctCell value={row.original.change5m} />
     ),
   },
   {
     accessorKey: "change15m",
     header: "15m %",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span className={getChangeTone(row.original.change15m)}>
-        {formatSigned(row.original.change15m)}
-      </span>
+      <ChangePctCell value={row.original.change15m} />
     ),
   },
   {
     accessorKey: "change1h",
     header: "1h %",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span className={getChangeTone(row.original.change1h)}>
-        {formatSigned(row.original.change1h)}
-      </span>
+      <ChangePctCell value={row.original.change1h} />
     ),
   },
   {
     accessorKey: "change4h",
     header: "4h %",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span className={getChangeTone(row.original.change4h)}>
-        {formatSigned(row.original.change4h)}
-      </span>
+      <ChangePctCell value={row.original.change4h} />
     ),
   },
   {
     accessorKey: "change24h",
     header: "24h %",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span className={getChangeTone(row.original.change24h)}>
-        {formatSigned(row.original.change24h)}
-      </span>
+      <ChangePctCell value={row.original.change24h} />
     ),
   },
   {
@@ -211,34 +543,36 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     header: "Volume",
     enableSorting: false,
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span>{row.original.volume}</span>
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.75rem",
+          color: "rgba(255,255,255,0.52)",
+        }}
+      >
+        {row.original.volume}
+      </span>
     ),
   },
   {
     accessorKey: "rvol",
     header: "RVOL",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span className="font-semibold text-amber-300">
-        {row.original.rvol.toFixed(1)}x
-      </span>
+      <RvolCell value={row.original.rvol} />
     ),
   },
   {
     accessorKey: "oiDelta",
     header: "OI Δ",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span className={getChangeTone(row.original.oiDelta)}>
-        {formatSigned(row.original.oiDelta)}
-      </span>
+      <OiDeltaCell value={row.original.oiDelta} />
     ),
   },
   {
     accessorKey: "funding",
     header: "Funding",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span className={getChangeTone(row.original.funding)}>
-        {formatSigned(row.original.funding, "%")}
-      </span>
+      <FundingCell value={row.original.funding} />
     ),
   },
   {
@@ -265,22 +599,9 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
   {
     accessorKey: "setupScore",
     header: "Score",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
-      const score = row.original.setupScore;
-      return (
-        <span
-          className={`inline-flex min-w-11 items-center justify-center rounded-lg px-2.5 py-1 text-[0.78rem] font-bold ${
-            score >= 80
-              ? "bg-[#5b8ff9] text-white"
-              : score >= 60
-                ? "bg-amber-300 text-black"
-                : "bg-white/10 text-white/78"
-          }`}
-        >
-          {score}
-        </span>
-      );
-    },
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <ScoreBadge value={row.original.setupScore} />
+    ),
   },
   {
     accessorKey: "sparkline",
@@ -290,6 +611,62 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
       <div className="w-[96px] overflow-hidden text-white/62">
         <Sparkline values={row.original.sparkline} />
       </div>
+    ),
+  },
+  {
+    accessorKey: "momentumScore1m",
+    header: "1m",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <MomentumScoreCell value={row.original.momentumScore1m} />
+    ),
+  },
+  {
+    accessorKey: "momentumScore5m",
+    header: "5m",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <MomentumScoreCell value={row.original.momentumScore5m} />
+    ),
+  },
+  {
+    accessorKey: "momentumScore15m",
+    header: "15m",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <MomentumScoreCell value={row.original.momentumScore15m} />
+    ),
+  },
+  {
+    accessorKey: "alignedTimeframes",
+    header: "Aligned",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <AlignedTfIndicator value={row.original.alignedTimeframes} />
+    ),
+  },
+  {
+    accessorKey: "momentumRvolZ",
+    header: "RVOL Z",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <ZScoreCell value={row.original.momentumRvolZ} />
+    ),
+  },
+  {
+    accessorKey: "momentumMoveZ",
+    header: "Move Z",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <ZScoreCell value={row.original.momentumMoveZ} />
+    ),
+  },
+  {
+    accessorKey: "momentumRangeZ",
+    header: "Range Z",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <ZScoreCell value={row.original.momentumRangeZ} />
+    ),
+  },
+  {
+    accessorKey: "momentumChoppiness",
+    header: "Chop",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <ChoppinessCell value={row.original.momentumChoppiness} />
     ),
   },
 ];
@@ -310,6 +687,7 @@ type EntryFlash = { firstAppearance: Set<string>; indexChange: Set<string> };
 function useEntryFlash(
   assets: ScannerAsset[],
   sorting: SortingState,
+  selectedSymbol: string | undefined,
 ): EntryFlash {
   const prevIndexRef = useRef<Map<string, number> | null>(null);
   const isArmedRef = useRef(false);
@@ -395,6 +773,22 @@ function useEntryFlash(
     };
   }, [assets, sorting]);
 
+  useEffect(() => {
+    if (!selectedSymbol) return;
+    setFlash((prev) => {
+      if (
+        !prev.firstAppearance.has(selectedSymbol) &&
+        !prev.indexChange.has(selectedSymbol)
+      )
+        return prev;
+      const fa = new Set(prev.firstAppearance);
+      const ic = new Set(prev.indexChange);
+      fa.delete(selectedSymbol);
+      ic.delete(selectedSymbol);
+      return { firstAppearance: fa, indexChange: ic };
+    });
+  }, [selectedSymbol]);
+
   return flash;
 }
 
@@ -407,9 +801,18 @@ export function ScannerTable({
   onSelectSymbol,
   onSortingChange,
 }: ScannerTableProps) {
-  const { firstAppearance, indexChange } = useEntryFlash(assets, sorting);
-  const visibleColIds =
-    preset === "Classic Rolling" ? GAINERS_COLUMNS : DEFAULT_COLUMNS;
+  const { firstAppearance, indexChange } = useEntryFlash(
+    assets,
+    sorting,
+    selectedSymbol,
+  );
+  const isMomentumPreset =
+    preset === "Momentum Long" || preset === "Momentum Short";
+  const visibleColIds = isMomentumPreset
+    ? MOMENTUM_COLUMNS
+    : preset === "Classic Rolling"
+      ? GAINERS_COLUMNS
+      : DEFAULT_COLUMNS;
   const columns = useMemo(
     () =>
       scannerColumns.filter((col) =>
@@ -499,9 +902,10 @@ export function ScannerTable({
               <TableRow
                 key={row.id}
                 className={cn(
-                  "border-b border-white/6 hover:bg-white/[0.03]",
-                  isSelected &&
-                    "bg-[rgba(91,143,249,0.10)] shadow-[inset_2px_0_0_0_#5b8ff9]",
+                  "border-b border-white/6",
+                  isSelected
+                    ? "bg-[rgba(91,143,249,0.20)] shadow-[inset_3px_0_0_0_#5b8ff9] border-b-[rgba(91,143,249,0.25)]"
+                    : "hover:bg-white/[0.03]",
                   !isSelected &&
                     firstAppearance.has(row.original.symbol) &&
                     "scanner-row-first-appearance",

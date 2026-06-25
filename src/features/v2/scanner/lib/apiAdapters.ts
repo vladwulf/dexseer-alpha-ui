@@ -2,6 +2,7 @@ import type { SortingState } from "@tanstack/react-table";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import type {
   MarketStripResponse,
+  MomentumEntry,
   ScannerAssetDetailsResponse,
   ScannerBatchChartsResponse,
   ScannerCandle,
@@ -21,7 +22,8 @@ import type {
 
 const presetKeyByLabel: Record<ScannerPreset, ScannerPresetKey> = {
   "Classic Rolling": "gainers",
-  Momentum: "momentum",
+  "Momentum Long": "momentum",
+  "Momentum Short": "momentum",
   Breakouts: "breakouts",
   Pullbacks: "pullbacks",
   "OI Expansion": "oi_expansion",
@@ -151,6 +153,48 @@ export function mapScannerRowToAsset(row: ScannerRow): ScannerAsset {
     sparkline: toSparkline(row),
     chart: [],
     recentAlerts: [],
+  };
+}
+
+export function mapMomentumEntryToAsset(row: MomentumEntry): ScannerAsset {
+  return {
+    assetId: row.asset_id,
+    instrumentId: row.instrument_id,
+    symbol: row.symbol,
+    market: "PERP",
+    price: row.price ?? 0,
+    change5m: 0,
+    change15m: 0,
+    change1h: 0,
+    change4h: 0,
+    change24h: 0,
+    volume: "-",
+    rvol: row.indicators.rvol_z_sustained_1m ?? 0,
+    oiDelta: 0,
+    funding: 0,
+    atrPercent: 0,
+    btcCorrelation: 0,
+    alertCount: 0,
+    setupLabel: row.direction === "long" ? "Long momentum" : "Short momentum",
+    setupScore: row.score,
+    rankingReason: `${row.aligned_timeframes}/3 timeframes aligned for ${row.direction} momentum.`,
+    activeSetupSummary:
+      "Momentum setup scored from 1m, 5m, and 15m indicator snapshots.",
+    btcRelativeBehavior: "BTC-relative details are not available yet.",
+    sessionEdge: "Session statistics are not available yet.",
+    bestHours: [],
+    sparkline: [row.score_1m, row.score_5m, row.score_15m],
+    chart: [],
+    recentAlerts: [],
+    momentumDirection: row.direction,
+    momentumScore1m: row.score_1m,
+    momentumScore5m: row.score_5m,
+    momentumScore15m: row.score_15m,
+    alignedTimeframes: row.aligned_timeframes,
+    momentumRangeZ: row.indicators.range_z_1m ?? null,
+    momentumMoveZ: row.indicators.move_z_1m ?? null,
+    momentumRvolZ: row.indicators.rvol_z_sustained_1m ?? null,
+    momentumChoppiness: row.indicators.choppiness_1m ?? null,
   };
 }
 

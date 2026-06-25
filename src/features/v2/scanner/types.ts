@@ -4,7 +4,8 @@ export type ScannerTimeframe = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
 
 export type ScannerPreset =
   | "Classic Rolling"
-  | "Momentum"
+  | "Momentum Long"
+  | "Momentum Short"
   | "Breakouts"
   | "Pullbacks"
   | "OI Expansion"
@@ -66,4 +67,13 @@ export type ScannerAsset = {
   sparkline: number[];
   chart: OHLCVExtended[];
   recentAlerts: ScannerAlert[];
+  momentumDirection?: "long" | "short";
+  momentumScore1m?: number;
+  momentumScore5m?: number;
+  momentumScore15m?: number;
+  alignedTimeframes?: number;
+  momentumRangeZ?: number | null;
+  momentumMoveZ?: number | null;
+  momentumRvolZ?: number | null;
+  momentumChoppiness?: number | null;
 };

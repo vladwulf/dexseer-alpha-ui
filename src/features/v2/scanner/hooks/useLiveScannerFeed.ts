@@ -22,7 +22,11 @@ function getWsNamespaceUrl() {
 }
 
 function getScannerRoomName(preset: ScannerPreset) {
-  if (preset === "Classic Rolling") {
+  if (
+    preset === "Classic Rolling" ||
+    preset === "Momentum Long" ||
+    preset === "Momentum Short"
+  ) {
     return null;
   }
 
@@ -30,7 +34,11 @@ function getScannerRoomName(preset: ScannerPreset) {
 }
 
 function getScannerEventName(preset: ScannerPreset) {
-  if (preset === "Classic Rolling") {
+  if (
+    preset === "Classic Rolling" ||
+    preset === "Momentum Long" ||
+    preset === "Momentum Short"
+  ) {
     return null;
   }
 

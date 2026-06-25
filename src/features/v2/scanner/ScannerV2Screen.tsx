@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
 import { ScannerMomentumHeatmap } from "./components/ScannerMomentumHeatmap";
@@ -47,6 +48,7 @@ export function ScannerV2Screen() {
     setSorting,
     setTimeframe,
     setWatchlistFilter,
+    momentumQuery,
     scannerQuery,
   } = useScannerState({ refreshInterval });
   const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
@@ -129,6 +131,8 @@ export function ScannerV2Screen() {
 
     return nextAssets;
   }, [filteredAssets, tableChartsQuery.data]);
+  const isMomentumPreset =
+    preset === "Momentum Long" || preset === "Momentum Short";
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;
@@ -137,10 +141,10 @@ export function ScannerV2Screen() {
     const chart =
       detailsChart && detailsChart.asset_id === selectedAsset.assetId
         ? mapScannerCandlesToOhlcv(
-          detailsChart.asset_id,
-          detailsChart.instrument_id,
-          detailsChart.candles,
-        )
+            detailsChart.asset_id,
+            detailsChart.instrument_id,
+            detailsChart.candles,
+          )
         : undefined;
 
     return {
@@ -165,7 +169,9 @@ export function ScannerV2Screen() {
     setIsManualRefreshing(true);
 
     void Promise.all([
-      scannerQuery.refetch(),
+      ...(isMomentumPreset
+        ? [momentumQuery.refetch()]
+        : [scannerQuery.refetch()]),
       tableChartsQuery.refetch(),
       detailsQuery.refetch(),
       detailsChartQuery.refetch(),
@@ -212,6 +218,22 @@ export function ScannerV2Screen() {
               />
 
               <section className="min-h-[900px]">
+                <div
+                  className={cn(
+                    "border-b border-white/8 bg-[#0d0d0d] px-4 py-3 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em]",
+                    preset === "Momentum Long"
+                      ? "text-[#5dc887]"
+                      : preset === "Momentum Short"
+                        ? "text-[#e35561]"
+                        : "text-white/38",
+                  )}
+                >
+                  {preset === "Momentum Long"
+                    ? "Top Long Momentum"
+                    : preset === "Momentum Short"
+                      ? "Top Short Momentum"
+                      : "% Movers"}
+                </div>
                 <ScannerTable
                   assets={tableAssets}
                   density={density}

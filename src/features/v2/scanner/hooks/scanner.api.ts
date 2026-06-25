@@ -123,6 +123,15 @@ export type ScannerRequest = {
   sort_direction?: ScannerSortDirection;
 };
 
+export type MomentumScannerRequest = {
+  preset?: "long" | "short";
+  search?: string;
+  limit?: number;
+  offset?: number;
+  sort_by?: "score" | "change_5m" | "change_15m";
+  sort_direction?: ScannerSortDirection;
+};
+
 export type ScannerRow = {
   asset_id: number;
   symbol: string;
@@ -141,7 +150,26 @@ export type ScannerRow = {
   score: number | null;
 };
 
-export type ScannerResponse = {
+export type MomentumEntry = {
+  instrument_id: string;
+  asset_id: number;
+  symbol: string;
+  price: number | null;
+  direction: "long" | "short";
+  score: number;
+  score_1m: number;
+  score_5m: number;
+  score_15m: number;
+  aligned_timeframes: number;
+  indicators: {
+    range_z_1m?: number | null;
+    move_z_1m?: number | null;
+    rvol_z_sustained_1m?: number | null;
+    choppiness_1m?: number | null;
+  };
+};
+
+export type ClassicScannerResponse = {
   preset: ScannerPresetKey | null;
   timeframe?: ScannerListTimeframe;
   sort_by: string;
@@ -152,6 +180,20 @@ export type ScannerResponse = {
   updated_at: string | null;
   entries: ScannerRow[];
 };
+
+export type MomentumScannerResponse = {
+  preset: "long" | "short";
+  timeframe: "15m";
+  sort_by: string;
+  sort_direction: ScannerSortDirection;
+  limit: number;
+  offset: number;
+  total: number;
+  updated_at: string | null;
+  entries: MomentumEntry[];
+};
+
+export type ScannerResponse = ClassicScannerResponse;
 
 export type ScannerChartRequest = {
   timeframe?: ScannerChartTimeframe;
@@ -253,6 +295,7 @@ export type ScannerDetailsChartResponse = {
 };
 
 type ScannerQueryOptions = {
+  enabled?: boolean;
   refetchIntervalMs?: number | false;
 };
 
@@ -286,6 +329,13 @@ async function getRunners(params: RunnersRequest = {}) {
 async function getScanner(params: ScannerRequest = {}) {
   const response = await axios.get<ScannerResponse>(
     `${FRONTEND_API_BASE}/scanner${buildQueryString(params)}`,
+  );
+  return response.data;
+}
+
+async function getMomentumScanner(params: MomentumScannerRequest = {}) {
+  const response = await axios.get<MomentumScannerResponse>(
+    `${FRONTEND_API_BASE}/scanner/momentum${buildQueryString(params)}`,
   );
   return response.data;
 }
@@ -350,12 +400,28 @@ export function useGetScanner(
   params: ScannerRequest = {},
   options: ScannerQueryOptions = {},
 ) {
-  const { refetchIntervalMs = 3000 } = options;
+  const { enabled = true, refetchIntervalMs = 3000 } = options;
 
   return useQuery({
     queryKey: ["scanner-v2-list", params],
     queryFn: () => getScanner(params),
-    refetchInterval: refetchIntervalMs,
+    enabled,
+    refetchInterval: enabled ? refetchIntervalMs : false,
+    ...NO_FRONTEND_CACHE_QUERY_OPTIONS,
+  });
+}
+
+export function useGetMomentumScanner(
+  params: MomentumScannerRequest = {},
+  options: ScannerQueryOptions = {},
+) {
+  const { enabled = true, refetchIntervalMs = 3000 } = options;
+
+  return useQuery({
+    queryKey: ["scanner-v2-momentum-list", params],
+    queryFn: () => getMomentumScanner(params),
+    enabled,
+    refetchInterval: enabled ? refetchIntervalMs : false,
     ...NO_FRONTEND_CACHE_QUERY_OPTIONS,
   });
 }

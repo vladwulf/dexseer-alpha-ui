@@ -92,7 +92,11 @@ export function AssetDetailScreen() {
     limit: 10,
   });
   const baseAsset = useMemo(() => {
-    const row = scannerQuery.data?.entries.find(
+    if (!scannerQuery.data || !("entries" in scannerQuery.data)) {
+      return undefined;
+    }
+
+    const row = scannerQuery.data.entries.find(
       (entry) => entry.symbol === normalizedSymbol,
     );
 

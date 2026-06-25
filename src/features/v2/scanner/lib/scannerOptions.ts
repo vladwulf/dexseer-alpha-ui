@@ -2,7 +2,8 @@ import type { ScannerPreset, ScannerTimeframe, SortOption } from "../types";
 
 export const PRESET_OPTIONS: ScannerPreset[] = [
   "Classic Rolling",
-  "Momentum",
+  "Momentum Long",
+  "Momentum Short",
   "Breakouts",
   "Pullbacks",
   "OI Expansion",
