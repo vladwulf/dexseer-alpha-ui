@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEXSEER Intelligence Demo</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --panel: #0b0f14;
+      --panel-2: #101721;
+      --panel-3: #141d29;
+      --line: rgba(255,255,255,.075);
+      --line-strong: rgba(255,255,255,.14);
+      --text: #f4f7fb;
+      --muted: #768292;
+      --soft: #aab4c3;
+      --green: #31d17d;
+      --green-soft: rgba(49,209,125,.13);
+      --red: #ff5364;
+      --red-soft: rgba(255,83,100,.14);
+      --blue: #23a8ff;
+      --blue-soft: rgba(35,168,255,.12);
+      --amber: #f7c348;
+      --purple: #9d72ff;
+      --shadow: 0 30px 80px rgba(0,0,0,.45);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(35,168,255,.12), transparent 34%),
+        radial-gradient(circle at 80% 0%, rgba(49,209,125,.10), transparent 32%),
+        linear-gradient(180deg, #05070a 0%, #06080c 50%, #040507 100%);
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+
+    .app-shell {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 16px 18px 28px;
+    }
+
+    .topbar {
+      height: 56px;
+      border: 1px solid var(--line);
+      background: rgba(7,10,14,.86);
+      backdrop-filter: blur(18px);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px 0 18px;
+      position: sticky;
+      top: 12px;
+      z-index: 30;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 210px;
+    }
+
+    .logo-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: conic-gradient(from 220deg, var(--blue), var(--green), var(--purple), var(--blue));
+      position: relative;
+      box-shadow: 0 0 30px rgba(35,168,255,.25);
+    }
+    .logo-mark:after {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border-radius: 6px;
+      background: #061016;
+      border: 1px solid rgba(255,255,255,.2);
+    }
+
+    .brand-title {
+      letter-spacing: .08em;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .alpha-pill {
+      color: var(--green);
+      background: var(--green-soft);
+      border: 1px solid rgba(49,209,125,.28);
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 999px;
+      letter-spacing: .06em;
+    }
+
+    .nav {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .nav a {
+      color: var(--muted);
+      padding: 8px 11px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .nav a.active, .nav a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,.055);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 420px;
+      justify-content: flex-end;
+    }
+    .search {
+      width: 270px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      color: var(--soft);
+      background: #06090d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      font-size: 12px;
+    }
+    .live-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--soft);
+      white-space: nowrap;
+    }
+    .live-dot:before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 16px rgba(49,209,125,.85);
+    }
+
+    .market-strip {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .market-card {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
+      border-radius: 16px;
+      padding: 12px 13px;
+      min-height: 72px;
+    }
+    .market-card .label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 8px;
+    }
+    .market-card .value {
+      font-weight: 800;
+      font-size: 17px;
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+    }
+    .market-card .delta { font-size: 12px; font-weight: 750; }
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .neutral { color: var(--amber); }
+
+    .hero {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 20px 0 14px;
+      padding: 24px 6px 6px;
+    }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--green);
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
+    .eyebrow:before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(36px, 4.8vw, 72px);
+      letter-spacing: -.06em;
+      line-height: .93;
+      max-width: 950px;
+    }
+    .hero p {
+      margin: 16px 0 0;
+      max-width: 740px;
+      color: var(--soft);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 10px;
+      white-space: nowrap;
+    }
+    .btn {
+      border: 1px solid var(--line-strong);
+      background: rgba(255,255,255,.052);
+      color: var(--text);
+      border-radius: 12px;
+      height: 42px;
+      padding: 0 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.24); }
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(35,168,255,.92), rgba(49,209,125,.9));
+      color: #041014;
+      border: none;
+    }
+    .btn.ghost { color: var(--soft); }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 400px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .left-stack { display: grid; gap: 14px; min-width: 0; }
+    .panel {
+      background: rgba(8,12,17,.86);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .panel-title {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .panel-title h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: -.02em;
+    }
+    .panel-title span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .segment {
+      background: #06090d;
+      border: 1px solid var(--line);
+      padding: 4px;
+      border-radius: 13px;
+      display: flex;
+      gap: 3px;
+    }
+    .segment button {
+      border: 0;
+      border-radius: 9px;
+      color: var(--muted);
+      background: transparent;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .segment button.active {
+      color: var(--text);
+      background: var(--blue-soft);
+      box-shadow: inset 0 0 0 1px rgba(35,168,255,.22);
+    }
+
+    .heatmap {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 12px;
+      padding: 14px;
+    }
+    .heat-side { display: grid; gap: 8px; }
+    .heat-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .heat-label:before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-rows: 76px;
+      gap: 2px;
+      overflow: hidden;
+      border-radius: 15px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+    .tile {
+      border: 0;
+      color: var(--text);
+      text-align: left;
+      padding: 12px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+      background: rgba(255,255,255,.05);
+    }
+    .tile:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .85;
+      z-index: 0;
+    }
+    .tile.green:before { background: linear-gradient(135deg, rgba(49,209,125,var(--intensity)), rgba(49,209,125,.08)); }
+    .tile.red:before { background: linear-gradient(135deg, rgba(255,83,100,var(--intensity)), rgba(255,83,100,.08)); }
+    .tile > * { position: relative; z-index: 1; }
+    .tile.big { grid-column: span 2; grid-row: span 2; padding: 22px; }
+    .tile.medium { grid-column: span 2; }
+    .tile-symbol { font-size: 18px; font-weight: 950; font-style: italic; letter-spacing: -.03em; }
+    .tile.big .tile-symbol { font-size: 42px; }
+    .tile.medium .tile-symbol { font-size: 30px; }
+    .tile-change { margin-top: 4px; font-weight: 900; font-size: 15px; }
+    .tile.big .tile-change { font-size: 26px; }
+    .tile-meta { color: rgba(255,255,255,.58); margin-top: 5px; font-size: 11px; font-weight: 700; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.035);
+      color: var(--soft);
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .chip.active {
+      color: #061016;
+      background: var(--green);
+      border-color: transparent;
+    }
+    .input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .asset-search {
+      height: 34px;
+      min-width: 230px;
+      background: #06090d;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--text);
+      padding: 0 11px;
+      outline: none;
+    }
+    .asset-search:focus { border-color: rgba(35,168,255,.5); }
+    .tiny-select {
+      height: 34px;
+      background: #06090d;
+      border: 1px solid var(--line);
+      color: var(--soft);
+      border-radius: 11px;
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .table-wrap { overflow: auto; max-height: 720px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1060px;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      text-align: right;
+      background: rgba(9,13,18,.98);
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    thead th:first-child, thead th:nth-child(2), tbody td:first-child, tbody td:nth-child(2) { text-align: left; }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,.045);
+      cursor: pointer;
+      transition: background .13s ease;
+    }
+    tbody tr:hover { background: rgba(255,255,255,.035); }
+    tbody tr.selected {
+      background: linear-gradient(90deg, rgba(35,168,255,.12), transparent 60%);
+      box-shadow: inset 3px 0 0 var(--blue);
+    }
+    tbody td {
+      text-align: right;
+      padding: 12px;
+      color: var(--soft);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .asset-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 138px;
+    }
+    .rank-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 9px;
+      display: inline-grid;
+      place-items: center;
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .coin-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: grid;
+      place-items: center;
+      color: #061016;
+      font-weight: 950;
+      font-size: 12px;
+    }
+    .asset-name strong {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .asset-name span { color: var(--muted); font-size: 10px; }
+    .sparkline {
+      width: 140px;
+      height: 42px;
+      display: block;
+    }
+    .setup-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 850;
+      background: rgba(255,255,255,.055);
+      color: var(--soft);
+      border: 1px solid var(--line);
+    }
+    .setup-tag.breakout { color: var(--green); background: var(--green-soft); border-color: rgba(49,209,125,.25); }
+    .setup-tag.squeeze { color: var(--amber); background: rgba(247,195,72,.12); border-color: rgba(247,195,72,.25); }
+    .setup-tag.reversal { color: var(--purple); background: rgba(157,114,255,.13); border-color: rgba(157,114,255,.25); }
+    .setup-tag.short { color: var(--red); background: var(--red-soft); border-color: rgba(255,83,100,.25); }
+    .score {
+      color: var(--text);
+      font-weight: 950;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .score-bar {
+      width: 56px;
+      height: 7px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .score-bar i {
+      display: block;
+      height: 100%;
+      width: var(--w);
+      background: linear-gradient(90deg, var(--blue), var(--green));
+      border-radius: inherit;
+    }
+
+    .intel {
+      position: sticky;
+      top: 84px;
+      max-height: calc(100vh - 96px);
+      overflow: auto;
+    }
+    .intel-top {
+      padding: 18px;
+      background:
+        radial-gradient(circle at 70% 0%, rgba(35,168,255,.18), transparent 38%),
+        linear-gradient(180deg, rgba(255,255,255,.045), transparent);
+      border-bottom: 1px solid var(--line);
+    }
+    .asset-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+    .asset-heading h2 { margin: 0; font-size: 24px; letter-spacing: -.05em; }
+    .asset-heading span { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .rank-chip {
+      height: 30px;
+      border-radius: 999px;
+      padding: 0 11px;
+      display: inline-flex;
+      align-items: center;
+      background: var(--blue-soft);
+      color: var(--blue);
+      border: 1px solid rgba(35,168,255,.24);
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .price-line {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .price-line .price { font-size: 36px; font-weight: 950; letter-spacing: -.06em; }
+    .price-line .change { font-size: 15px; font-weight: 900; }
+    .signal-box {
+      border: 1px solid rgba(49,209,125,.22);
+      background: linear-gradient(135deg, rgba(49,209,125,.13), rgba(35,168,255,.08));
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .signal-label {
+      color: var(--green);
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 950;
+      letter-spacing: .1em;
+      margin-bottom: 7px;
+    }
+    .signal-text { font-weight: 800; line-height: 1.38; }
+
+    .intel-section { padding: 16px 18px; border-bottom: 1px solid var(--line); }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .section-head h3 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--soft);
+    }
+    .section-head span { color: var(--muted); font-size: 12px; }
+    .chart-card {
+      height: 176px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #06090d;
+      padding: 12px;
+    }
+    .chart-card svg { width: 100%; height: 100%; display: block; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.032);
+      padding: 11px;
+      min-height: 70px;
+    }
+    .metric .m-label {
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .metric .m-value { font-size: 17px; font-weight: 950; }
+    .why-list, .risk-list, .level-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .why-list li, .risk-list li, .level-list li {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.028);
+      border-radius: 13px;
+      padding: 10px 11px;
+      color: var(--soft);
+      line-height: 1.38;
+      font-size: 13px;
+    }
+    .why-list li:before {
+      content: "✓";
+      color: var(--green);
+      margin-right: 8px;
+      font-weight: 900;
+    }
+    .risk-list li:before {
+      content: "!";
+      color: var(--amber);
+      margin-right: 8px;
+      font-weight: 950;
+    }
+    .level-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .level-list strong { color: var(--text); }
+
+    .alert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .alert-button {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.035);
+      color: var(--soft);
+      border-radius: 13px;
+      min-height: 42px;
+      padding: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .alert-button:hover { color: var(--text); background: rgba(35,168,255,.1); border-color: rgba(35,168,255,.24); }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      background: rgba(9,13,18,.96);
+      border: 1px solid var(--line-strong);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: .18s ease;
+      z-index: 100;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .footer-note {
+      color: var(--muted);
+      text-align: center;
+      margin: 20px 0 0;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1280px) {
+      .market-strip { grid-template-columns: repeat(4, 1fr); }
+      .workspace { grid-template-columns: 1fr; }
+      .intel { position: relative; top: 0; max-height: none; }
+      .heatmap { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 850px) {
+      .app-shell { padding: 10px; }
+      .topbar { height: auto; flex-wrap: wrap; gap: 10px; padding: 12px; position: relative; top: 0; }
+      .brand, .top-actions { min-width: 0; width: 100%; justify-content: space-between; }
+      .nav { order: 3; overflow-x: auto; width: 100%; }
+      .search { display: none; }
+      .market-strip { grid-template-columns: repeat(2, 1fr); }
+      .hero { display: block; }
+      .hero-cta { margin-top: 16px; }
+      .controls { grid-template-columns: 1fr; }
+      .input-wrap { justify-content: start; flex-wrap: wrap; }
+      .asset-search { min-width: 100%; }
+      .tiles { grid-template-columns: repeat(2, 1fr); }
+      .tile.big, .tile.medium { grid-column: span 1; grid-row: span 1; }
+      .tile.big .tile-symbol, .tile.medium .tile-symbol { font-size: 22px; }
+      .tile.big .tile-change { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#">
+        <span class="logo-mark"></span>
+        <span class="brand-title">DEXSEER</span>
+        <span class="alpha-pill">ALPHA</span>
+      </a>
+      <nav class="nav" aria-label="Main navigation">
+        <a class="active" href="#scanner">Scanner</a>
+        <a href="#intel">Intelligence</a>
+        <a href="#alerts">Alerts</a>
+        <a href="#watchlist">Watchlists</a>
+        <a href="#settings">Settings</a>
+      </nav>
+      <div class="top-actions">
+        <div class="search">⌘K&nbsp;&nbsp;Search assets, alerts, setups...</div>
+        <span class="live-dot">LIVE</span>
+      </div>
+    </header>
+
+    <section class="market-strip" aria-label="Market regime">
+      <div class="market-card"><div class="label">BTC</div><div class="value">64,198 <span class="delta positive">+0.06%</span></div></div>
+      <div class="market-card"><div class="label">ETH</div><div class="value">1,729 <span class="delta negative">-0.03%</span></div></div>
+      <div class="market-card"><div class="label">SOL</div><div class="value">72.41 <span class="delta positive">+0.18%</span></div></div>
+      <div class="market-card"><div class="label">Breadth</div><div class="value">41/100 <span class="delta neutral">Mixed</span></div></div>
+      <div class="market-card"><div class="label">Volatility</div><div class="value">Low <span class="delta positive">stable</span></div></div>
+      <div class="market-card"><div class="label">Funding</div><div class="value">Neutral <span class="delta neutral">0.004%</span></div></div>
+      <div class="market-card"><div class="label">OI Regime</div><div class="value">Rising <span class="delta positive">+6.8%</span></div></div>
+      <div class="market-card"><div class="label">Clock</div><div class="value">17:41 <span class="delta">NY</span></div></div>
+    </section>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Momentum Intelligence</div>
+        <h1>Rank what is moving. Explain why it matters.</h1>
+        <p>A tighter one-page scanner concept: fewer empty metrics, stronger setup ranking, actionable intelligence, and alert creation directly from the asset workflow.</p>
+      </div>
+      <div class="hero-cta">
+        <button class="btn primary" onclick="scrollToScanner()">Open Scanner</button>
+        <button class="btn ghost" onclick="mockToast('Watchlist preset loaded')">Load Watchlist</button>
+      </div>
+    </section>
+
+    <main class="workspace" id="scanner">
+      <div class="left-stack">
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <h2>Momentum Heatmap</h2>
+              <span>Tiles expose move, volume, OI, and model confidence — not just price.</span>
+            </div>
+            <div class="segment" id="timeframeTabs" aria-label="Timeframe selector">
+              <button data-tf="m1">1m</button>
+              <button data-tf="m5">5m</button>
+              <button data-tf="m15" class="active">15m</button>
+              <button data-tf="h1">1h</button>
+              <button data-tf="h4">4h</button>
+              <button data-tf="d1">24h</button>
+            </div>
+          </div>
+          <div class="heatmap">
+            <div class="heat-side">
+              <div class="heat-label positive">Gainers</div>
+              <div class="tiles" id="gainerTiles"></div>
+            </div>
+            <div class="heat-side">
+              <div class="heat-label negative">Losers</div>
+              <div class="tiles" id="loserTiles"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <h2>Ranked Scanner</h2>
+              <span>Opinionated ranking: setup, confidence score, risk, and live trigger levels.</span>
+            </div>
+            <button class="btn" onclick="mockToast('Scanner refreshed with latest mock tick')">Refresh</button>
+          </div>
+          <div class="controls">
+            <div class="filter-row" id="presetFilters">
+              <button class="chip active" data-filter="all">All</button>
+              <button class="chip" data-filter="Momentum">Momentum</button>
+              <button class="chip" data-filter="Breakout">Breakouts</button>
+              <button class="chip" data-filter="Volume Spike">Volume Spikes</button>
+              <button class="chip" data-filter="OI Build">OI Builds</button>
+              <button class="chip" data-filter="Funding Extreme">Funding Extremes</button>
+              <button class="chip" data-filter="Laggard">Laggards</button>
+            </div>
+            <div class="input-wrap">
+              <input class="asset-search" id="assetSearch" placeholder="Filter symbol or setup..." />
+              <select class="tiny-select" id="riskSelect">
+                <option value="all">All risk</option>
+                <option value="Low">Low risk</option>
+                <option value="Medium">Medium risk</option>
+                <option value="High">High risk</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Asset</th>
+                  <th>Chart</th>
+                  <th>Price</th>
+                  <th>5m</th>
+                  <th>15m</th>
+                  <th>1h</th>
+                  <th>RVOL</th>
+                  <th>OI Δ</th>
+                  <th>Funding</th>
+                  <th>Setup</th>
+                  <th>Risk</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody id="assetRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <aside class="panel intel" id="intel">
+        <div class="intel-top">
+          <div class="asset-heading">
+            <div>
+              <h2 id="sideSymbol">FOLKSUSDT</h2>
+              <span id="sideExchange">PERP · Binance</span>
+            </div>
+            <div class="rank-chip" id="sideRank">Rank #1</div>
+          </div>
+          <div class="price-line">
+            <span class="price" id="sidePrice">2.44</span>
+            <span class="change positive" id="sideChange">+4.09%</span>
+          </div>
+          <div class="signal-box">
+            <div class="signal-label">Signal</div>
+            <div class="signal-text" id="sideSignal">Momentum breakout after 1h consolidation. Volume confirms; funding is not overheated.</div>
+          </div>
+        </div>
+
+        <section class="intel-section">
+          <div class="section-head"><h3>Live chart</h3><span id="sideTf">15m view</span></div>
+          <div class="chart-card" id="sideChart"></div>
+        </section>
+
+        <section class="intel-section">
+          <div class="section-head"><h3>Key metrics</h3><span id="sideScoreSmall">Score 92</span></div>
+          <div class="metrics-grid">
+            <div class="metric"><div class="m-label">Relative volume</div><div class="m-value" id="sideRvol">3.8x</div></div>
+            <div class="metric"><div class="m-label">Open interest</div><div class="m-value positive" id="sideOi">+18.4%</div></div>
+            <div class="metric"><div class="m-label">Funding</div><div class="m-value" id="sideFunding">0.006%</div></div>
+            <div class="metric"><div class="m-label">Risk</div><div class="m-value" id="sideRisk">Medium</div></div>
+          </div>
+        </section>
+
+        <section class="intel-section">
+          <div class="section-head"><h3>Why ranked</h3><span>explainability</span></div>
+          <ul class="why-list" id="sideWhy"></ul>
+        </section>
+
+        <section class="intel-section">
+          <div class="section-head"><h3>Risk notes</h3><span>do not skip</span></div>
+          <ul class="risk-list" id="sideRisks"></ul>
+        </section>
+
+        <section class="intel-section">
+          <div class="section-head"><h3>Action levels</h3><span>mock levels</span></div>
+          <ul class="level-list" id="sideLevels"></ul>
+        </section>
+
+        <section class="intel-section" id="alerts">
+          <div class="section-head"><h3>Fast alerts</h3><span>one-click setup</span></div>
+          <div class="alert-grid">
+            <button class="alert-button" onclick="createAlert('breakout')">Breakout level</button>
+            <button class="alert-button" onclick="createAlert('invalidation')">Invalidation</button>
+            <button class="alert-button" onclick="createAlert('rvol')">RVOL &gt; 3x</button>
+            <button class="alert-button" onclick="createAlert('oi')">OI acceleration</button>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <p class="footer-note">Demo only. All prices, levels, and rankings are mock data for interface evaluation.</p>
+  </div>
+  <div class="toast" id="toast">Alert created</div>
+
+  <script>
+    const assets = [
+      {
+        symbol: 'FOLKS', pair: 'FOLKSUSDT', exchange: 'Binance', price: 2.44, change: {m1:.22,m5:.87,m15:2.22,h1:4.09,h4:4.23,d1:12.4}, rvol:3.8, oi:18.4, funding:.006, setup:'Breakout', category:['Momentum','Breakout','Volume Spike','OI Build'], risk:'Medium', score:92,
+        signal:'Momentum breakout after 1h consolidation. Volume confirms; funding is not overheated.',
+        why:['15m strength accelerated from +0.8% to +2.2%.','1h trend remains intact above prior range high.','Relative volume is above scanner threshold at 3.8x.','OI expansion supports real participation, not only thin-price drift.'],
+        risks:['Already extended from local base. Chasing late entries has poor reward/risk.','Liquidity is acceptable but still below major-cap pairs.'],
+        levels:{Breakout:'2.48',Invalidation:'2.32',Support:'2.20',Target:'2.72'}, spark:[14,17,16,19,22,23,27,29,31,37,35,38,42,45,44,49,52,55]
+      },
+      {
+        symbol: 'TLM', pair:'TLMUSDT', exchange:'Bybit', price:.0101, change:{m1:.13,m5:-1.01,m15:1.41,h1:3.74,h4:2.37,d1:8.1}, rvol:2.1, oi:11.9, funding:.004, setup:'OI Build', category:['Momentum','OI Build'], risk:'Medium', score:84,
+        signal:'OI-led continuation attempt. Momentum is constructive but the last 5m candle is soft.',
+        why:['1h performance is stronger than 15m, suggesting continuation rather than pure impulse.','Open interest increased double digits during the move.','Funding remains neutral, so the trade is not crowded yet.'],
+        risks:['5m weakness can become a failed breakout if price loses VWAP.','Needs volume expansion to confirm next leg.'],
+        levels:{Breakout:'0.0106',Invalidation:'0.0097',Support:'0.0094',Target:'0.0114'}, spark:[23,24,25,27,26,28,31,29,32,34,37,36,39,38,40,43]
+      },
+      {
+        symbol: 'HOME', pair:'HOMEUSDT', exchange:'Binance', price:.0205, change:{m1:.07,m5:.64,m15:1.34,h1:1.49,h4:.24,d1:3.3}, rvol:1.7, oi:5.4, funding:.002, setup:'Momentum', category:['Momentum'], risk:'Low', score:78,
+        signal:'Clean low-volatility momentum drift. Lower risk, lower urgency setup.',
+        why:['Positive performance across 5m, 15m, and 1h.','Funding is clean and not distorted.','Risk is low because price is not far above base.'],
+        risks:['Move lacks strong RVOL. Could grind instead of trend.','No major OI confirmation yet.'],
+        levels:{Breakout:'0.0212',Invalidation:'0.0196',Support:'0.0190',Target:'0.0228'}, spark:[31,32,31,33,35,34,36,38,37,39,40,41,43,42,44,45]
+      },
+      {
+        symbol: 'BLESS', pair:'BLESSUSDT', exchange:'OKX', price:.0108, change:{m1:.18,m5:.59,m15:1.23,h1:.16,h4:5.34,d1:10.8}, rvol:4.6, oi:7.8, funding:.009, setup:'Volume Spike', category:['Momentum','Volume Spike'], risk:'High', score:76,
+        signal:'Volume spike after large 4h move. Momentum is real, but entry quality is deteriorating.',
+        why:['4h performance is strong at +5.34%.','RVOL is the highest in the current shortlist.','15m remains positive after impulse.'],
+        risks:['High extension risk after 4h move.','Funding is moving toward overheated territory.'],
+        levels:{Breakout:'0.0112',Invalidation:'0.0101',Support:'0.0096',Target:'0.0120'}, spark:[12,14,17,20,24,29,31,33,37,39,40,42,41,43,46]
+      },
+      {
+        symbol: 'LAB', pair:'LABUSDT', exchange:'Binance', price:16.72, change:{m1:.21,m5:.64,m15:1.00,h1:-1.12,h4:8.53,d1:16.2}, rvol:3.2, oi:20.1, funding:.012, setup:'Squeeze', category:['Momentum','OI Build','Funding Extreme'], risk:'High', score:74,
+        signal:'Possible squeeze continuation. OI is strong but funding is now the main risk.',
+        why:['4h strength remains the best among high-liquidity names.','OI expansion is significant at +20.1%.','Volume confirms participation.'],
+        risks:['1h momentum is negative despite strong 4h trend.','Funding is elevated; late longs may be vulnerable.'],
+        levels:{Breakout:'17.35',Invalidation:'15.90',Support:'15.30',Target:'19.10'}, spark:[18,20,23,29,35,39,42,48,52,50,47,45,44,46,49]
+      },
+      {
+        symbol: 'ID', pair:'IDUSDT', exchange:'Binance', price:.0382, change:{m1:-.05,m5:-.49,m15:1.46,h1:.69,h4:2.06,d1:4.6}, rvol:1.9, oi:3.6, funding:.001, setup:'Reversal', category:['Momentum'], risk:'Medium', score:70,
+        signal:'Early reversal candidate. Score is capped because OI and RVOL are modest.',
+        why:['15m recovered despite weak 5m reading.','1h is positive, implying base repair.','Funding is neutral.'],
+        risks:['Confirmation is incomplete. Needs reclaim above short-term high.','Weak 5m momentum can invalidate quickly.'],
+        levels:{Breakout:'0.0397',Invalidation:'0.0368',Support:'0.0359',Target:'0.0425'}, spark:[38,35,33,31,30,29,31,32,34,37,36,39,40,41]
+      },
+      {
+        symbol: 'AGT', pair:'AGTUSDT', exchange:'OKX', price:.0218, change:{m1:.06,m5:1.67,m15:.96,h1:.41,h4:.70,d1:2.4}, rvol:1.4, oi:2.2, funding:.003, setup:'Momentum', category:['Momentum'], risk:'Low', score:66,
+        signal:'Short-term pop inside a weak broader trend. Good for watchlist, not top priority.',
+        why:['5m momentum is strong relative to current session.','Risk is low because leverage metrics are calm.'],
+        risks:['Insufficient OI expansion.','No clear 1h trend acceleration yet.'],
+        levels:{Breakout:'0.0225',Invalidation:'0.0208',Support:'0.0202',Target:'0.0240'}, spark:[39,38,36,35,34,33,34,33,35,37,39,40,41]
+      },
+      {
+        symbol: 'CBBs', pair:'CBBSUSDT', exchange:'Gate', price:227.82, change:{m1:-.22,m5:1.04,m15:1.01,h1:1.08,h4:-1.67,d1:-4.4}, rvol:2.5, oi:-4.2, funding:-.002, setup:'Laggard', category:['Laggard','Volume Spike'], risk:'Medium', score:58,
+        signal:'Countertrend bounce. Volume is present, but 4h trend remains weak.',
+        why:['Positive intraday bounce from oversold condition.','RVOL above 2x makes it tradable.'],
+        risks:['4h trend is still negative.','OI contraction suggests shorts covering rather than fresh longs.'],
+        levels:{Breakout:'236.00',Invalidation:'219.40',Support:'212.00',Target:'248.00'}, spark:[55,49,44,38,35,32,34,36,39,41,40,38,37]
+      },
+      {
+        symbol: 'H', pair:'HUSDT', exchange:'Binance', price:.124, change:{m1:-.41,m5:-1.26,m15:-5.75,h1:-6.10,h4:-8.4,d1:-14.9}, rvol:5.1, oi:24.2, funding:-.016, setup:'Short', category:['Laggard','Funding Extreme','OI Build'], risk:'High', score:89,
+        signal:'Downside momentum with OI expansion. This is a short-side intelligence alert, not a long candidate.',
+        why:['15m selloff is the largest negative move in the universe.','OI expansion suggests pressure is not only spot selling.','Funding is extreme, making positioning relevant.'],
+        risks:['Crowded short risk after sharp downside move.','Reversal squeeze can be violent if price reclaims breakdown level.'],
+        levels:{Breakdown:'0.120',Invalidation:'0.132',Resistance:'0.138',Target:'0.105'}, spark:[58,54,51,49,45,42,38,34,31,27,24,22,19]
+      },
+      {
+        symbol: 'SYN', pair:'SYNUSDT', exchange:'Bybit', price:.319, change:{m1:-.18,m5:-.94,m15:-3.36,h1:-2.4,h4:-5.6,d1:-10.3}, rvol:3.7, oi:13.3, funding:-.008, setup:'Short', category:['Laggard','OI Build'], risk:'High', score:82,
+        signal:'Clean short-side continuation. Watch for exhaustion because RVOL is already elevated.',
+        why:['15m and 1h trends are aligned to downside.','OI confirms fresh positioning.','Volume is above threshold.'],
+        risks:['High RVOL can mark capitulation.','No good entry unless pullback fails.'],
+        levels:{Breakdown:'0.304',Invalidation:'0.334',Resistance:'0.346',Target:'0.282'}, spark:[50,49,48,45,44,40,38,37,34,31,30,29]
+      },
+      {
+        symbol: 'AIO', pair:'AIOUSDT', exchange:'OKX', price:.087, change:{m1:-.09,m5:-.63,m15:-3.04,h1:-2.8,h4:-4.9,d1:-8.0}, rvol:2.9, oi:8.1, funding:-.005, setup:'Short', category:['Laggard'], risk:'Medium', score:75,
+        signal:'Downside trend is intact but less aggressive than H and SYN.',
+        why:['15m downside move is material.','1h confirms direction.','Funding is negative but not extreme.'],
+        risks:['Lower OI confirmation than top short candidates.','May underperform as a short if majors stabilize.'],
+        levels:{Breakdown:'0.083',Invalidation:'0.092',Resistance:'0.096',Target:'0.076'}, spark:[47,46,44,43,40,38,35,33,31,30,29]
+      }
+    ];
+
+    let selectedSymbol = 'FOLKS';
+    let activeTf = 'm15';
+    let activeFilter = 'all';
+
+    const tfLabels = {m1:'1m', m5:'5m', m15:'15m', h1:'1h', h4:'4h', d1:'24h'};
+
+    function fmtPercent(n) {
+      const sign = n > 0 ? '+' : '';
+      return `${sign}${n.toFixed(Math.abs(n) < 1 ? 2 : 2)}%`;
+    }
+
+    function cssClass(n) { return n >= 0 ? 'positive' : 'negative'; }
+
+    function setupClass(setup) {
+      if (setup === 'Breakout') return 'breakout';
+      if (setup === 'Squeeze') return 'squeeze';
+      if (setup === 'Reversal') return 'reversal';
+      if (setup === 'Short') return 'short';
+      return '';
+    }
+
+    function findAsset(symbol) { return assets.find(a => a.symbol === symbol) || assets[0]; }
+
+    function sparkSvg(points, mode='positive') {
+      const w = 140, h = 42, pad = 4;
+      const min = Math.min(...points), max = Math.max(...points);
+      const range = max - min || 1;
+      const coords = points.map((p,i) => {
+        const x = pad + i * ((w - pad*2) / (points.length - 1));
+        const y = h - pad - ((p - min) / range) * (h - pad*2);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+      const area = `${pad},${h-pad} ${coords} ${w-pad},${h-pad}`;
+      const stroke = mode === 'negative' ? 'var(--red)' : 'var(--green)';
+      const fill = mode === 'negative' ? 'rgba(255,83,100,.10)' : 'rgba(49,209,125,.10)';
+      return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="${area}" fill="${fill}"></polygon>
+        <polyline points="${coords}" fill="none" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+      </svg>`;
+    }
+
+    function sideChartSvg(asset) {
+      const pts = asset.spark;
+      const w = 360, h = 150, pad = 14;
+      const min = Math.min(...pts), max = Math.max(...pts);
+      const range = max - min || 1;
+      const coords = pts.map((p,i) => {
+        const x = pad + i * ((w - pad*2) / (pts.length - 1));
+        const y = h - pad - ((p - min) / range) * (h - pad*2);
+        return [x,y];
+      });
+      const line = coords.map(([x,y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+      const area = `${pad},${h-pad} ${line} ${w-pad},${h-pad}`;
+      const isNeg = asset.change[activeTf] < 0;
+      const stroke = isNeg ? 'var(--red)' : 'var(--green)';
+      const fill = isNeg ? 'rgba(255,83,100,.10)' : 'rgba(49,209,125,.10)';
+      const last = coords[coords.length - 1];
+      return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-label="Mock ${asset.symbol} price chart">
+        <defs>
+          <pattern id="grid" width="36" height="30" patternUnits="userSpaceOnUse">
+            <path d="M36 0H0V30" fill="none" stroke="rgba(255,255,255,.045)" stroke-width="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+        <polygon points="${area}" fill="${fill}"></polygon>
+        <polyline points="${line}" fill="none" stroke="${stroke}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+        <circle cx="${last[0]}" cy="${last[1]}" r="4" fill="${stroke}"></circle>
+      </svg>`;
+    }
+
+    function renderHeatmap() {
+      const gainers = assets.filter(a => a.change[activeTf] >= 0).sort((a,b) => b.change[activeTf] - a.change[activeTf]).slice(0,8);
+      const losers = assets.filter(a => a.change[activeTf] < 0).sort((a,b) => a.change[activeTf] - b.change[activeTf]).slice(0,8);
+      document.getElementById('gainerTiles').innerHTML = gainers.map((a, idx) => heatTile(a, idx, 'green')).join('');
+      document.getElementById('loserTiles').innerHTML = losers.map((a, idx) => heatTile(a, idx, 'red')).join('');
+    }
+
+    function heatTile(a, idx, color) {
+      const size = idx === 0 ? 'big' : (idx === 1 ? 'medium' : '');
+      const intensity = Math.min(.72, .20 + Math.abs(a.change[activeTf]) / 10);
+      return `<button class="tile ${color} ${size}" style="--intensity:${intensity}" onclick="selectAsset('${a.symbol}')">
+        <span class="tile-symbol">${a.symbol}</span>
+        <span class="tile-change">${fmtPercent(a.change[activeTf])}</span>
+        <span class="tile-meta">RVOL ${a.rvol}x · OI ${fmtPercent(a.oi)}</span>
+      </button>`;
+    }
+
+    function renderTable() {
+      const search = document.getElementById('assetSearch').value.trim().toLowerCase();
+      const risk = document.getElementById('riskSelect').value;
+      const filtered = assets
+        .filter(a => activeFilter === 'all' || a.category.includes(activeFilter) || a.setup === activeFilter)
+        .filter(a => risk === 'all' || a.risk === risk)
+        .filter(a => !search || `${a.symbol} ${a.pair} ${a.setup} ${a.category.join(' ')}`.toLowerCase().includes(search))
+        .sort((a,b) => b.score - a.score);
+
+      document.getElementById('assetRows').innerHTML = filtered.map((a, idx) => {
+        const selected = a.symbol === selectedSymbol ? 'selected' : '';
+        const moveMode = a.change[activeTf] < 0 ? 'negative' : 'positive';
+        const iconText = a.symbol.slice(0,2).toUpperCase();
+        return `<tr class="${selected}" onclick="selectAsset('${a.symbol}')">
+          <td><div class="asset-cell"><span class="rank-badge">${idx+1}</span><span class="coin-icon">${iconText}</span><span class="asset-name"><strong>${a.symbol}</strong><span>${a.pair}</span></span></div></td>
+          <td>${sparkSvg(a.spark, moveMode)}</td>
+          <td>${a.price < 1 ? a.price.toFixed(4) : a.price.toFixed(2)}</td>
+          <td class="${cssClass(a.change.m5)}">${fmtPercent(a.change.m5)}</td>
+          <td class="${cssClass(a.change.m15)}">${fmtPercent(a.change.m15)}</td>
+          <td class="${cssClass(a.change.h1)}">${fmtPercent(a.change.h1)}</td>
+          <td>${a.rvol.toFixed(1)}x</td>
+          <td class="${cssClass(a.oi)}">${fmtPercent(a.oi)}</td>
+          <td class="${cssClass(a.funding)}">${a.funding.toFixed(3)}%</td>
+          <td><span class="setup-tag ${setupClass(a.setup)}">${a.setup}</span></td>
+          <td>${a.risk}</td>
+          <td><span class="score">${a.score}<span class="score-bar"><i style="--w:${a.score}%"></i></span></span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function selectAsset(symbol) {
+      selectedSymbol = symbol;
+      const a = findAsset(symbol);
+      document.getElementById('sideSymbol').textContent = a.pair;
+      document.getElementById('sideExchange').textContent = `PERP · ${a.exchange}`;
+      const rank = [...assets].sort((x,y) => y.score - x.score).findIndex(x => x.symbol === a.symbol) + 1;
+      document.getElementById('sideRank').textContent = `Rank #${rank}`;
+      document.getElementById('sidePrice').textContent = a.price < 1 ? a.price.toFixed(4) : a.price.toFixed(2);
+      const sideChange = document.getElementById('sideChange');
+      sideChange.textContent = fmtPercent(a.change[activeTf]);
+      sideChange.className = `change ${cssClass(a.change[activeTf])}`;
+      document.getElementById('sideSignal').textContent = a.signal;
+      document.getElementById('sideTf').textContent = `${tfLabels[activeTf]} view`;
+      document.getElementById('sideChart').innerHTML = sideChartSvg(a);
+      document.getElementById('sideScoreSmall').textContent = `Score ${a.score}`;
+      document.getElementById('sideRvol').textContent = `${a.rvol.toFixed(1)}x`;
+      const oi = document.getElementById('sideOi');
+      oi.textContent = fmtPercent(a.oi);
+      oi.className = `m-value ${cssClass(a.oi)}`;
+      const funding = document.getElementById('sideFunding');
+      funding.textContent = `${a.funding.toFixed(3)}%`;
+      funding.className = `m-value ${cssClass(a.funding)}`;
+      document.getElementById('sideRisk').textContent = a.risk;
+      document.getElementById('sideWhy').innerHTML = a.why.map(x => `<li>${x}</li>`).join('');
+      document.getElementById('sideRisks').innerHTML = a.risks.map(x => `<li>${x}</li>`).join('');
+      document.getElementById('sideLevels').innerHTML = Object.entries(a.levels).map(([k,v]) => `<li><span>${k}</span><strong>${v}</strong></li>`).join('');
+      renderTable();
+    }
+
+    function setTimeframe(tf) {
+      activeTf = tf;
+      document.querySelectorAll('#timeframeTabs button').forEach(b => b.classList.toggle('active', b.dataset.tf === tf));
+      renderHeatmap();
+      selectAsset(selectedSymbol);
+    }
+
+    function setFilter(filter) {
+      activeFilter = filter;
+      document.querySelectorAll('#presetFilters .chip').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+      renderTable();
+    }
+
+    function createAlert(type) {
+      const a = findAsset(selectedSymbol);
+      const labels = {
+        breakout: `${a.symbol}: breakout alert armed`,
+        invalidation: `${a.symbol}: invalidation alert armed`,
+        rvol: `${a.symbol}: RVOL > 3x alert armed`,
+        oi: `${a.symbol}: OI acceleration alert armed`
+      };
+      mockToast(labels[type] || 'Alert armed');
+    }
+
+    function mockToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      window.clearTimeout(window.__toastTimer);
+      window.__toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function scrollToScanner() {
+      document.getElementById('scanner').scrollIntoView({behavior:'smooth'});
+    }
+
+    document.getElementById('timeframeTabs').addEventListener('click', e => {
+      if (e.target.matches('button[data-tf]')) setTimeframe(e.target.dataset.tf);
+    });
+    document.getElementById('presetFilters').addEventListener('click', e => {
+      if (e.target.matches('button[data-filter]')) setFilter(e.target.dataset.filter);
+    });
+    document.getElementById('assetSearch').addEventListener('input', renderTable);
+    document.getElementById('riskSelect').addEventListener('change', renderTable);
+
+    renderHeatmap();
+    renderTable();
+    selectAsset(selectedSymbol);
+  </script>
+</body>
+</html>

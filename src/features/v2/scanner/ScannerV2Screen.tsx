@@ -137,10 +137,10 @@ export function ScannerV2Screen() {
     const chart =
       detailsChart && detailsChart.asset_id === selectedAsset.assetId
         ? mapScannerCandlesToOhlcv(
-            detailsChart.asset_id,
-            detailsChart.instrument_id,
-            detailsChart.candles,
-          )
+          detailsChart.asset_id,
+          detailsChart.instrument_id,
+          detailsChart.candles,
+        )
         : undefined;
 
     return {
@@ -176,55 +176,61 @@ export function ScannerV2Screen() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white">
+    <div className="min-h-screen text-white">
       <div className="pb-8 pt-0 md:px-4">
-        <div className="overflow-hidden border-white/8 bg-[#0a0a0a] shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
+        <div className="border-white/8 shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
           <ScannerMarketStrip
             breadth={marketStripQuery.data?.breadth}
             items={marketStripItems}
             updatedAt={marketStripQuery.data?.updated_at}
           />
-          <ScannerMomentumHeatmap
-            selectedSymbol={selectedSymbol}
-            onSelectSymbol={handleSelectSymbol}
-          />
 
-          <ScannerControls
-            density={density}
-            isManualRefreshing={isManualRefreshing}
-            minVolume={minVolume}
-            preset={preset}
-            refreshInterval={refreshInterval}
-            search={search}
-            timeframe={timeframe}
-            watchlistFilter={watchlistFilter}
-            onDensityChange={setDensity}
-            onManualRefresh={handleManualRefresh}
-            onMinVolumeChange={setMinVolume}
-            onPresetChange={setPreset}
-            onRefreshIntervalChange={setRefreshInterval}
-            onSearchChange={setSearch}
-            onTimeframeChange={setTimeframe}
-            onWatchlistFilterChange={setWatchlistFilter}
-          />
+          <div className="xl:flex xl:items-start">
+            <div className="min-w-0 xl:flex-1 xl:border-r xl:border-white/8">
+              <ScannerMomentumHeatmap
+                selectedSymbol={selectedSymbol}
+                onSelectSymbol={handleSelectSymbol}
+              />
 
-          <section className="min-h-[900px] xl:flex">
-            <ScannerTable
-              assets={tableAssets}
-              density={density}
-              preset={preset}
-              selectedSymbol={selectedSymbol}
-              sorting={sorting}
-              onSelectSymbol={handleSelectSymbol}
-              onSortingChange={setSorting}
-            />
+              <ScannerControls
+                density={density}
+                isManualRefreshing={isManualRefreshing}
+                minVolume={minVolume}
+                preset={preset}
+                refreshInterval={refreshInterval}
+                search={search}
+                timeframe={timeframe}
+                watchlistFilter={watchlistFilter}
+                onDensityChange={setDensity}
+                onManualRefresh={handleManualRefresh}
+                onMinVolumeChange={setMinVolume}
+                onPresetChange={setPreset}
+                onRefreshIntervalChange={setRefreshInterval}
+                onSearchChange={setSearch}
+                onTimeframeChange={setTimeframe}
+                onWatchlistFilterChange={setWatchlistFilter}
+              />
+
+              <section className="min-h-[900px]">
+                <ScannerTable
+                  assets={tableAssets}
+                  density={density}
+                  preset={preset}
+                  selectedSymbol={selectedSymbol}
+                  sorting={sorting}
+                  onSelectSymbol={handleSelectSymbol}
+                  onSortingChange={setSorting}
+                />
+              </section>
+            </div>
+
             <ScannerSidePanel
               asset={panelAsset}
               mobileOpen={isMobileScanner ? mobilePanelOpen : false}
               onMobileOpenChange={setMobilePanelOpen}
               timeframe={timeframe}
             />
-          </section>
+          </div>
         </div>
       </div>
     </div>

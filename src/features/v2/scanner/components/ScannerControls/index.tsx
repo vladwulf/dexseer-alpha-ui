@@ -23,7 +23,7 @@ export function ScannerControls({
   onWatchlistFilterChange: _onWatchlistFilterChange,
 }: ScannerControlsProps) {
   return (
-    <section className="sticky top-14 z-20 border-b border-white/7 bg-[#0a0a0a]/95 px-4 py-2.5 backdrop-blur md:px-6">
+    <section className="border-b border-white/7 bg-[#0a0a0a]/95 px-4 py-2.5 md:px-6">
       <div className="flex flex-col gap-2.5">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">

@@ -435,7 +435,7 @@ export function ScannerTable({
   });
 
   return (
-    <div className="min-w-0 border-b border-white/8 xl:flex-1 xl:border-b-0 xl:border-r">
+    <div className="min-w-0 border-b border-white/8 xl:flex-1 xl:border-b-0">
       <Table className="min-w-max w-full border-collapse hide-scrollbar-x">
         <TableHeader className="bg-[#0d0d0d]">
           {table.getHeaderGroups().map((headerGroup) => (
