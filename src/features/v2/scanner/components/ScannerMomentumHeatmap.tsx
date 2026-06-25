@@ -109,7 +109,8 @@ function HeatmapTile({
   const palette = getTilePalette(tone, intensity);
   const label = asset.symbol.replace(/USDT$|USD$/u, "");
   const area = getTileArea(layout);
-  const isLead = area >= 12;
+  const showPrice = area >= 4;
+  const showMeta = area >= 8;
   const metricValue = getMetricValue(asset);
 
   return (
@@ -139,7 +140,6 @@ function HeatmapTile({
           style={{
             color: palette.symbolColor,
             fontSize: getSymbolSize(layout, label.length),
-            // Single drop shadow — clean, not multi-directional
             textShadow: "0 2px 6px rgba(0,0,0,0.65)",
           }}
         >
@@ -155,20 +155,31 @@ function HeatmapTile({
         >
           {formatSigned(metricValue)}
         </div>
-        {/* Volume line — only on the lead tile, very quiet */}
-        {isLead && (
+        {showPrice && (
           <div
-            className="mt-1 font-(--font-mono) tabular-nums"
+            className="mt-0.5 font-(--font-mono) tabular-nums"
             style={{
-              color: "rgba(255,255,255,0.38)",
-              fontSize: "clamp(0.62rem, 1vw, 0.78rem)",
+              color: "rgba(255,255,255,0.42)",
+              fontSize: "clamp(0.6rem, 2.2cqw, 0.76rem)",
               textShadow: "none",
             }}
           >
-            $
-            {(asset.price ?? 0).toLocaleString("en-US", {
-              maximumFractionDigits: 4,
-            })}
+            {asset.price != null
+              ? `$${asset.price.toLocaleString("en-US", { maximumFractionDigits: 4 })}`
+              : "—"}
+          </div>
+        )}
+        {showMeta && (
+          <div
+            className="mt-0.5 font-(--font-mono) tabular-nums"
+            style={{
+              color: "rgba(255,255,255,0.28)",
+              fontSize: "clamp(0.58rem, 1.8cqw, 0.7rem)",
+              textShadow: "none",
+              letterSpacing: "0.04em",
+            }}
+          >
+            RVOL — · OI —
           </div>
         )}
       </div>
