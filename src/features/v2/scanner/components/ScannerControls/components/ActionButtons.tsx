@@ -63,7 +63,7 @@ export function ActionButtons({
         Filters
       </button> */}
       <div className="flex items-center gap-2">
-        <span className="shrink-0 whitespace-nowrap font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[oklch(0.42_0_0)]">
+        <span className="hidden shrink-0 whitespace-nowrap font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[oklch(0.42_0_0)] md:block">
           Refresh
         </span>
         <button

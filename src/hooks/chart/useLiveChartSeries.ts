@@ -161,12 +161,11 @@ export function useLiveChartSeries({
         const previousSeedKey = seedKeyByAssetIdRef.current.get(seed.assetId);
 
         nextSeedKeyByAssetId.set(seed.assetId, seedKey);
-        next.set(
-          seed.assetId,
-          previousSeedKey === seedKey
-            ? (current.get(seed.assetId) ?? seed.data)
-            : seed.data,
-        );
+
+        const existing = current.get(seed.assetId);
+        const shouldReset = previousSeedKey !== seedKey || !existing?.length;
+
+        next.set(seed.assetId, shouldReset ? seed.data : existing);
       }
 
       seedKeyByAssetIdRef.current = nextSeedKeyByAssetId;

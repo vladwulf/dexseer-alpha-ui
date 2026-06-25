@@ -3,8 +3,23 @@ import { Card } from "@/components/ui/card";
 import { AlertChart } from "../chart/AlertChart";
 import { useGetAlerts } from "./hooks/useGetAlerts";
 
+function AlertSkeleton() {
+  return (
+    <div className="p-3 rounded-md">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1 space-y-2">
+          <div className="h-4 w-16 bg-muted/40 rounded animate-pulse" />
+          <div className="h-4 w-20 bg-muted/40 rounded animate-pulse" />
+          <div className="h-3 w-32 bg-muted/20 rounded animate-pulse" />
+        </div>
+      </div>
+      <div className="h-[260px] w-full bg-muted/20 rounded animate-pulse" />
+    </div>
+  );
+}
+
 export function AlertsSidePanel() {
-  const { data: alerts } = useGetAlerts();
+  const { data: alerts, isLoading } = useGetAlerts();
 
   return (
     <div className="border-border bg-black flex flex-col">
@@ -42,6 +57,11 @@ export function AlertsSidePanel() {
       </div>
 
       <div className="px-4 pb-4 max-h-screen overflow-auto mt-10">
+        {isLoading &&
+          Array.from({ length: 3 }).map((_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list
+            <AlertSkeleton key={i} />
+          ))}
         {alerts?.map((alert) => (
           <Card
             key={alert.id}

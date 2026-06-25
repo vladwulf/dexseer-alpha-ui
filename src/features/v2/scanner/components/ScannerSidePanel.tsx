@@ -1,4 +1,5 @@
 import { BellPlus, BookmarkPlus, Clock3, Star, Volume2 } from "lucide-react";
+import { useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
@@ -220,6 +221,55 @@ function ScannerSidePanelBody({
   );
 }
 
+function ScannerSidePanelSkeleton() {
+  return (
+    <div className="px-4 py-4 space-y-4">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-2">
+          <div className="h-5 w-24 rounded bg-white/8 animate-pulse" />
+          <div className="flex gap-2">
+            <div className="h-4 w-16 rounded bg-white/8 animate-pulse" />
+            <div className="h-4 w-12 rounded bg-white/8 animate-pulse" />
+            <div className="h-4 w-12 rounded bg-white/8 animate-pulse" />
+          </div>
+        </div>
+      </div>
+      {/* Setup card */}
+      <div className="rounded-[20px] border border-white/8 bg-white/[0.03] p-4 space-y-2">
+        <div className="h-3 w-20 rounded bg-white/8 animate-pulse" />
+        <div className="h-5 w-40 rounded bg-white/8 animate-pulse" />
+        <div className="h-3 w-full rounded bg-white/8 animate-pulse" />
+        <div className="h-3 w-3/4 rounded bg-white/8 animate-pulse" />
+      </div>
+      {/* Chart */}
+      <div className="rounded-[20px] border border-white/8 bg-black p-4">
+        <div className="h-44 rounded-[14px] bg-white/[0.03] animate-pulse" />
+      </div>
+      {/* Stat grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+          <div
+            key={i}
+            className="h-14 rounded-xl border border-white/8 bg-white/[0.03] animate-pulse"
+          />
+        ))}
+      </div>
+      {/* Detail blocks */}
+      <div className="space-y-3">
+        {Array.from({ length: 2 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+          <div
+            key={i}
+            className="h-16 rounded-xl border border-white/8 bg-white/[0.03] animate-pulse"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ScannerSidePanel({
   asset,
   mobileOpen,
@@ -239,40 +289,50 @@ export function ScannerSidePanel({
       : [],
   });
 
-  if (!asset) {
-    return null;
+  const series = asset?.assetId
+    ? seriesByAssetId.get(asset.assetId)
+    : undefined;
+  const klines = asset ? (series?.length ? series : asset.chart) : [];
+
+  const touchStartX = useRef<number | null>(null);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
   }
 
-  const klines =
-    (asset.assetId ? seriesByAssetId.get(asset.assetId) : undefined) ??
-    asset.chart;
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (delta > 80) onMobileOpenChange(false);
+  }
+
+  const bodyContent = asset ? (
+    <ScannerSidePanelBody asset={asset} timeframe={timeframe} klines={klines} />
+  ) : (
+    <ScannerSidePanelSkeleton />
+  );
 
   return (
     <>
-      <aside className="hidden bg-[#040404] xl:sticky xl:top-14 xl:block xl:w-[350px] xl:max-h-[calc(100vh-3.5rem)] xl:shrink-0 xl:overflow-y-auto 2xl:w-[450px]">
-        <ScannerSidePanelBody
-          asset={asset}
-          timeframe={timeframe}
-          klines={klines}
-        />
+      <aside className="hide-scrollbar hidden bg-[#040404] xl:sticky xl:top-14 xl:block xl:w-[350px] xl:max-h-[calc(100vh-3.5rem)] xl:shrink-0 xl:overflow-y-auto 2xl:w-[450px]">
+        {bodyContent}
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent
           side="right"
           className="w-full overflow-y-auto border-white/8 bg-[#040404] p-3 sm:max-w-[460px]"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
-          <SheetTitle className="sr-only">{asset.symbol} details</SheetTitle>
+          <SheetTitle className="sr-only">
+            {asset ? `${asset.symbol} details` : "Scanner details"}
+          </SheetTitle>
           <SheetDescription className="sr-only">
             Asset intelligence details for the selected scanner symbol.
           </SheetDescription>
-          <div className="pr-10 xl:hidden">
-            <ScannerSidePanelBody
-              asset={asset}
-              timeframe={timeframe}
-              klines={klines}
-            />
-          </div>
+          <div className="pr-10 xl:hidden">{bodyContent}</div>
         </SheetContent>
       </Sheet>
     </>
