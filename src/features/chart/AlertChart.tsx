@@ -135,8 +135,8 @@ export function AlertChart({
         visible: true, // Hide price scale
         borderVisible: false,
         scaleMargins: {
-          top: 0.24,
-          bottom: 0.18,
+          top: 0.08,
+          bottom: 0.15,
         },
       },
       leftPriceScale: {
@@ -194,6 +194,11 @@ export function AlertChart({
     // Convert alert timestamp to Unix timestamp for comparison
     const alertTimestampUnix = parseCandleTime(alertTime) as Time;
 
+    const pivotTime: Time = (series
+      .map((k) => Number(parseCandleTime(k.time)))
+      .filter((t) => t <= Number(alertTimestampUnix))
+      .pop() ?? Number(alertTimestampUnix)) as Time;
+
     // Map OHLC data to candlestick format with opacity variations
     const candlestickData: CandlestickData[] = normalizeChartData(
       series
@@ -209,13 +214,10 @@ export function AlertChart({
           let candleColor: string | undefined;
 
           if (time === alertTimestampUnix) {
-            // Highlight the alert candle
             candleColor = "#facc15";
-          } else if (time > alertTimestampUnix) {
-            // After alert: normal opacity
+          } else if (Number(time) >= Number(pivotTime)) {
             candleColor = kline.close > kline.open ? upColor : downColor;
           } else {
-            // Before alert: lower opacity
             const baseColor = kline.close > kline.open ? upColor : downColor;
             candleColor = hexToRgba(baseColor, 0.3);
           }
@@ -263,7 +265,7 @@ export function AlertChart({
 
         let color = "rgba(100, 100, 100, 0.2)";
 
-        if (time < alertTimestampUnix) {
+        if (time < pivotTime) {
           color = "rgba(100, 100, 100, 0.15)";
         } else {
           const isBullTrend = kline.ema9 > kline.ema20;
@@ -300,7 +302,7 @@ export function AlertChart({
 
     volumeSeries.priceScale().applyOptions({
       scaleMargins: {
-        top: 0.8,
+        top: 0.85,
         bottom: 0,
       },
     });
@@ -311,7 +313,7 @@ export function AlertChart({
       const baseColor = isUp ? upColor : downColor;
 
       let color = baseColor;
-      if (time < alertTimestampUnix) {
+      if (time < pivotTime) {
         color = hexToRgba(baseColor, 0.3);
       }
 

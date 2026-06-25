@@ -65,7 +65,15 @@ const formatBool = (value: boolean | null | undefined) => {
 };
 
 export function AlertsPannel() {
-  const [timeframe, setTimeframe] = useState<AlertTimeframe>("15m");
+  const [timeframe, setTimeframe] = useState<AlertTimeframe>(
+    () =>
+      (typeof window !== "undefined"
+        ? (localStorage.getItem("alertTimeframe") as AlertTimeframe)
+        : null) ?? "15m",
+  );
+  useEffect(() => {
+    localStorage.setItem("alertTimeframe", timeframe);
+  }, [timeframe]);
   const [typeInput, setTypeInput] = useState("");
   const [instrumentIdInput, setInstrumentIdInput] = useState("");
 
@@ -482,7 +490,7 @@ function AlertChartSection({
   return (
     <>
       <div
-        className="h-[320px] w-full min-w-0 overflow-hidden"
+        className="h-[500px] w-full min-w-0 overflow-hidden"
         style={{ borderTop: "1px solid oklch(1 0 0 / 5%)" }}
       >
         <AlertsChartWrapper

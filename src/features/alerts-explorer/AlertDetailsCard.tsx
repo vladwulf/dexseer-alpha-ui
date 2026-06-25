@@ -49,7 +49,7 @@ export const AlertDetailsCard: React.FC<Props> = (props) => {
             </div>
           </div>
         </div>
-        <div className="h-[300px] w-full">
+        <div className="h-[380px] w-full">
           <AlertChart
             alertTime={alertTime}
             onActiveCandleChange={handleActiveCandleChange}

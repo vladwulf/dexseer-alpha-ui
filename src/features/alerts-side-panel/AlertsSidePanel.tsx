@@ -78,7 +78,7 @@ export function AlertsSidePanel() {
                 </div> */}
             </div>
 
-            <div className="h-[180px] w-full">
+            <div className="h-[260px] w-full">
               <AlertChart alertTime={alert.time} series={alert.ohlc ?? []} />
             </div>
           </Card>
