@@ -1,4 +1,4 @@
-# Notes
+# Notes 2
 
 # cool shadcdn repos
 
