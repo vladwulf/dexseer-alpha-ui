@@ -200,7 +200,7 @@ export function AssetDetailScreen() {
             <StatCard label="Volume 24h" value={asset.volume} tone="neutral" />
             <StatCard
               label="RVOL"
-              value={`${asset.rvol.toFixed(1)}x`}
+              value={asset.rvol === null ? "—" : `${asset.rvol.toFixed(1)}x`}
               tone="accent"
             />
             <StatCard

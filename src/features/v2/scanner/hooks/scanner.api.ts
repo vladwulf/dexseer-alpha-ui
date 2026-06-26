@@ -161,6 +161,10 @@ export type MomentumEntry = {
   score_1m: number;
   score_5m: number;
   score_15m: number;
+  change_5m: number | null;
+  change_15m: number | null;
+  change_1h: number | null;
+  rvol_24h: number | null;
   aligned_timeframes: number;
   indicators: {
     range_z_5_120_1_m?: number | null;

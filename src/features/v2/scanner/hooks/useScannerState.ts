@@ -27,13 +27,11 @@ function getMomentumSortParams(
   const sortByByColumnId: Record<string, string> = {
     price: "price",
     setupScore: "score",
-    momentumScore1m: "score_1m",
-    momentumScore5m: "score_5m",
-    momentumScore15m: "score_15m",
+    change5m: "change_5m",
+    change15m: "change_15m",
+    change1h: "change_1h",
     alignedTimeframes: "aligned_timeframes",
-    momentumRvolZ: "rvol_z_5_20_120_15_m",
-    momentumMoveZ: "move_z_5_120_15_m",
-    momentumRangeZ: "range_z_5_120_15_m",
+    rvol: "rvol_24h",
     momentumChoppiness: "choppiness_1m",
   };
 

@@ -64,13 +64,11 @@ const MOMENTUM_COLUMNS = new Set([
   "chart",
   "price",
   "setupScore",
-  "momentumScore1m",
-  "momentumScore5m",
-  "momentumScore15m",
+  "change5m",
+  "change15m",
+  "change1h",
   "alignedTimeframes",
-  "momentumRvolZ",
-  "momentumMoveZ",
-  "momentumRangeZ",
+  "rvol",
   "momentumChoppiness",
 ]);
 
@@ -131,43 +129,6 @@ function ScoreBadge({ value }: { value: number }) {
   );
 }
 
-function MomentumScoreCell({ value }: { value: number | undefined }) {
-  if (value === undefined) return <span className="text-white/20">—</span>;
-  const pct = Math.min(100, Math.max(0, value));
-  const color = scoreColor(pct);
-  return (
-    <div className="flex items-center gap-1.5">
-      <span
-        style={{
-          color,
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.75rem",
-        }}
-      >
-        {pct.toFixed(0)}
-      </span>
-      <div
-        style={{
-          width: 22,
-          height: 2,
-          background: "rgba(255,255,255,0.08)",
-          borderRadius: 999,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: "100%",
-            background: color,
-            borderRadius: 999,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 function AlignedTfIndicator({ value }: { value: number | undefined }) {
   if (value === undefined) return <span className="text-white/20">—</span>;
   const timeframes = ["1m", "5m", "15m"] as const;
@@ -200,32 +161,9 @@ function AlignedTfIndicator({ value }: { value: number | undefined }) {
   );
 }
 
-function ZScoreCell({ value }: { value: number | null | undefined }) {
-  if (value === null || value === undefined)
-    return <span className="text-white/20">—</span>;
-  const abs = Math.abs(value);
-  const pos = value > 0;
-  const color =
-    abs >= 2
-      ? pos
-        ? "#5dc887"
-        : "#e35561"
-      : abs >= 1
-        ? pos
-          ? "rgba(93,200,135,0.72)"
-          : "rgba(227,85,97,0.72)"
-        : "rgba(255,255,255,0.42)";
-  return (
-    <span
-      style={{ color, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
-    >
-      {pos ? "+" : ""}
-      {value.toFixed(2)}
-    </span>
-  );
-}
+function ChangePctCell({ value }: { value: number | null }) {
+  if (value === null) return <span className="text-white/20">—</span>;
 
-function ChangePctCell({ value }: { value: number }) {
   if (value === 0)
     return (
       <span
@@ -263,7 +201,9 @@ function ChangePctCell({ value }: { value: number }) {
   );
 }
 
-function RvolCell({ value }: { value: number }) {
+function RvolCell({ value }: { value: number | null }) {
+  if (value === null) return <span className="text-white/20">—</span>;
+
   const normalized = Math.min(Math.max(value - 1, 0) / 4, 1);
   const color =
     normalized > 0.6
@@ -614,52 +554,10 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     ),
   },
   {
-    accessorKey: "momentumScore1m",
-    header: "1m",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <MomentumScoreCell value={row.original.momentumScore1m} />
-    ),
-  },
-  {
-    accessorKey: "momentumScore5m",
-    header: "5m",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <MomentumScoreCell value={row.original.momentumScore5m} />
-    ),
-  },
-  {
-    accessorKey: "momentumScore15m",
-    header: "15m",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <MomentumScoreCell value={row.original.momentumScore15m} />
-    ),
-  },
-  {
     accessorKey: "alignedTimeframes",
-    header: "Aligned",
+    header: "Strength",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <AlignedTfIndicator value={row.original.alignedTimeframes} />
-    ),
-  },
-  {
-    accessorKey: "momentumRvolZ",
-    header: "RVOL Z",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <ZScoreCell value={row.original.momentumRvolZ} />
-    ),
-  },
-  {
-    accessorKey: "momentumMoveZ",
-    header: "Move Z",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <ZScoreCell value={row.original.momentumMoveZ} />
-    ),
-  },
-  {
-    accessorKey: "momentumRangeZ",
-    header: "Range Z",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <ZScoreCell value={row.original.momentumRangeZ} />
     ),
   },
   {
