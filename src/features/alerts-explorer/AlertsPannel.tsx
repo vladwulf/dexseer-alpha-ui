@@ -27,7 +27,7 @@ const TIMEFRAMES: AlertTimeframe[] = [
   "1d",
 ];
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 5;
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("en-US", {
