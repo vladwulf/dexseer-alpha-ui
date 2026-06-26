@@ -157,6 +157,15 @@ export function mapScannerRowToAsset(row: ScannerRow): ScannerAsset {
 }
 
 export function mapMomentumEntryToAsset(row: MomentumEntry): ScannerAsset {
+  const momentumRangeZ =
+    row.indicators.range_z_5_120_15_m ?? row.indicators.range_z_1m ?? null;
+  const momentumMoveZ =
+    row.indicators.move_z_5_120_15_m ?? row.indicators.move_z_1m ?? null;
+  const momentumRvolZ =
+    row.indicators.rvol_z_5_20_120_15_m ??
+    row.indicators.rvol_z_sustained_1m ??
+    null;
+
   return {
     assetId: row.asset_id,
     instrumentId: row.instrument_id,
@@ -169,7 +178,7 @@ export function mapMomentumEntryToAsset(row: MomentumEntry): ScannerAsset {
     change4h: 0,
     change24h: 0,
     volume: "-",
-    rvol: row.indicators.rvol_z_sustained_1m ?? 0,
+    rvol: momentumRvolZ ?? 0,
     oiDelta: 0,
     funding: 0,
     atrPercent: 0,
@@ -191,9 +200,9 @@ export function mapMomentumEntryToAsset(row: MomentumEntry): ScannerAsset {
     momentumScore5m: row.score_5m,
     momentumScore15m: row.score_15m,
     alignedTimeframes: row.aligned_timeframes,
-    momentumRangeZ: row.indicators.range_z_1m ?? null,
-    momentumMoveZ: row.indicators.move_z_1m ?? null,
-    momentumRvolZ: row.indicators.rvol_z_sustained_1m ?? null,
+    momentumRangeZ,
+    momentumMoveZ,
+    momentumRvolZ,
     momentumChoppiness: row.indicators.choppiness_1m ?? null,
   };
 }

@@ -1,8 +1,6 @@
+import type { SortingState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import type {
-  MomentumScannerRequest,
-  ScannerSortDirection,
-} from "../hooks/scanner.api";
+import type { MomentumScannerRequest } from "../hooks/scanner.api";
 import { useGetMomentumScanner, useGetScanner } from "../hooks/scanner.api";
 import {
   getScannerPresetKey,
@@ -18,14 +16,31 @@ type UseScannerStateOptions = {
 };
 
 function getMomentumSortParams(
-  sort_by: string | undefined,
-  sort_direction: ScannerSortDirection | undefined,
+  sorting: SortingState,
 ): Pick<MomentumScannerRequest, "sort_by" | "sort_direction"> {
-  if (sort_by === "change_5m" || sort_by === "change_15m") {
-    return { sort_by, sort_direction };
+  const firstSort = sorting[0];
+
+  if (!firstSort) {
+    return { sort_by: "score", sort_direction: "desc" };
   }
 
-  return { sort_by: "score" as const, sort_direction };
+  const sortByByColumnId: Record<string, string> = {
+    price: "price",
+    setupScore: "score",
+    momentumScore1m: "score_1m",
+    momentumScore5m: "score_5m",
+    momentumScore15m: "score_15m",
+    alignedTimeframes: "aligned_timeframes",
+    momentumRvolZ: "rvol_z_5_20_120_15_m",
+    momentumMoveZ: "move_z_5_120_15_m",
+    momentumRangeZ: "range_z_5_120_15_m",
+    momentumChoppiness: "choppiness_1m",
+  };
+
+  return {
+    sort_by: sortByByColumnId[firstSort.id] ?? "score",
+    sort_direction: firstSort.desc ? "desc" : "asc",
+  };
 }
 
 export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
@@ -62,10 +77,7 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
       refetchIntervalMs,
     },
   );
-  const momentumSortParams = getMomentumSortParams(
-    scannerSortParams.sort_by,
-    scannerSortParams.sort_direction,
-  );
+  const momentumSortParams = getMomentumSortParams(sorting);
   const momentumQuery = useGetMomentumScanner(
     {
       preset: momentumSide,

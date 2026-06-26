@@ -128,7 +128,7 @@ export type MomentumScannerRequest = {
   search?: string;
   limit?: number;
   offset?: number;
-  sort_by?: "score" | "change_5m" | "change_15m";
+  sort_by?: string;
   sort_direction?: ScannerSortDirection;
 };
 
@@ -162,6 +162,15 @@ export type MomentumEntry = {
   score_15m: number;
   aligned_timeframes: number;
   indicators: {
+    range_z_5_120_1_m?: number | null;
+    range_z_5_120_5_m?: number | null;
+    range_z_5_120_15_m?: number | null;
+    move_z_5_120_1_m?: number | null;
+    move_z_5_120_5_m?: number | null;
+    move_z_5_120_15_m?: number | null;
+    rvol_z_5_20_120_1_m?: number | null;
+    rvol_z_5_20_120_5_m?: number | null;
+    rvol_z_5_20_120_15_m?: number | null;
     range_z_1m?: number | null;
     move_z_1m?: number | null;
     rvol_z_sustained_1m?: number | null;

@@ -248,20 +248,18 @@ function ScannerSidePanelSkeleton() {
       </div>
       {/* Stat grid */}
       <div className="grid grid-cols-2 gap-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+        {["price", "change", "volume", "rvol", "oi", "funding"].map((key) => (
           <div
-            key={i}
+            key={key}
             className="h-14 rounded-xl border border-white/8 bg-white/[0.03] animate-pulse"
           />
         ))}
       </div>
       {/* Detail blocks */}
       <div className="space-y-3">
-        {Array.from({ length: 2 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+        {["summary", "risk"].map((key) => (
           <div
-            key={i}
+            key={key}
             className="h-16 rounded-xl border border-white/8 bg-white/[0.03] animate-pulse"
           />
         ))}
