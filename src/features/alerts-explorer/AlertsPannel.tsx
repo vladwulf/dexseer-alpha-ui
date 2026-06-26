@@ -11,7 +11,11 @@ import {
 import { Input } from "@/components/ui/input";
 import type { AlertChartActiveCandle } from "../chart/AlertChart";
 import { AlertsChartWrapper } from "./AlertChartWrapper";
-import { type AlertTimeframe, useGetAlertsPaginated } from "./hooks/alerts.api";
+import {
+  type AlertListItem,
+  type AlertTimeframe,
+  useGetAlertsPaginated,
+} from "./hooks/alerts.api";
 
 const TIMEFRAMES: AlertTimeframe[] = [
   "1m",
@@ -62,6 +66,100 @@ const formatVolume = (value: number) => {
 const formatBool = (value: boolean | null | undefined) => {
   if (value == null) return "-";
   return value ? "Y" : "N";
+};
+
+const readFiniteNumber = (
+  record: Record<string, unknown>,
+  key: string,
+): number | null => {
+  const value = record[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+};
+
+type ConditionRow = {
+  label: string;
+  value: number | null;
+  threshold: number | null;
+  operator: ">" | "<";
+  met: boolean;
+  digits: number;
+};
+
+const buildConditionRows = (alert: AlertListItem): ConditionRow[] => {
+  const tv = alert.trigger_values;
+  const th = alert.thresholds;
+  const rows: ConditionRow[] = [];
+
+  const rangeZ = readFiniteNumber(tv, "range_z");
+  const rangeZThreshold = readFiniteNumber(th, "rangeZ");
+  rows.push({
+    label: "range z",
+    value: rangeZ,
+    threshold: rangeZThreshold,
+    operator: ">",
+    met: rangeZ != null && rangeZThreshold != null && rangeZ > rangeZThreshold,
+    digits: 2,
+  });
+
+  const moveZ = readFiniteNumber(tv, "move_z");
+  const moveZThreshold = readFiniteNumber(th, "moveZ");
+  rows.push({
+    label: "move z",
+    value: moveZ,
+    threshold: moveZThreshold,
+    operator: ">",
+    met: moveZ != null && moveZThreshold != null && moveZ > moveZThreshold,
+    digits: 2,
+  });
+
+  // rvol z — skip entirely when the threshold is null/absent
+  const rvolThreshold = readFiniteNumber(th, "rvolZSustained");
+  if (rvolThreshold != null) {
+    const rvolZ = readFiniteNumber(tv, "rvol_z_sustained");
+    rows.push({
+      label: "rvol z",
+      value: rvolZ,
+      threshold: rvolThreshold,
+      operator: ">",
+      met: rvolZ != null && rvolZ > rvolThreshold,
+      digits: 2,
+    });
+  }
+
+  const chop = readFiniteNumber(tv, "choppiness_index_14");
+  const chopMax = readFiniteNumber(th, "choppinessMax");
+  rows.push({
+    label: "choppiness",
+    value: chop,
+    threshold: chopMax,
+    operator: "<",
+    met: chop != null && chopMax != null && chop < chopMax,
+    digits: 1,
+  });
+
+  // macd slope — direction-dependent threshold sign + operator
+  const slope = readFiniteNumber(tv, "macd_signal_slope");
+  const slopeThresholdRaw = readFiniteNumber(th, "macdSignalSlope");
+  const isLong = alert.direction === "long";
+  const slopeThreshold =
+    slopeThresholdRaw == null
+      ? null
+      : isLong
+        ? slopeThresholdRaw
+        : -slopeThresholdRaw;
+  rows.push({
+    label: "macd slope",
+    value: slope,
+    threshold: slopeThreshold,
+    operator: isLong ? ">" : "<",
+    met:
+      slope != null &&
+      slopeThreshold != null &&
+      (isLong ? slope > slopeThreshold : slope < slopeThreshold),
+    digits: 4,
+  });
+
+  return rows;
 };
 
 export function AlertsPannel() {
@@ -429,6 +527,8 @@ export function AlertsPannel() {
               </div>
             </div>
 
+            <AlertConditionsStrip alert={alert} />
+
             <AlertChartSection
               alertTime={alert.time}
               alertPrice={alert.price}
@@ -467,6 +567,78 @@ export function AlertsPannel() {
           End of signal feed
         </p>
       )}
+    </div>
+  );
+}
+
+function AlertConditionsStrip({ alert }: { alert: AlertListItem }) {
+  const rows = buildConditionRows(alert);
+  const metCount = rows.filter((row) => row.met).length;
+
+  return (
+    <div
+      style={{
+        borderTop: "1px solid oklch(1 0 0 / 5%)",
+        padding: "10px 12px",
+        fontFamily: "var(--font-mono)",
+        fontSize: "0.68rem",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "6px 12px",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "0.57rem",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "oklch(0.4 0 0)",
+          }}
+        >
+          Why it fired
+        </span>
+
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            className="rounded px-2 py-1"
+            style={{
+              display: "inline-flex",
+              alignItems: "baseline",
+              gap: 5,
+              background: "oklch(1 0 0 / 2%)",
+              border: "1px solid oklch(1 0 0 / 5%)",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                alignSelf: "center",
+                background: row.met ? "oklch(0.72 0.18 248)" : "#e35561",
+              }}
+            />
+            <span style={{ color: "oklch(0.5 0 0)" }}>{row.label}</span>
+            <span style={{ color: "oklch(0.85 0 0)", fontWeight: 600 }}>
+              {formatChartNumber(row.value, row.digits)}
+            </span>
+            <span style={{ color: "oklch(0.45 0 0)" }}>
+              {row.operator} {formatChartNumber(row.threshold, row.digits)}
+            </span>
+          </div>
+        ))}
+
+        <span style={{ marginLeft: "auto", color: "oklch(0.5 0 0)" }}>
+          {metCount} of {rows.length} met
+        </span>
+      </div>
     </div>
   );
 }
