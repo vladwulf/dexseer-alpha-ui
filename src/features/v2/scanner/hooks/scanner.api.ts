@@ -34,6 +34,7 @@ export type ScannerPresetKey =
   | "btc_decouplers"
   | "high_rvol";
 export type ScannerChartTimeframe =
+  | "15s"
   | "1m"
   | "5m"
   | "15m"

@@ -1,6 +1,6 @@
 import type { OHLCVExtended } from "@/types/ohlcv";
 
-export type ScannerTimeframe = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+export type ScannerTimeframe = "15s" | "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
 
 export type ScannerPreset =
   | "Classic Rolling"
