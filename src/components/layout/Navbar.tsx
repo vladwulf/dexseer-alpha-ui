@@ -122,7 +122,7 @@ export function Navbar() {
           boxShadow: "0 1px 0 oklch(1 0 0 / 3%) inset",
         }}
       >
-        <div className="mx-auto flex h-11 max-w-[1700px] items-center gap-3 px-3 sm:px-4">
+        <div className="mx-auto flex h-11 max-w-[1920px] container items-center gap-3 px-4 md:px-6">
           {/* Logo */}
           <NavLink
             to="/"
