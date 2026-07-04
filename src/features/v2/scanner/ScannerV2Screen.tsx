@@ -141,10 +141,10 @@ export function ScannerV2Screen() {
     const chart =
       detailsChart && detailsChart.asset_id === selectedAsset.assetId
         ? mapScannerCandlesToOhlcv(
-            detailsChart.asset_id,
-            detailsChart.instrument_id,
-            detailsChart.candles,
-          )
+          detailsChart.asset_id,
+          detailsChart.instrument_id,
+          detailsChart.candles,
+        )
         : undefined;
 
     return {
@@ -182,7 +182,7 @@ export function ScannerV2Screen() {
   };
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen text-white container mx-auto max-w-[1920px]">
       <div className="pb-8 pt-0 md:px-4">
         <div className="border-white/8 shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
           <ScannerMarketStrip

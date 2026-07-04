@@ -273,84 +273,81 @@ export function ScannerMomentumHeatmap({
 
   return (
     <section className="border-b border-white/8 px-4 py-5 md:px-6">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-4 flex items-baseline justify-between gap-4">
-          <div className="flex items-baseline gap-2.5">
-            <h2 className="font-display text-[1.1rem] font-semibold italic text-white">
-              Momentum Heatmap
-            </h2>
-            <span className="font-(--font-mono) text-[0.6rem] uppercase tracking-[0.18em] text-white/28">
-              {metricLabel}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {(["1h", "4h", "1d"] as RunnerTimeframe[]).map((nextMetric) => (
-              <button
-                key={nextMetric}
-                type="button"
-                onClick={() => setMetric(nextMetric)}
-                className={`rounded-[4px] border px-[10px] py-[4px] font-[var(--font-mono)] text-[0.6rem] tracking-[0.08em] transition-colors ${
-                  metric === nextMetric
-                    ? "border-[oklch(0.72_0.18_248/0.35)] bg-[oklch(0.72_0.18_248/0.12)] text-[oklch(0.72_0.18_248)]"
-                    : "border-white/10 bg-transparent text-white/40"
+      <div className="mb-4 flex items-baseline justify-between gap-4">
+        <div className="flex items-baseline gap-2.5">
+          <h2 className="font-display text-[1.1rem] font-semibold italic text-white">
+            Movers Heatmap
+          </h2>
+          <span className="font-(--font-mono) text-[0.6rem] uppercase tracking-[0.18em] text-white/28">
+            {metricLabel}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {(["1h", "4h", "1d"] as RunnerTimeframe[]).map((nextMetric) => (
+            <button
+              key={nextMetric}
+              type="button"
+              onClick={() => setMetric(nextMetric)}
+              className={`rounded-[4px] border px-[10px] py-[4px] font-[var(--font-mono)] text-[0.6rem] tracking-[0.08em] transition-colors ${metric === nextMetric
+                ? "border-[oklch(0.72_0.18_248/0.35)] bg-[oklch(0.72_0.18_248/0.12)] text-[oklch(0.72_0.18_248)]"
+                : "border-white/10 bg-transparent text-white/40"
                 }`}
-              >
-                {nextMetric.toUpperCase()}
-              </button>
-            ))}
-            <span className="font-(--font-mono) text-[0.62rem] text-white/28">
-              area tracks move size
-            </span>
-          </div>
+            >
+              {nextMetric.toUpperCase()}
+            </button>
+          ))}
+          <span className="font-(--font-mono) text-[0.62rem] text-white/28">
+            area tracks move size
+          </span>
         </div>
+      </div>
 
-        <div className={CONTENT_HEIGHT_CLASS}>
-          {isError ? (
-            <div
-              className={`flex ${CONTENT_HEIGHT_CLASS} items-center justify-center rounded-[10px] border border-white/8 bg-black/30 px-4 text-center font-[var(--font-mono)] text-[0.68rem] tracking-[0.06em] text-white/40`}
-            >
-              Failed to load live gainers/losers
-            </div>
-          ) : isLoading ? (
-            <div
-              className={`grid ${CONTENT_HEIGHT_CLASS} gap-4 xl:grid-cols-2`}
-            >
-              {["gainers", "losers"].map((column) => (
-                <div
-                  key={`scanner-heatmap-skeleton-${column}`}
-                  className="h-full animate-pulse rounded-[10px] border border-white/8 bg-white/[0.03]"
-                />
-              ))}
-            </div>
-          ) : noData ? (
-            <div
-              className={`flex ${CONTENT_HEIGHT_CLASS} items-center justify-center rounded-[10px] border border-white/8 bg-black/30 px-4 text-center font-[var(--font-mono)] text-[0.68rem] tracking-[0.06em] text-white/40`}
-            >
-              No gainers/losers data for {metricLabel}
-            </div>
-          ) : (
-            <div
-              className={`grid ${CONTENT_HEIGHT_CLASS} gap-4 xl:grid-cols-2`}
-            >
-              <MosaicColumn
-                assets={gainers}
-                label="Gainers"
-                labelColor="#5ecb78"
-                onSelectSymbol={onSelectSymbol}
-                selectedSymbol={selectedSymbol}
-                tone="gainer"
+      <div className={CONTENT_HEIGHT_CLASS}>
+        {isError ? (
+          <div
+            className={`flex ${CONTENT_HEIGHT_CLASS} items-center justify-center rounded-[10px] border border-white/8 bg-black/30 px-4 text-center font-[var(--font-mono)] text-[0.68rem] tracking-[0.06em] text-white/40`}
+          >
+            Failed to load live gainers/losers
+          </div>
+        ) : isLoading ? (
+          <div
+            className={`grid ${CONTENT_HEIGHT_CLASS} gap-4 xl:grid-cols-2`}
+          >
+            {["gainers", "losers"].map((column) => (
+              <div
+                key={`scanner-heatmap-skeleton-${column}`}
+                className="h-full animate-pulse rounded-[10px] border border-white/8 bg-white/[0.03]"
               />
-              <MosaicColumn
-                assets={losers}
-                label="Losers"
-                labelColor="#e8505f"
-                onSelectSymbol={onSelectSymbol}
-                selectedSymbol={selectedSymbol}
-                tone="loser"
-              />
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : noData ? (
+          <div
+            className={`flex ${CONTENT_HEIGHT_CLASS} items-center justify-center rounded-[10px] border border-white/8 bg-black/30 px-4 text-center font-[var(--font-mono)] text-[0.68rem] tracking-[0.06em] text-white/40`}
+          >
+            No gainers/losers data for {metricLabel}
+          </div>
+        ) : (
+          <div
+            className={`grid ${CONTENT_HEIGHT_CLASS} gap-4 xl:grid-cols-2`}
+          >
+            <MosaicColumn
+              assets={gainers}
+              label="Gainers"
+              labelColor="#5ecb78"
+              onSelectSymbol={onSelectSymbol}
+              selectedSymbol={selectedSymbol}
+              tone="gainer"
+            />
+            <MosaicColumn
+              assets={losers}
+              label="Losers"
+              labelColor="#e8505f"
+              onSelectSymbol={onSelectSymbol}
+              selectedSymbol={selectedSymbol}
+              tone="loser"
+            />
+          </div>
+        )}
       </div>
     </section>
   );
