@@ -141,10 +141,10 @@ export function ScannerV2Screen() {
     const chart =
       detailsChart && detailsChart.asset_id === selectedAsset.assetId
         ? mapScannerCandlesToOhlcv(
-          detailsChart.asset_id,
-          detailsChart.instrument_id,
-          detailsChart.candles,
-        )
+            detailsChart.asset_id,
+            detailsChart.instrument_id,
+            detailsChart.candles,
+          )
         : undefined;
 
     return {
