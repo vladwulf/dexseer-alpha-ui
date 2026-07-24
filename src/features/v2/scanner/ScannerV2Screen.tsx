@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
-import { ScannerMomentumHeatmap } from "./components/ScannerMomentumHeatmap";
 import { ScannerSidePanel } from "./components/ScannerSidePanel";
 import { ScannerTable } from "./components/ScannerTable";
 import {
@@ -119,11 +118,6 @@ export function ScannerV2Screen() {
 
           <div className="xl:flex xl:items-start">
             <div className="min-w-0 xl:flex-1 xl:border-r xl:border-white/8">
-              <ScannerMomentumHeatmap
-                selectedSymbol={selectedSymbol}
-                onSelectSymbol={handleSelectSymbol}
-              />
-
               <ScannerControls
                 density={density}
                 isManualRefreshing={isManualRefreshing}

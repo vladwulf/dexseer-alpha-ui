@@ -639,6 +639,8 @@ export function ScannerTable({
   onSelectSymbol,
   onSortingChange,
 }: ScannerTableProps) {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const rowRefs = useRef(new Map<string, HTMLTableRowElement>());
   const { firstAppearance, indexChange } = useEntryFlash(
     assets,
     sorting,
@@ -675,8 +677,58 @@ export function ScannerTable({
     getRowId: (row) => row.symbol,
   });
 
+  useEffect(() => {
+    if (!selectedSymbol) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!tableContainerRef.current?.contains(event.target as Node)) {
+        onSelectSymbol("");
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
+        return;
+      }
+
+      const selectedIndex = assets.findIndex(
+        (asset) => asset.symbol === selectedSymbol,
+      );
+      if (selectedIndex === -1) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const nextIndex = Math.min(
+        Math.max(selectedIndex + (event.key === "ArrowDown" ? 1 : -1), 0),
+        assets.length - 1,
+      );
+      const nextSymbol = assets[nextIndex]?.symbol;
+      if (!nextSymbol || nextSymbol === selectedSymbol) {
+        return;
+      }
+
+      onSelectSymbol(nextSymbol);
+      rowRefs.current.get(nextSymbol)?.scrollIntoView({ block: "nearest" });
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [assets, onSelectSymbol, selectedSymbol]);
+
   return (
-    <div className="min-w-0 border-b border-white/8 xl:flex-1 xl:border-b-0">
+    <div
+      ref={tableContainerRef}
+      className="min-w-0 border-b border-white/8 xl:flex-1 xl:border-b-0"
+    >
       <Table className="min-w-max w-full border-collapse hide-scrollbar-x">
         <TableHeader className="bg-[#0d0d0d]">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -739,6 +791,13 @@ export function ScannerTable({
             return (
               <TableRow
                 key={row.id}
+                ref={(element) => {
+                  if (element) {
+                    rowRefs.current.set(row.original.symbol, element);
+                  } else {
+                    rowRefs.current.delete(row.original.symbol);
+                  }
+                }}
                 className={cn(
                   "border-b border-white/6",
                   isSelected
