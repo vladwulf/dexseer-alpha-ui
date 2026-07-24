@@ -44,12 +44,13 @@ export function ScannerSidePanelBody({
               {formatPrice(asset.price)}
             </span>
             <Pill value={asset.change1h} label="1h" />
+            <Pill value={asset.change4h} label="4h" />
             <Pill value={asset.change24h} label="1d" />
           </div>
         </div>
       </div>
 
-      <div className="mb-4 rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
+      {/* <div className="mb-4 rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/40">
             Active setup
@@ -66,7 +67,7 @@ export function ScannerSidePanelBody({
         <p className="text-[0.8rem] leading-5 text-white/62">
           {asset.activeSetupSummary}
         </p>
-      </div>
+      </div> */}
 
       <div className="mb-4">
         <div className="mb-3 flex items-center justify-between text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/40">

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
@@ -8,8 +8,7 @@ import { ScannerTable } from "./components/ScannerTable";
 import {
   useGetMarketStrip,
   useGetScannerAssetDetails,
-  useGetScannerAssetDetailsChart,
-  useGetScannerCharts,
+  useGetScannerChart,
 } from "./hooks/scanner.api";
 import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
 import { useLiveScannerFeed } from "./hooks/useLiveScannerFeed";
@@ -53,91 +52,19 @@ export function ScannerV2Screen() {
   } = useScannerState({ refreshInterval });
   const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
   useLiveScannerFeed({ preset });
-  const refetchIntervalMs = refreshInterval === "live" ? 3000 : false;
-  const tableAssetIds = useMemo(
-    () =>
-      [
-        ...new Set(
-          filteredAssets
-            .map((asset) => asset.assetId)
-            .filter((assetId): assetId is number => assetId !== undefined),
-        ),
-      ].sort((left, right) => left - right),
-    [filteredAssets],
-  );
-  const assetIdsKey = useMemo(() => tableAssetIds.join(","), [tableAssetIds]);
-  const tableChartParams = useMemo(() => {
-    if (!assetIdsKey) {
-      return null;
-    }
-
-    return {
-      asset_ids: assetIdsKey,
-      timeframe: chartTimeframe,
-      // Ask for one extra slot so the current open candle can coexist with the
-      // last 40 persisted candles when the backend includes live Redis buckets.
-      limit: 41,
-    };
-  }, [chartTimeframe, assetIdsKey]);
-  const tableChartsQuery = useGetScannerCharts(tableChartParams, {
-    refetchIntervalMs,
-  });
   const selectedAssetId = selectedAsset?.assetId;
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
-  const detailsChartQuery = useGetScannerAssetDetailsChart(selectedAssetId, {
+  const selectedChartQuery = useGetScannerChart(selectedAssetId, {
     timeframe: chartTimeframe,
+    limit: 100,
   });
-  const tableChartSeriesRef = useRef<
-    Map<number, (typeof filteredAssets)[number]["chart"]>
-  >(new Map());
-  const tableAssets = useMemo(() => {
-    const incomingCharts = new Map(
-      (tableChartsQuery.data?.assets ?? [])
-        .filter((assetChart) => assetChart.status === "ok")
-        .map((assetChart) => [
-          assetChart.asset_id,
-          mapScannerCandlesToOhlcv(
-            assetChart.asset_id,
-            assetChart.instrument_id,
-            assetChart.candles,
-          ),
-        ]),
-    );
-
-    const nextChartSeriesByAssetId = new Map<
-      number,
-      (typeof filteredAssets)[number]["chart"]
-    >();
-    const nextAssets = filteredAssets.map((asset) => {
-      if (asset.assetId === undefined) {
-        return asset;
-      }
-
-      const mergedChart =
-        incomingCharts.get(asset.assetId) ??
-        tableChartSeriesRef.current.get(asset.assetId) ??
-        asset.chart;
-
-      nextChartSeriesByAssetId.set(asset.assetId, mergedChart);
-
-      return {
-        ...asset,
-        instrumentId: mergedChart[0]?.instrument_id ?? asset.instrumentId,
-        chart: mergedChart,
-      };
-    });
-
-    tableChartSeriesRef.current = nextChartSeriesByAssetId;
-
-    return nextAssets;
-  }, [filteredAssets, tableChartsQuery.data]);
   const isMomentumPreset =
     preset === "Momentum Long" || preset === "Momentum Short";
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;
 
-    const detailsChart = detailsChartQuery.data;
+    const detailsChart = selectedChartQuery.data;
     const chart =
       detailsChart && detailsChart.asset_id === selectedAsset.assetId
         ? mapScannerCandlesToOhlcv(
@@ -152,7 +79,7 @@ export function ScannerV2Screen() {
       instrumentId: detailsChart?.instrument_id ?? selectedAsset.instrumentId,
       chart: chart ?? selectedAsset.chart,
     };
-  }, [detailsChartQuery.data, detailsQuery.data, selectedAsset]);
+  }, [detailsQuery.data, selectedAsset, selectedChartQuery.data]);
 
   const handleSelectSymbol = (symbol: string) => {
     setSelectedSymbol(symbol);
@@ -172,9 +99,8 @@ export function ScannerV2Screen() {
       ...(isMomentumPreset
         ? [momentumQuery.refetch()]
         : [scannerQuery.refetch()]),
-      tableChartsQuery.refetch(),
       detailsQuery.refetch(),
-      detailsChartQuery.refetch(),
+      selectedChartQuery.refetch(),
       marketStripQuery.refetch(),
     ]).finally(() => {
       setIsManualRefreshing(false);
@@ -235,7 +161,7 @@ export function ScannerV2Screen() {
                       : "% Movers"}
                 </div>
                 <ScannerTable
-                  assets={tableAssets}
+                  assets={filteredAssets}
                   density={density}
                   preset={preset}
                   selectedSymbol={selectedSymbol}

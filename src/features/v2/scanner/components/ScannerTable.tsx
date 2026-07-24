@@ -9,7 +9,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import {
   Table,
@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MicroChart } from "@/features/chart/MicroChart";
 import { cn } from "@/lib/utils";
 import { formatPrice, formatSigned, numberFormat } from "../lib/formatters";
 import type { DensityMode, ScannerAsset, ScannerPreset } from "../types";
@@ -37,7 +36,6 @@ const GAINERS_COLUMNS = new Set([
   "rvol",
   "oiDelta",
   "funding",
-  "chart",
 ]);
 
 const DEFAULT_COLUMNS = new Set([
@@ -61,7 +59,6 @@ const DEFAULT_COLUMNS = new Set([
 
 const MOMENTUM_COLUMNS = new Set([
   "symbol",
-  "chart",
   "price",
   "setupScore",
   "change5m",
@@ -73,8 +70,6 @@ const MOMENTUM_COLUMNS = new Set([
 ]);
 
 const SYMBOL_COLUMN_WIDTH_CLASS = "w-[112px] min-w-[112px]";
-const TABLE_CHART_MAX_CANDLES = 100;
-
 function scoreColor(pct: number) {
   return pct >= 70
     ? "#5dc887"
@@ -349,53 +344,6 @@ function ChoppinessCell({ value }: { value: number | null | undefined }) {
   );
 }
 
-const ScannerChartCell = memo(
-  function ScannerChartCell({ chart }: { chart: ScannerAsset["chart"] }) {
-    const lastCandle = chart[chart.length - 1];
-    const isUp = lastCandle ? lastCandle.close >= lastCandle.open : true;
-    const accentColor = isUp ? "#5dc887" : "#e35561";
-
-    return (
-      <div className="relative inline-block w-[158px] overflow-hidden rounded-[6px] border border-white/8 bg-[#0a0a0a]">
-        <div
-          style={{
-            height: "1px",
-            background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
-          }}
-        />
-        <MicroChart
-          klines={chart}
-          alertTimestamp="2000-01-01 00:00:00+00"
-          width={158}
-          height={60}
-          periods={TABLE_CHART_MAX_CANDLES}
-        />
-      </div>
-    );
-  },
-  (prev, next) => {
-    const a = prev.chart;
-    const b = next.chart;
-    if (a.length !== b.length) return false;
-
-    for (let i = 0; i < a.length; i++) {
-      if (
-        a[i].time !== b[i].time ||
-        a[i].open !== b[i].open ||
-        a[i].high !== b[i].high ||
-        a[i].low !== b[i].low ||
-        a[i].close !== b[i].close ||
-        a[i].asset_volume !== b[i].asset_volume ||
-        a[i].quote_volume !== b[i].quote_volume
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  },
-);
-
 const scannerColumns: ColumnDef<ScannerAsset>[] = [
   {
     accessorKey: "symbol",
@@ -424,14 +372,6 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
           </div>
         </div>
       );
-    },
-  },
-  {
-    id: "chart",
-    header: "Chart",
-    enableSorting: false,
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
-      return <ScannerChartCell chart={row.original.chart} />;
     },
   },
   {

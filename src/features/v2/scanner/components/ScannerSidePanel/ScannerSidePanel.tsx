@@ -27,12 +27,12 @@ export function ScannerSidePanel({
     timeframe,
     seeds: asset?.assetId
       ? [
-          {
-            assetId: asset.assetId,
-            instrumentId: asset.instrumentId ?? asset.chart[0]?.instrument_id,
-            data: asset.chart,
-          },
-        ]
+        {
+          assetId: asset.assetId,
+          instrumentId: asset.instrumentId ?? asset.chart[0]?.instrument_id,
+          data: asset.chart,
+        },
+      ]
       : [],
   });
 
