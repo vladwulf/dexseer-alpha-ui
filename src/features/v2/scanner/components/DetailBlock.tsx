@@ -8,8 +8,8 @@ export function DetailBlock({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="mb-4 rounded-xl border border-white/8 bg-white/3 p-4">
-      <div className="mb-2 flex items-center gap-2 text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/38">
+    <div className="mb-4 rounded-xl border border-white/6 bg-white/[0.025] p-4">
+      <div className="mb-2 flex items-center gap-2 text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/46">
         {icon}
         <span>{label}</span>
       </div>

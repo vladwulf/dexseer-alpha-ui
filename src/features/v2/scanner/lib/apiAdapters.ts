@@ -24,6 +24,7 @@ const presetKeyByLabel: Record<ScannerPreset, ScannerPresetKey> = {
   "Classic Rolling": "gainers",
   "Momentum Long": "momentum",
   "Momentum Short": "momentum",
+  Alerts: "gainers",
   Breakouts: "breakouts",
   Pullbacks: "pullbacks",
   "OI Expansion": "oi_expansion",

@@ -61,6 +61,7 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
   const scannerSortParams = getScannerSortParams(sorting);
   const isMomentumPreset =
     preset === "Momentum Long" || preset === "Momentum Short";
+  const isAlertsPreset = preset === "Alerts";
   const momentumSide = preset === "Momentum Short" ? "short" : "long";
   const refetchIntervalMs = refreshInterval === "live" ? 3000 : false;
   const scannerQuery = useGetScanner(
@@ -71,7 +72,7 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
       ...scannerSortParams,
     },
     {
-      enabled: !isMomentumPreset,
+      enabled: !isMomentumPreset && !isAlertsPreset,
       refetchIntervalMs,
     },
   );
@@ -84,12 +85,14 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
       ...momentumSortParams,
     },
     {
-      enabled: isMomentumPreset,
+      enabled: isMomentumPreset && !isAlertsPreset,
       refetchIntervalMs,
     },
   );
 
   const filteredAssets = useMemo(() => {
+    if (isAlertsPreset) return [];
+
     if (isMomentumPreset) {
       return (momentumQuery.data?.entries ?? []).map((row) =>
         mapMomentumEntryToAsset(row),
@@ -101,7 +104,7 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
     }
 
     return scannerQuery.data.entries.map((row) => mapScannerRowToAsset(row));
-  }, [isMomentumPreset, momentumQuery.data, scannerQuery.data]);
+  }, [isAlertsPreset, isMomentumPreset, momentumQuery.data, scannerQuery.data]);
 
   const selectedAsset =
     filteredAssets.find((asset) => asset.symbol === selectedSymbol) ??

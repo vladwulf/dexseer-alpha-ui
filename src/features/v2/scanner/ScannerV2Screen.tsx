@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { MomentumAlertsPanel } from "./components/MomentumAlertsPanel";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
 import { ScannerSidePanel } from "./components/ScannerSidePanel";
@@ -59,6 +60,7 @@ export function ScannerV2Screen() {
   });
   const isMomentumPreset =
     preset === "Momentum Long" || preset === "Momentum Short";
+  const isAlertsPreset = preset === "Alerts";
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;
@@ -67,10 +69,10 @@ export function ScannerV2Screen() {
     const chart =
       detailsChart && detailsChart.asset_id === selectedAsset.assetId
         ? mapScannerCandlesToOhlcv(
-          detailsChart.asset_id,
-          detailsChart.instrument_id,
-          detailsChart.candles,
-        )
+            detailsChart.asset_id,
+            detailsChart.instrument_id,
+            detailsChart.candles,
+          )
         : undefined;
 
     return {
@@ -95,9 +97,11 @@ export function ScannerV2Screen() {
     setIsManualRefreshing(true);
 
     void Promise.all([
-      ...(isMomentumPreset
-        ? [momentumQuery.refetch()]
-        : [scannerQuery.refetch()]),
+      ...(isAlertsPreset
+        ? []
+        : isMomentumPreset
+          ? [momentumQuery.refetch()]
+          : [scannerQuery.refetch()]),
       detailsQuery.refetch(),
       selectedChartQuery.refetch(),
       marketStripQuery.refetch(),
@@ -118,7 +122,6 @@ export function ScannerV2Screen() {
       <div className="pt-5 text-white container mx-auto max-w-[1920px]">
         <div className="pt-0 pb-8 md:px-4">
           <div className="border-white/8 shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
-
             <div className="xl:flex xl:items-start">
               <div className="min-w-0 xl:flex-1 xl:border-r xl:border-white/8">
                 <ScannerControls
@@ -140,41 +143,47 @@ export function ScannerV2Screen() {
                   onWatchlistFilterChange={setWatchlistFilter}
                 />
 
-                <section className="min-h-[900px]">
-                  <div
-                    className={cn(
-                      "border-b border-white/8 bg-[#0d0d0d] px-4 py-3 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em]",
-                      preset === "Momentum Long"
-                        ? "text-[#5dc887]"
+                {isAlertsPreset ? (
+                  <MomentumAlertsPanel />
+                ) : (
+                  <section>
+                    <div
+                      className={cn(
+                        "border-b border-white/8 bg-[#0d0d0d] px-4 py-3 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em]",
+                        preset === "Momentum Long"
+                          ? "text-[#5dc887]"
+                          : preset === "Momentum Short"
+                            ? "text-[#e35561]"
+                            : "text-white/38",
+                      )}
+                    >
+                      {preset === "Momentum Long"
+                        ? "Top Long Momentum"
                         : preset === "Momentum Short"
-                          ? "text-[#e35561]"
-                          : "text-white/38",
-                    )}
-                  >
-                    {preset === "Momentum Long"
-                      ? "Top Long Momentum"
-                      : preset === "Momentum Short"
-                        ? "Top Short Momentum"
-                        : "% Movers"}
-                  </div>
-                  <ScannerTable
-                    assets={filteredAssets}
-                    density={density}
-                    preset={preset}
-                    selectedSymbol={selectedSymbol}
-                    sorting={sorting}
-                    onSelectSymbol={handleSelectSymbol}
-                    onSortingChange={setSorting}
-                  />
-                </section>
+                          ? "Top Short Momentum"
+                          : "% Movers"}
+                    </div>
+                    <ScannerTable
+                      assets={filteredAssets}
+                      density={density}
+                      preset={preset}
+                      selectedSymbol={selectedSymbol}
+                      sorting={sorting}
+                      onSelectSymbol={handleSelectSymbol}
+                      onSortingChange={setSorting}
+                    />
+                  </section>
+                )}
               </div>
 
-              <ScannerSidePanel
-                asset={panelAsset}
-                mobileOpen={isMobileScanner ? mobilePanelOpen : false}
-                onMobileOpenChange={setMobilePanelOpen}
-                timeframe={timeframe}
-              />
+              {!isAlertsPreset && (
+                <ScannerSidePanel
+                  asset={panelAsset}
+                  mobileOpen={isMobileScanner ? mobilePanelOpen : false}
+                  onMobileOpenChange={setMobilePanelOpen}
+                  timeframe={timeframe}
+                />
+              )}
             </div>
           </div>
         </div>

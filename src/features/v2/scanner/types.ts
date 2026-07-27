@@ -6,6 +6,7 @@ export type ScannerPreset =
   | "Classic Rolling"
   | "Momentum Long"
   | "Momentum Short"
+  | "Alerts"
   | "Breakouts"
   | "Pullbacks"
   | "OI Expansion"

@@ -7,6 +7,7 @@ const PRESET_CHIPS = [
   { value: "Classic Rolling", label: "Movers" },
   { value: "Momentum Long", label: "Momentum Long" },
   { value: "Momentum Short", label: "Momentum Short" },
+  { value: "Alerts", label: "Alerts" },
 ] as const;
 
 function PresetChips({
@@ -31,7 +32,9 @@ function PresetChips({
                   ? "border-transparent bg-[#5dc887] text-[#040a06]"
                   : value === "Momentum Long"
                     ? "border-[rgba(93,200,135,0.35)] bg-[rgba(93,200,135,0.15)] text-[#5dc887]"
-                    : "border-[rgba(227,85,97,0.35)] bg-[rgba(227,85,97,0.15)] text-[#e35561]"
+                    : value === "Momentum Short"
+                      ? "border-[rgba(227,85,97,0.35)] bg-[rgba(227,85,97,0.15)] text-[#e35561]"
+                      : "border-[rgba(93,200,135,0.35)] bg-[rgba(93,200,135,0.12)] text-[#5dc887]"
                 : "border-white/10 bg-white/[0.035] text-white/50 hover:border-white/18 hover:text-white/70"
             }`}
           >
@@ -90,12 +93,12 @@ export function ScannerControls({
       </div>
 
       {/* Desktop layout (md+): single row */}
-      <div className="hidden md:flex md:items-center md:justify-between md:gap-2.5">
-        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+      <div className="hidden md:flex md:items-center md:gap-4">
+        <div className="flex min-w-0 items-center gap-3 overflow-hidden">
           <SearchField search={search} onSearchChange={onSearchChange} />
           <PresetChips preset={preset} onPresetChange={onPresetChange} />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
           <TimeframeChips
             timeframe={timeframe}
             onTimeframeChange={onTimeframeChange}

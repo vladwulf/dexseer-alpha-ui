@@ -751,6 +751,12 @@ export function ScannerTable({
                     background: header.column.getIsSorted()
                       ? "oklch(0.72 0.18 248 / 6%)"
                       : undefined,
+                    boxShadow: header.column.getIsSorted()
+                      ? "inset 0 -2px 0 oklch(0.72 0.18 248 / 75%)"
+                      : undefined,
+                    color: header.column.getIsSorted()
+                      ? "oklch(0.72 0.18 248)"
+                      : undefined,
                     transition: "background 0.12s",
                   }}
                 >
@@ -802,7 +808,7 @@ export function ScannerTable({
                   "border-b border-white/6",
                   isSelected
                     ? "bg-[rgba(91,143,249,0.20)] shadow-[inset_3px_0_0_0_#5b8ff9] border-b-[rgba(91,143,249,0.25)]"
-                    : "hover:bg-white/[0.03]",
+                    : "hover:bg-white/[0.045]",
                   !isSelected &&
                     firstAppearance.has(row.original.symbol) &&
                     "scanner-row-first-appearance",

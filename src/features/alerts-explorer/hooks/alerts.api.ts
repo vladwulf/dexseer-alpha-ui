@@ -1,5 +1,12 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import axios from "axios";
+import { useEffect } from "react";
+import { io } from "socket.io-client";
 import { API_URL } from "@/config";
 import type { OHLCVExtended } from "@/types/ohlcv";
 
@@ -82,11 +89,13 @@ export type AlertChartRow = {
 };
 
 type GetAlertsParams = {
-  timeframe: AlertTimeframe;
+  timeframe?: AlertTimeframe;
   limit?: number;
   offset?: number;
   type?: string;
   instrumentId?: string;
+  direction?: string;
+  strategyId?: string;
 };
 
 const toNumber = (value: number | string | null | undefined) => {
@@ -149,14 +158,18 @@ async function getAlertsPaginated({
   offset = 0,
   type,
   instrumentId,
+  direction,
+  strategyId,
 }: GetAlertsParams) {
   const response = await axios.get<AlertsResponse>(`${API_URL}/alerts`, {
     params: {
-      timeframe,
+      timeframe: timeframe || undefined,
       limit,
       offset,
       type: type || undefined,
       instrumentId,
+      direction: direction || undefined,
+      strategyId: strategyId || undefined,
     },
   });
   return response.data;
@@ -174,6 +187,8 @@ export function useGetAlertsPaginated({
   limit = 50,
   type,
   instrumentId,
+  direction,
+  strategyId,
 }: Omit<GetAlertsParams, "offset">) {
   return useInfiniteQuery({
     queryKey: [
@@ -182,6 +197,8 @@ export function useGetAlertsPaginated({
       limit,
       type,
       instrumentId,
+      direction,
+      strategyId,
     ],
     queryFn: ({ pageParam = 0 }) =>
       getAlertsPaginated({
@@ -190,6 +207,8 @@ export function useGetAlertsPaginated({
         offset: pageParam,
         type,
         instrumentId,
+        direction,
+        strategyId,
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
@@ -197,6 +216,153 @@ export function useGetAlertsPaginated({
       return nextOffset < lastPage.meta.total ? nextOffset : undefined;
     },
   });
+}
+
+export function useGetAlertsPage({
+  timeframe,
+  limit = 50,
+  offset = 0,
+  type,
+  instrumentId,
+  direction,
+  strategyId,
+}: GetAlertsParams) {
+  return useQuery({
+    queryKey: [
+      "alerts/explorer/page",
+      timeframe,
+      limit,
+      offset,
+      type,
+      instrumentId,
+      direction,
+      strategyId,
+    ],
+    queryFn: () =>
+      getAlertsPaginated({
+        timeframe,
+        limit,
+        offset,
+        type,
+        instrumentId,
+        direction,
+        strategyId,
+      }),
+  });
+}
+
+/** Momentum Surge entry strategies only. These are historical entry signals, not active states. */
+export const MOMENTUM_SURGE_STRATEGY_IDS = [
+  "momentum-surge-5m-v1",
+  "momentum-surge-15m-v1",
+  "momentum-surge-1h-v1",
+] as const;
+
+export function useLiveMomentumSurgeAlerts() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!API_URL) return;
+
+    const socket = io(new URL("/ws", API_URL).toString(), {
+      transports: ["websocket"],
+    });
+    const handleAlertCreated = (
+      payload: AlertListItem & { strategyId?: string },
+    ) => {
+      const strategyId = payload.strategy_id ?? payload.strategyId;
+      if (!MOMENTUM_SURGE_STRATEGY_IDS.includes(strategyId as never)) {
+        return;
+      }
+      const alert = { ...payload, strategy_id: strategyId } as AlertListItem;
+
+      for (const query of queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ["alerts/explorer/paginated"] })) {
+        const key = query.queryKey;
+        if (!Array.isArray(key) || key[6] !== alert.strategy_id) continue;
+        const instrumentId = key[4];
+        const direction = key[5];
+        if (
+          (typeof instrumentId === "string" &&
+            instrumentId !== alert.instrument.instrument_id) ||
+          (typeof direction === "string" &&
+            direction.toLowerCase() !== alert.direction.toLowerCase())
+        ) {
+          continue;
+        }
+
+        queryClient.setQueryData<InfiniteData<AlertsResponse, number>>(
+          key,
+          (current) => {
+            if (
+              !current ||
+              current.pages.some((page) =>
+                page.data.some((item) => item.id === alert.id),
+              )
+            )
+              return current;
+            const firstPage = current.pages[0];
+            if (!firstPage) return current;
+            return {
+              ...current,
+              pages: [
+                {
+                  ...firstPage,
+                  data: [alert, ...firstPage.data],
+                  meta: { ...firstPage.meta, total: firstPage.meta.total + 1 },
+                },
+                ...current.pages.slice(1),
+              ],
+            };
+          },
+        );
+      }
+
+      for (const query of queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ["alerts/explorer/page"] })) {
+        const key = query.queryKey;
+        if (!Array.isArray(key) || key[8] !== alert.strategy_id) continue;
+        const offset = key[3];
+        const instrumentId = key[6];
+        const direction = key[7];
+        if (
+          (typeof instrumentId === "string" &&
+            instrumentId !== alert.instrument.instrument_id) ||
+          (typeof direction === "string" &&
+            direction.toLowerCase() !== alert.direction.toLowerCase())
+        ) {
+          continue;
+        }
+
+        queryClient.setQueryData<AlertsResponse>(key, (current) => {
+          if (!current || current.data.some((item) => item.id === alert.id)) {
+            return current;
+          }
+          const limit =
+            typeof key[2] === "number" ? key[2] : current.meta.limit;
+          return {
+            ...current,
+            data:
+              offset === 0
+                ? [alert, ...current.data].slice(0, limit)
+                : current.data,
+            meta: { ...current.meta, total: current.meta.total + 1 },
+          };
+        });
+      }
+    };
+
+    socket.on("alert.created", handleAlertCreated);
+    socket.on("connect", () => socket.emit("subscribe", "alerts"));
+    if (socket.connected) socket.emit("subscribe", "alerts");
+    return () => {
+      socket.off("alert.created", handleAlertCreated);
+      socket.emit("unsubscribe", "alerts");
+      socket.disconnect();
+    };
+  }, [queryClient]);
 }
 
 export function useGetAlertChart(
