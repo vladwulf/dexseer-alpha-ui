@@ -188,13 +188,38 @@ export function MomentumAlertsPanel() {
       return;
     }
 
+    const now = Date.now();
+    console.info("[Voice alerts] Playback requested", {
+      alert: {
+        id: alert.id,
+        symbol: alert.instrument.instrument_symbol,
+        direction: alert.direction,
+        timeframe: alert.timeframe,
+        strategyId: alert.strategy_id,
+        alertTime: alert.time,
+      },
+      message: getVoiceAlertMessage(alert),
+      filters: { strategyId, direction, instrumentId, page },
+      newAlertIds: newAlerts.map((newAlert) => newAlert.id),
+      cooldownElapsedMs: now - lastVoiceAlertAtRef.current,
+    });
+
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(getVoiceAlertMessage(alert));
     utterance.rate = 1.1;
     utterance.volume = 0.7;
+    utterance.onstart = () => {
+      console.info("[Voice alerts] Playback started", { alertId: alert.id });
+    };
+    utterance.onerror = (event) => {
+      console.warn("[Voice alerts] Playback failed", {
+        alertId: alert.id,
+        error: event.error,
+      });
+    };
     window.speechSynthesis.speak(utterance);
-    lastVoiceAlertAtRef.current = Date.now();
-  }, [alerts, voiceAlertsEnabled]);
+    lastVoiceAlertAtRef.current = now;
+  }, [alerts, direction, instrumentId, page, strategyId, voiceAlertsEnabled]);
 
   const handleVoiceAlertsChange = () => {
     setVoiceAlertsEnabled((enabled) => {
