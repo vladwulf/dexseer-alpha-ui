@@ -5,8 +5,6 @@ import type { ScannerControlsProps } from "./types";
 
 const PRESET_CHIPS = [
   { value: "Classic Rolling", label: "Movers" },
-  { value: "Momentum Long", label: "Momentum Long" },
-  { value: "Momentum Short", label: "Momentum Short" },
   { value: "Alerts", label: "Alerts" },
 ] as const;
 
@@ -30,11 +28,7 @@ function PresetChips({
               isActive
                 ? value === "Classic Rolling"
                   ? "border-transparent bg-[#5dc887] text-[#040a06]"
-                  : value === "Momentum Long"
-                    ? "border-[rgba(93,200,135,0.35)] bg-[rgba(93,200,135,0.15)] text-[#5dc887]"
-                    : value === "Momentum Short"
-                      ? "border-[rgba(227,85,97,0.35)] bg-[rgba(227,85,97,0.15)] text-[#e35561]"
-                      : "border-[rgba(93,200,135,0.35)] bg-[rgba(93,200,135,0.12)] text-[#5dc887]"
+                  : "border-[rgba(93,200,135,0.35)] bg-[rgba(93,200,135,0.12)] text-[#5dc887]"
                 : "border-white/10 bg-white/[0.035] text-white/50 hover:border-white/18 hover:text-white/70"
             }`}
           >
