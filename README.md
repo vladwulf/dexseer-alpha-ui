@@ -61,8 +61,6 @@ src/
 | Path | Page |
 |------|------|
 | `/` | Dashboard — market movers strip + screener table |
-| `/alerts` | Redirects to `/alerts/explorer` |
-| `/alerts/explorer` | Alerts Explorer — browse + inspect alerts with charts |
 | `/analytics` | Analytics — volume, movers, distribution, BTC correlation, breakout hours, runners |
 | `/assets/:symbol` | Asset Detail — full detail for a specific symbol |
 | `/simulation` | Longs simulation / backtest |

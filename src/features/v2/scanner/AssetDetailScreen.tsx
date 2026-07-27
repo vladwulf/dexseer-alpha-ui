@@ -356,13 +356,6 @@ export function AssetDetailScreen() {
                   </div>
                 ))}
               </div>
-
-              <Link
-                to="/alerts/explorer"
-                className="mt-4 inline-flex font-[var(--font-mono)] text-[0.7rem] uppercase tracking-[0.12em] text-[oklch(0.72_0.18_248)] transition hover:text-white"
-              >
-                Open alerts explorer
-              </Link>
             </div>
           </aside>
         </section>

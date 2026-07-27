@@ -1,4 +1,11 @@
-import { BellRing, CandlestickChart, SearchIcon, Waves } from "lucide-react";
+import {
+  Bell,
+  BellRing,
+  CandlestickChart,
+  SearchIcon,
+  Trash2,
+  Waves,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import {
@@ -11,6 +18,12 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNotifications } from "@/features/notifications/hooks/useNotifications";
 
 const navLinks = [
   { to: "/", label: "Scanner" },
@@ -85,7 +98,10 @@ const navLinkStyle = (isActive: boolean): React.CSSProperties => ({
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const location = useLocation();
+  const { notifications, unreadCount, markAllAsRead, clearNotifications } =
+    useNotifications();
 
   // Close menu on navigation
   const handleNavClick = () => setMenuOpen(false);
@@ -106,6 +122,11 @@ export function Navbar() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const handleNotificationsOpenChange = (open: boolean) => {
+    setNotificationsOpen(open);
+    if (open && unreadCount > 0) markAllAsRead();
+  };
 
   return (
     <>
@@ -194,41 +215,84 @@ export function Navbar() {
           {/* Spacer */}
           <div className="flex-1" />
 
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="hidden min-w-[260px] items-center gap-2 rounded-[10px] border px-3 py-1.5 text-left lg:flex"
-            style={{
-              borderColor: "oklch(1 0 0 / 14%)",
-              background: "oklch(1 0 0 / 3%)",
-            }}
+
+          <DropdownMenu
+            open={notificationsOpen}
+            onOpenChange={handleNotificationsOpenChange}
           >
-            <SearchIcon className="h-3.5 w-3.5 text-white/60" />
-            <span
-              style={{
-                flex: 1,
-                fontFamily: "var(--font-body)",
-                fontSize: "0.82rem",
-                color: "oklch(0.62 0 0)",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ""}`}
+                className="relative flex h-8 w-8 items-center justify-center rounded-md text-white/65 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-1 right-1 min-w-1.5 rounded-full bg-[#5dc887] px-1 text-center text-[0.55rem] leading-3 text-black"
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                ) : null}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-[min(360px,calc(100vw-2rem))] border-white/10 bg-[#151515] p-0 text-white shadow-2xl"
             >
-              search assets, alerts...
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.68rem",
-                fontWeight: 500,
-                letterSpacing: "0.02em",
-                color: "oklch(0.72 0 0)",
-              }}
-            >
-              ⌘K
-            </span>
-          </button>
+              <div className="flex items-center justify-between border-b border-white/10 px-3 py-2.5">
+                <div>
+                  <div className="text-sm font-semibold">Notifications</div>
+                  <div className="text-[0.68rem] text-white/45">
+                    Latest server events
+                  </div>
+                </div>
+                {notifications.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={clearNotifications}
+                    className="flex items-center gap-1 rounded px-1.5 py-1 text-[0.68rem] text-white/50 hover:bg-white/8 hover:text-white"
+                  >
+                    <Trash2 className="h-3 w-3" /> Clear
+                  </button>
+                ) : null}
+              </div>
+              {notifications.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-white/45">
+                  No events yet. New alerts will appear here.
+                </div>
+              ) : (
+                <div className="max-h-[min(420px,calc(100vh-7rem))] overflow-y-auto">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className="border-b border-white/7 px-3 py-3 last:border-b-0"
+                    >
+                      <div className="flex items-start gap-2">
+                        {!notification.isRead ? (
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#5dc887]" />
+                        ) : (
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-[0.78rem] font-medium text-white">
+                            {notification.title}
+                          </div>
+                          <div className="mt-0.5 truncate text-[0.7rem] text-white/50">
+                            {notification.description}
+                          </div>
+                          <div className="mt-1 text-[0.65rem] text-white/35">
+                            {new Date(notification.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Live indicator */}
           <div className="flex items-center gap-2">
@@ -256,6 +320,7 @@ export function Navbar() {
               Live
             </span>
           </div>
+
 
           {/* Mobile: hamburger */}
           <button
