@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { API_URL } from "@/config";
 import type { OHLCVExtended } from "@/types/ohlcv";
@@ -89,6 +89,7 @@ export type AlertChartRow = {
 };
 
 type GetAlertsParams = {
+  enabled?: boolean;
   timeframe?: AlertTimeframe;
   limit?: number;
   offset?: number;
@@ -219,6 +220,7 @@ export function useGetAlertsPaginated({
 }
 
 export function useGetAlertsPage({
+  enabled = true,
   timeframe,
   limit = 50,
   offset = 0,
@@ -228,6 +230,7 @@ export function useGetAlertsPage({
   strategyId,
 }: GetAlertsParams) {
   return useQuery({
+    enabled,
     queryKey: [
       "alerts/explorer/page",
       timeframe,
@@ -258,8 +261,19 @@ export const MOMENTUM_SURGE_STRATEGY_IDS = [
   "momentum-surge-1h-v1",
 ] as const;
 
-export function useLiveMomentumSurgeAlerts() {
+type UseLiveMomentumSurgeAlertsOptions = {
+  onAlertCreated?: (alert: AlertListItem) => void;
+};
+
+export function useLiveMomentumSurgeAlerts({
+  onAlertCreated,
+}: UseLiveMomentumSurgeAlertsOptions = {}) {
   const queryClient = useQueryClient();
+  const onAlertCreatedRef = useRef(onAlertCreated);
+
+  useEffect(() => {
+    onAlertCreatedRef.current = onAlertCreated;
+  }, [onAlertCreated]);
 
   useEffect(() => {
     if (!API_URL) return;
@@ -275,6 +289,7 @@ export function useLiveMomentumSurgeAlerts() {
         return;
       }
       const alert = { ...payload, strategy_id: strategyId } as AlertListItem;
+      onAlertCreatedRef.current?.(alert);
 
       for (const query of queryClient
         .getQueryCache()

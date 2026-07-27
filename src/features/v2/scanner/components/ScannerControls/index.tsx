@@ -10,9 +10,11 @@ const PRESET_CHIPS = [
 
 function PresetChips({
   preset,
+  unseenAlertsCount,
   onPresetChange,
 }: {
   preset: ScannerControlsProps["preset"];
+  unseenAlertsCount: ScannerControlsProps["unseenAlertsCount"];
   onPresetChange: ScannerControlsProps["onPresetChange"];
 }) {
   return (
@@ -33,6 +35,11 @@ function PresetChips({
             }`}
           >
             {label}
+            {value === "Alerts" && unseenAlertsCount > 0 && (
+              <span className="ml-1.5 inline-flex min-w-4 items-center justify-center rounded-full bg-[#5dc887] px-1 text-[0.58rem] leading-4 text-[#040a06]">
+                {unseenAlertsCount > 99 ? "99+" : unseenAlertsCount}
+              </span>
+            )}
           </button>
         );
       })}
@@ -48,6 +55,7 @@ export function ScannerControls({
   refreshInterval,
   search,
   timeframe,
+  unseenAlertsCount,
   watchlistFilter: _watchlistFilter,
   onDensityChange,
   onManualRefresh,
@@ -74,7 +82,11 @@ export function ScannerControls({
       {/* Mobile layout (< md): stacked rows */}
       <div className="flex flex-col gap-2 md:hidden">
         <div className="flex items-center justify-between gap-2">
-          <PresetChips preset={preset} onPresetChange={onPresetChange} />
+          <PresetChips
+            preset={preset}
+            unseenAlertsCount={unseenAlertsCount}
+            onPresetChange={onPresetChange}
+          />
           {actionButtons}
         </div>
         <div className="flex items-center gap-2">
@@ -90,7 +102,11 @@ export function ScannerControls({
       <div className="hidden md:flex md:items-center md:gap-4">
         <div className="flex min-w-0 items-center gap-3 overflow-hidden">
           <SearchField search={search} onSearchChange={onSearchChange} />
-          <PresetChips preset={preset} onPresetChange={onPresetChange} />
+          <PresetChips
+            preset={preset}
+            unseenAlertsCount={unseenAlertsCount}
+            onPresetChange={onPresetChange}
+          />
         </div>
         <div className="ml-auto flex items-center gap-3">
           <TimeframeChips

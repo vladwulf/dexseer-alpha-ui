@@ -11,10 +11,16 @@ import {
   type AlertTimeframe,
   MOMENTUM_SURGE_STRATEGY_IDS,
   useGetAlertsPage,
-  useLiveMomentumSurgeAlerts,
 } from "@/features/alerts-explorer/hooks/alerts.api";
 
 const PAGE_SIZE = 10;
+const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
+const VOICE_ALERT_COOLDOWN_MS = 2_500;
+const ALL_STRATEGIES = "all";
+
+type StrategySelection =
+  | typeof ALL_STRATEGIES
+  | (typeof MOMENTUM_SURGE_STRATEGY_IDS)[number];
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 6 }).format(price);
@@ -27,6 +33,15 @@ const formatTime = (time: string) =>
     minute: "2-digit",
     hour12: false,
   }).format(new Date(time));
+
+function getVoiceAlertMessage(alert: AlertListItem) {
+  const symbol = alert.instrument.instrument_symbol.split("").join(" ");
+  const direction = alert.direction.toLowerCase().includes("short")
+    ? "trending short"
+    : "trending long";
+
+  return `${symbol} is ${direction}`;
+}
 
 function AlertRow({
   alert,
@@ -73,27 +88,64 @@ function AlertRow({
 }
 
 export function MomentumAlertsPanel() {
-  const [strategyId, setStrategyId] = useState<
-    (typeof MOMENTUM_SURGE_STRATEGY_IDS)[number]
-  >(MOMENTUM_SURGE_STRATEGY_IDS[0]);
+  const [strategyId, setStrategyId] =
+    useState<StrategySelection>(ALL_STRATEGIES);
   const [direction, setDirection] = useState("");
   const [instrumentId, setInstrumentId] = useState("");
   const [page, setPage] = useState(0);
+  const [voiceAlertsEnabled, setVoiceAlertsEnabled] = useState(
+    () => localStorage.getItem(VOICE_ALERTS_STORAGE_KEY) !== "false",
+  );
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
-  const { data, isError, isLoading } = useGetAlertsPage({
-    limit: PAGE_SIZE,
-    offset: page * PAGE_SIZE,
-    strategyId,
+  const knownAlertIdsRef = useRef(new Set<string>());
+  const voiceAlertsPrimedRef = useRef(false);
+  const lastVoiceAlertAtRef = useRef(0);
+  const queryLimit = (page + 1) * PAGE_SIZE;
+  const baseQueryParams = {
+    limit: queryLimit,
+    offset: 0,
     direction: direction || undefined,
     instrumentId: instrumentId || undefined,
+  };
+  const fiveMinuteQuery = useGetAlertsPage({
+    ...baseQueryParams,
+    enabled:
+      strategyId === ALL_STRATEGIES ||
+      strategyId === MOMENTUM_SURGE_STRATEGY_IDS[0],
+    strategyId: MOMENTUM_SURGE_STRATEGY_IDS[0],
   });
-  useLiveMomentumSurgeAlerts();
-
-  const alerts = data?.data ?? [];
-  const totalPages = Math.max(
-    1,
-    Math.ceil((data?.meta.total ?? 0) / PAGE_SIZE),
+  const fifteenMinuteQuery = useGetAlertsPage({
+    ...baseQueryParams,
+    enabled:
+      strategyId === ALL_STRATEGIES ||
+      strategyId === MOMENTUM_SURGE_STRATEGY_IDS[1],
+    strategyId: MOMENTUM_SURGE_STRATEGY_IDS[1],
+  });
+  const oneHourQuery = useGetAlertsPage({
+    ...baseQueryParams,
+    enabled: strategyId === MOMENTUM_SURGE_STRATEGY_IDS[2],
+    strategyId: MOMENTUM_SURGE_STRATEGY_IDS[2],
+  });
+  const activeQueries =
+    strategyId === ALL_STRATEGIES
+      ? [fiveMinuteQuery, fifteenMinuteQuery]
+      : strategyId === MOMENTUM_SURGE_STRATEGY_IDS[0]
+        ? [fiveMinuteQuery]
+        : strategyId === MOMENTUM_SURGE_STRATEGY_IDS[1]
+          ? [fifteenMinuteQuery]
+          : [oneHourQuery];
+  const alerts = activeQueries
+    .flatMap((query) => query.data?.data ?? [])
+    .sort((left, right) => Date.parse(right.time) - Date.parse(left.time))
+    .slice(page * PAGE_SIZE, queryLimit);
+  const isLoading = activeQueries.some((query) => query.isLoading);
+  const isError = activeQueries.some((query) => query.isError);
+  const alertQueryScope = `${strategyId}:${direction}:${instrumentId}:${page}`;
+  const totalAlerts = activeQueries.reduce(
+    (total, query) => total + (query.data?.meta.total ?? 0),
+    0,
   );
+  const totalPages = Math.max(1, Math.ceil(totalAlerts / PAGE_SIZE));
   const [selectedAlertId, setSelectedAlertId] = useState<string>();
   const selectedAlert =
     alerts.find((alert) => alert.id === selectedAlertId) ?? alerts[0];
@@ -102,6 +154,54 @@ export function MomentumAlertsPanel() {
     if (selectedAlert && selectedAlert.id !== selectedAlertId)
       setSelectedAlertId(selectedAlert.id);
   }, [selectedAlert, selectedAlertId]);
+
+  useEffect(() => {
+    if (!alertQueryScope) return;
+
+    voiceAlertsPrimedRef.current = false;
+    knownAlertIdsRef.current.clear();
+  }, [alertQueryScope]);
+
+  useEffect(() => {
+    if (!voiceAlertsPrimedRef.current) {
+      alerts.forEach((alert) => {
+        knownAlertIdsRef.current.add(alert.id);
+      });
+      voiceAlertsPrimedRef.current = true;
+      return;
+    }
+
+    const newAlerts = alerts.filter((alert) => {
+      if (knownAlertIdsRef.current.has(alert.id)) return false;
+      knownAlertIdsRef.current.add(alert.id);
+      return true;
+    });
+    const alert = newAlerts[0];
+    if (
+      !voiceAlertsEnabled ||
+      !alert ||
+      !window.speechSynthesis ||
+      Date.now() - lastVoiceAlertAtRef.current < VOICE_ALERT_COOLDOWN_MS
+    ) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(getVoiceAlertMessage(alert));
+    utterance.rate = 1.1;
+    utterance.volume = 0.7;
+    window.speechSynthesis.speak(utterance);
+    lastVoiceAlertAtRef.current = Date.now();
+  }, [alerts, voiceAlertsEnabled]);
+
+  const handleVoiceAlertsChange = () => {
+    setVoiceAlertsEnabled((enabled) => {
+      const nextEnabled = !enabled;
+      localStorage.setItem(VOICE_ALERTS_STORAGE_KEY, String(nextEnabled));
+      if (!nextEnabled) window.speechSynthesis?.cancel();
+      return nextEnabled;
+    });
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -148,11 +248,12 @@ export function MomentumAlertsPanel() {
           <select
             value={strategyId}
             onChange={(event) => {
-              setStrategyId(event.target.value as typeof strategyId);
+              setStrategyId(event.target.value as StrategySelection);
               setPage(0);
             }}
             className="h-8 rounded border border-white/10 bg-[#101010] px-2 text-white/75"
           >
+            <option value={ALL_STRATEGIES}>ALL</option>
             {MOMENTUM_SURGE_STRATEGY_IDS.map((id) => (
               <option key={id} value={id}>
                 {id.replace("momentum-surge-", "").replace("-v1", "")}
@@ -180,6 +281,18 @@ export function MomentumAlertsPanel() {
             placeholder="Instrument ID"
             className="h-8 min-w-36 rounded border border-white/10 bg-[#101010] px-2 text-white/75 placeholder:text-white/30"
           />
+          <button
+            type="button"
+            aria-pressed={voiceAlertsEnabled}
+            onClick={handleVoiceAlertsChange}
+            className={`h-8 rounded border px-2 text-[0.65rem] uppercase tracking-[0.08em] transition-colors ${
+              voiceAlertsEnabled
+                ? "border-[#5dc887]/40 bg-[#5dc887]/10 text-[#5dc887]"
+                : "border-white/10 text-white/45 hover:border-white/20 hover:text-white/70"
+            }`}
+          >
+            Voice {voiceAlertsEnabled ? "on" : "off"}
+          </button>
           <span className="ml-auto text-[0.62rem] uppercase tracking-[0.1em] text-white/35">
             Detected entry alerts
           </span>
@@ -220,8 +333,8 @@ export function MomentumAlertsPanel() {
         ))}
         <div className="flex items-center justify-between border-t border-white/8 px-4 py-3 font-mono text-xs text-white/45">
           <span>
-            {data
-              ? `${page * PAGE_SIZE + 1}-${Math.min((page + 1) * PAGE_SIZE, data.meta.total)} of ${data.meta.total}`
+            {totalAlerts > 0
+              ? `${page * PAGE_SIZE + 1}-${Math.min((page + 1) * PAGE_SIZE, totalAlerts)} of ${totalAlerts}`
               : ""}
           </span>
           <div className="flex items-center gap-2">

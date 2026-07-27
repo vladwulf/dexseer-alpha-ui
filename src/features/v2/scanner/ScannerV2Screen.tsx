@@ -1,4 +1,8 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  type AlertListItem,
+  useLiveMomentumSurgeAlerts,
+} from "@/features/alerts-explorer/hooks/alerts.api";
 import { cn } from "@/lib/utils";
 import { MomentumAlertsPanel } from "./components/MomentumAlertsPanel";
 import { ScannerControls } from "./components/ScannerControls";
@@ -20,12 +24,16 @@ import {
   mergeDetailsIntoAsset,
 } from "./lib/apiAdapters";
 
+const LAST_SEEN_ALERT_AT_STORAGE_KEY = "scanner-v2-last-seen-alert-at";
+
 export function ScannerV2Screen() {
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<"manual" | "live">(
     "live",
   );
+  const [unseenAlertsCount, setUnseenAlertsCount] = useState(0);
+  const receivedAlertIdsRef = useRef(new Set<string>());
   const isMobileScanner = useIsMobileScanner();
   const marketStripQuery = useGetMarketStrip();
   const {
@@ -61,6 +69,30 @@ export function ScannerV2Screen() {
   const isMomentumPreset =
     preset === "Momentum Long" || preset === "Momentum Short";
   const isAlertsPreset = preset === "Alerts";
+  const handleLiveAlert = useCallback(
+    (alert: AlertListItem) => {
+      if (receivedAlertIdsRef.current.has(alert.id)) return;
+      receivedAlertIdsRef.current.add(alert.id);
+
+      const alertAt = Date.parse(alert.created_at || alert.time);
+      if (isAlertsPreset) {
+        localStorage.setItem(
+          LAST_SEEN_ALERT_AT_STORAGE_KEY,
+          String(Number.isNaN(alertAt) ? Date.now() : alertAt),
+        );
+        return;
+      }
+
+      const lastSeenAt = Number(
+        localStorage.getItem(LAST_SEEN_ALERT_AT_STORAGE_KEY),
+      );
+      if (!Number.isNaN(alertAt) && alertAt <= lastSeenAt) return;
+
+      setUnseenAlertsCount((count) => count + 1);
+    },
+    [isAlertsPreset],
+  );
+  useLiveMomentumSurgeAlerts({ onAlertCreated: handleLiveAlert });
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;
@@ -87,6 +119,14 @@ export function ScannerV2Screen() {
     if (isMobileScanner) {
       setMobilePanelOpen(true);
     }
+  };
+
+  const handlePresetChange = (nextPreset: typeof preset) => {
+    setPreset(nextPreset);
+    if (nextPreset !== "Alerts") return;
+
+    localStorage.setItem(LAST_SEEN_ALERT_AT_STORAGE_KEY, String(Date.now()));
+    setUnseenAlertsCount(0);
   };
 
   const handleManualRefresh = () => {
@@ -132,11 +172,12 @@ export function ScannerV2Screen() {
                   refreshInterval={refreshInterval}
                   search={search}
                   timeframe={timeframe}
+                  unseenAlertsCount={unseenAlertsCount}
                   watchlistFilter={watchlistFilter}
                   onDensityChange={setDensity}
                   onManualRefresh={handleManualRefresh}
                   onMinVolumeChange={setMinVolume}
-                  onPresetChange={setPreset}
+                  onPresetChange={handlePresetChange}
                   onRefreshIntervalChange={setRefreshInterval}
                   onSearchChange={setSearch}
                   onTimeframeChange={setTimeframe}

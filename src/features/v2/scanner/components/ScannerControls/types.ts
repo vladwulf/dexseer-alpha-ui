@@ -17,6 +17,7 @@ export type ScannerControlsProps = {
   refreshInterval: RefreshInterval;
   search: string;
   timeframe: ScannerTimeframe;
+  unseenAlertsCount: number;
   watchlistFilter: (typeof WATCHLIST_OPTIONS)[number];
   onDensityChange: (value: DensityMode) => void;
   onManualRefresh: () => void;
