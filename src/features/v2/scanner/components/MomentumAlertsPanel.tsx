@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type Ref, useEffect, useRef, useState } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -32,16 +32,19 @@ function AlertRow({
   alert,
   selected,
   onSelect,
+  buttonRef,
 }: {
   alert: AlertListItem;
   selected: boolean;
   onSelect: () => void;
+  buttonRef: Ref<HTMLButtonElement>;
 }) {
   return (
     <button
+      ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className={`grid w-full grid-cols-[minmax(110px,1fr)_72px_80px_118px_100px] gap-3 border-b border-white/7 px-4 py-3 text-left font-mono text-xs transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.09]" : "bg-transparent"}`}
+      className={`grid w-full grid-cols-[minmax(110px,1fr)_72px_80px_118px_100px] gap-3 border-b border-white/7 px-4 py-3 text-left font-mono text-xs outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.09]" : "bg-transparent"}`}
     >
       <span className="min-w-0">
         <span className="block truncate font-semibold text-white/90">
@@ -76,6 +79,7 @@ export function MomentumAlertsPanel() {
   const [direction, setDirection] = useState("");
   const [instrumentId, setInstrumentId] = useState("");
   const [page, setPage] = useState(0);
+  const rowRefs = useRef(new Map<string, HTMLButtonElement>());
   const { data, isError, isLoading } = useGetAlertsPage({
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
@@ -98,6 +102,44 @@ export function MomentumAlertsPanel() {
     if (selectedAlert && selectedAlert.id !== selectedAlertId)
       setSelectedAlertId(selectedAlert.id);
   }, [selectedAlert, selectedAlertId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.matches('input, textarea, select, [contenteditable="true"]')
+      ) {
+        return;
+      }
+
+      const selectedIndex = alerts.findIndex(
+        (alert) => alert.id === selectedAlert?.id,
+      );
+      const nextIndex =
+        selectedIndex === -1
+          ? event.key === "ArrowDown"
+            ? 0
+            : alerts.length - 1
+          : Math.min(
+              Math.max(selectedIndex + (event.key === "ArrowDown" ? 1 : -1), 0),
+              alerts.length - 1,
+            );
+      const nextAlert = alerts[nextIndex];
+      if (!nextAlert) return;
+
+      event.preventDefault();
+      if (nextAlert.id === selectedAlert?.id) return;
+
+      setSelectedAlertId(nextAlert.id);
+      rowRefs.current.get(nextAlert.id)?.scrollIntoView({ block: "nearest" });
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () =>
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+  }, [alerts, selectedAlert?.id]);
 
   return (
     <section className="grid min-h-[640px] xl:grid-cols-[minmax(0,1fr)_420px]">
@@ -170,6 +212,10 @@ export function MomentumAlertsPanel() {
             alert={alert}
             selected={selectedAlert?.id === alert.id}
             onSelect={() => setSelectedAlertId(alert.id)}
+            buttonRef={(element) => {
+              if (element) rowRefs.current.set(alert.id, element);
+              else rowRefs.current.delete(alert.id);
+            }}
           />
         ))}
         <div className="flex items-center justify-between border-t border-white/8 px-4 py-3 font-mono text-xs text-white/45">
