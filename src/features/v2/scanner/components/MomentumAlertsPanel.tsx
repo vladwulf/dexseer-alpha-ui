@@ -166,6 +166,11 @@ export function MomentumAlertsPanel() {
 
   useEffect(() => {
     if (!voiceAlertsPrimedRef.current) {
+      // The panel first renders an empty list while its alert history loads.
+      // Establish the baseline only after that request settles, so opening the
+      // Alerts view never treats existing history as new live alerts.
+      if (isLoading) return;
+
       alerts.forEach((alert) => {
         knownAlertIdsRef.current.add(alert.id);
       });
@@ -219,7 +224,15 @@ export function MomentumAlertsPanel() {
     };
     window.speechSynthesis.speak(utterance);
     lastVoiceAlertAtRef.current = now;
-  }, [alerts, direction, instrumentId, page, strategyId, voiceAlertsEnabled]);
+  }, [
+    alerts,
+    direction,
+    instrumentId,
+    isLoading,
+    page,
+    strategyId,
+    voiceAlertsEnabled,
+  ]);
 
   const handleVoiceAlertsChange = () => {
     setVoiceAlertsEnabled((enabled) => {
