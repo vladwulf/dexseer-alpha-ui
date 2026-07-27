@@ -14,9 +14,7 @@ import {
 
 const navLinks = [
   { to: "/", label: "Scanner" },
-  { to: "/alerts/explorer", label: "Alerts" },
   { to: "/analytics", label: "Intelligence" },
-  { label: "Watchlists" },
 ];
 
 const searchGroups = [
