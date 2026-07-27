@@ -14,6 +14,7 @@ import {
 } from "@/features/alerts-explorer/hooks/alerts.api";
 
 const PAGE_SIZE = 10;
+const ALERTS_REFETCH_INTERVAL_MS = 30_000;
 const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
 const VOICE_ALERT_COOLDOWN_MS = 2_500;
 const ALL_STRATEGIES = "all";
@@ -104,6 +105,7 @@ export function MomentumAlertsPanel() {
   const baseQueryParams = {
     limit: queryLimit,
     offset: 0,
+    refetchInterval: ALERTS_REFETCH_INTERVAL_MS,
     direction: direction || undefined,
     instrumentId: instrumentId || undefined,
   };

@@ -95,6 +95,7 @@ type GetAlertsParams = {
   offset?: number;
   type?: string;
   instrumentId?: string;
+  refetchInterval?: number;
   direction?: string;
   strategyId?: string;
 };
@@ -188,10 +189,12 @@ export function useGetAlertsPaginated({
   limit = 50,
   type,
   instrumentId,
+  refetchInterval,
   direction,
   strategyId,
 }: Omit<GetAlertsParams, "offset">) {
   return useInfiniteQuery({
+    refetchInterval,
     queryKey: [
       "alerts/explorer/paginated",
       timeframe,
@@ -226,11 +229,13 @@ export function useGetAlertsPage({
   offset = 0,
   type,
   instrumentId,
+  refetchInterval,
   direction,
   strategyId,
 }: GetAlertsParams) {
   return useQuery({
     enabled,
+    refetchInterval,
     queryKey: [
       "alerts/explorer/page",
       timeframe,
