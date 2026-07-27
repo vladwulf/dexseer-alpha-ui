@@ -62,7 +62,7 @@ export function ScannerSidePanel({
 
   return (
     <>
-      <aside className="hide-scrollbar hidden bg-[#040404] xl:sticky xl:top-14 xl:block xl:w-[350px] xl:max-h-[calc(100vh-3.5rem)] xl:shrink-0 xl:overflow-y-auto 2xl:w-[450px]">
+      <aside className="hide-scrollbar hidden bg-[#040404] xl:sticky xl:top-28 xl:block xl:w-[350px] xl:max-h-[calc(100vh-7rem)] xl:shrink-0 xl:overflow-y-auto 2xl:w-[450px]">
         {bodyContent}
       </aside>
 
