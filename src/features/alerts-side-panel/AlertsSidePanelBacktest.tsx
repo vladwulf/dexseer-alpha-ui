@@ -69,7 +69,11 @@ export function AlertsSidePanelBacktest({
                     </Badge>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span>{new Date(alert.time).toLocaleString()}</span>
+                    <span>
+                      {new Date(
+                        alert.triggered_at ?? alert.time,
+                      ).toLocaleString()}
+                    </span>
                     {/* <span>{alert.tradingVolume.toLocaleString()} trading</span> */}
                   </div>
                 </div>

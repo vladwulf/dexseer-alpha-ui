@@ -19,6 +19,7 @@ export type AlertListItem = {
   id: string;
   created_at: string;
   time: string;
+  triggered_at?: string;
   timeframe: AlertTimeframe;
   strategy_id: string;
   strategy_version: number;

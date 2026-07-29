@@ -74,7 +74,7 @@ export function ScannerV2Screen() {
       if (receivedAlertIdsRef.current.has(alert.id)) return;
       receivedAlertIdsRef.current.add(alert.id);
 
-      const alertAt = Date.parse(alert.created_at || alert.time);
+      const alertAt = Date.parse(alert.triggered_at ?? alert.time);
       if (isAlertsPreset) {
         localStorage.setItem(
           LAST_SEEN_ALERT_AT_STORAGE_KEY,

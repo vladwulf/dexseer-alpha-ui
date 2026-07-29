@@ -17,6 +17,7 @@ type AlertEventPayload = {
   id: string;
   created_at?: string;
   time?: string;
+  triggered_at?: string;
   timeframe?: string;
   direction: string;
   type: string;
@@ -54,7 +55,11 @@ function toNotification(alert: AlertEventPayload): Notification {
 
   return {
     id: alert.id,
-    createdAt: alert.created_at || alert.time || new Date().toISOString(),
+    createdAt:
+      alert.triggered_at ??
+      alert.time ??
+      alert.created_at ??
+      new Date().toISOString(),
     isRead: false,
     title: `${symbol} ${alert.direction.toUpperCase()}`,
     description: `${alert.type.replaceAll("_", " ")}${timeframe}`,

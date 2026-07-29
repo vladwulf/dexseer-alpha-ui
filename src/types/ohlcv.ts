@@ -60,6 +60,7 @@ export interface Alert {
   id: number;
   created_at: string;
   time: string;
+  triggered_at?: string;
   timeframe: Timeframe;
   asset_id: number;
   type: AlertType;

@@ -82,7 +82,11 @@ export function AlertsSidePanel() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <span>
-                    {alert.time ? new Date(alert.time).toLocaleString() : "N/A"}
+                    {alert.triggered_at
+                      ? new Date(alert.triggered_at).toLocaleString()
+                      : alert.time
+                        ? new Date(alert.time).toLocaleString()
+                        : "N/A"}
                   </span>
                   {/* <span>{alert.tradingVolume.toLocaleString()} trading</span> */}
                 </div>

@@ -80,7 +80,9 @@ function AlertRow({
         {alert.direction}
       </span>
       <span className="text-white/60">{alert.timeframe}</span>
-      <span className="text-white/55">{formatTime(alert.time)}</span>
+      <span className="text-white/55">
+        {formatTime(alert.triggered_at ?? alert.time)}
+      </span>
       <span className="text-right text-white/75">
         ${formatPrice(alert.price)}
       </span>
@@ -138,7 +140,11 @@ export function MomentumAlertsPanel() {
           : [oneHourQuery];
   const alerts = activeQueries
     .flatMap((query) => query.data?.data ?? [])
-    .sort((left, right) => Date.parse(right.time) - Date.parse(left.time))
+    .sort(
+      (left, right) =>
+        Date.parse(right.triggered_at ?? right.time) -
+        Date.parse(left.triggered_at ?? left.time),
+    )
     .slice(page * PAGE_SIZE, queryLimit);
   const isLoading = activeQueries.some((query) => query.isLoading);
   const isError = activeQueries.some((query) => query.isError);
@@ -414,7 +420,7 @@ export function MomentumAlertsPanel() {
                   {selectedAlert.instrument.instrument_symbol}
                 </h2>
                 <span className="text-xs text-white/55">
-                  {formatTime(selectedAlert.time)}
+                  {formatTime(selectedAlert.triggered_at ?? selectedAlert.time)}
                 </span>
               </div>
               <p className="mt-1 text-xs text-white/55">
