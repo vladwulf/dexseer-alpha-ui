@@ -46,9 +46,16 @@ function getVoiceAlertMessage(alert: AlertListItem) {
 
 function getMomentumEvent(alert: AlertListItem) {
   const eventType = alert.trigger_values.event_type;
-  return typeof eventType === "string"
-    ? eventType.replaceAll("_", " ")
-    : "state update";
+  if (typeof eventType !== "string") return "state update";
+
+  return (
+    {
+      entered: "entered",
+      exited: "exited",
+      severity_changed: "severity changed",
+      pullback_entered: "pullback entered",
+    }[eventType] ?? eventType.replaceAll("_", " ")
+  );
 }
 
 function isConfirmed(alert: AlertListItem) {
@@ -152,12 +159,14 @@ export function MomentumAlertsPanel() {
   });
   const oneHourQuery = useGetAlertsPage({
     ...baseQueryParams,
-    enabled: strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[2],
+    enabled:
+      strategyId === ALL_STRATEGIES ||
+      strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[2],
     strategyId: MOMENTUM_INTELLIGENCE_STRATEGY_IDS[2],
   });
   const activeQueries =
     strategyId === ALL_STRATEGIES
-      ? [fiveMinuteQuery, fifteenMinuteQuery]
+      ? [fiveMinuteQuery, fifteenMinuteQuery, oneHourQuery]
       : strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[0]
         ? [fiveMinuteQuery]
         : strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[1]
@@ -327,7 +336,7 @@ export function MomentumAlertsPanel() {
             <option value={ALL_STRATEGIES}>ALL</option>
             {MOMENTUM_INTELLIGENCE_STRATEGY_IDS.map((id) => (
               <option key={id} value={id}>
-                {id.replace("momentum-surge-", "").replace("-v1", "")}
+                {id.replace("momentum-intelligence-", "").replace("-v2", "")}
               </option>
             ))}
           </select>

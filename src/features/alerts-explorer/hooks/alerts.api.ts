@@ -49,18 +49,34 @@ type LiveAlertPayload = Omit<
   instrument: AlertListItem["instrument"];
   strategyId?: string;
   strategy_id?: string;
+  strategyVersion?: number;
+  strategy_version?: number;
+  timeMs?: number;
+  triggeredAtMs?: number;
+  triggered_at?: string;
   triggerValues?: Record<string, unknown>;
   trigger_values?: Record<string, unknown>;
 };
 
+function timestampFromMilliseconds(value: number | undefined) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? new Date(value).toISOString()
+    : undefined;
+}
+
 function normalizeLiveAlert(payload: LiveAlertPayload): AlertListItem {
+  const triggeredAt =
+    payload.triggered_at ?? timestampFromMilliseconds(payload.triggeredAtMs);
+  const time = payload.time ?? timestampFromMilliseconds(payload.timeMs);
+
   return {
     ...payload,
     created_at: payload.created_at ?? new Date().toISOString(),
-    time: payload.time ?? payload.triggered_at ?? new Date().toISOString(),
+    time: time ?? triggeredAt ?? new Date().toISOString(),
+    triggered_at: triggeredAt,
     timeframe: payload.timeframe ?? "5m",
     strategy_id: payload.strategy_id ?? payload.strategyId ?? "",
-    strategy_version: payload.strategy_version ?? 1,
+    strategy_version: payload.strategy_version ?? payload.strategyVersion ?? 1,
     direction: payload.direction ?? "",
     type: payload.type ?? "",
     price: payload.price ?? 0,
@@ -291,9 +307,9 @@ export function useGetAlertsPage({
 
 /** Momentum Intelligence reports state transitions, including provisional intrabar events. */
 export const MOMENTUM_INTELLIGENCE_STRATEGY_IDS = [
-  "momentum-intelligence-5m-v1",
-  "momentum-intelligence-15m-v1",
-  "momentum-intelligence-1h-v1",
+  "momentum-intelligence-5m-v2",
+  "momentum-intelligence-15m-v2",
+  "momentum-intelligence-1h-v2",
 ] as const;
 
 type UseLiveMomentumIntelligenceAlertsOptions = {
@@ -316,9 +332,22 @@ export function useLiveMomentumIntelligenceAlerts({
     const socket = io(new URL("/ws", API_URL).toString(), {
       transports: ["websocket"],
     });
+    const refetchDurableAlerts = () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["alerts/explorer/paginated"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["alerts/explorer/page"],
+      });
+    };
     const handleAlertCreated = (payload: LiveAlertPayload) => {
       const strategyId = payload.strategy_id ?? payload.strategyId;
-      if (!MOMENTUM_INTELLIGENCE_STRATEGY_IDS.includes(strategyId as never)) {
+      const strategyVersion =
+        payload.strategy_version ?? payload.strategyVersion;
+      if (
+        !MOMENTUM_INTELLIGENCE_STRATEGY_IDS.includes(strategyId as never) ||
+        strategyVersion !== 2
+      ) {
         return;
       }
       const alert = normalizeLiveAlert({ ...payload, strategy_id: strategyId });
@@ -403,8 +432,16 @@ export function useLiveMomentumIntelligenceAlerts({
     };
 
     socket.on("alert.created", handleAlertCreated);
-    socket.on("connect", () => socket.emit("subscribe", "alerts"));
-    if (socket.connected) socket.emit("subscribe", "alerts");
+    socket.on("connect", () => {
+      socket.emit("subscribe", "alerts");
+      // The room acknowledgement has no snapshot, so reload durable alerts on
+      // every connection to recover any events missed while disconnected.
+      refetchDurableAlerts();
+    });
+    if (socket.connected) {
+      socket.emit("subscribe", "alerts");
+      refetchDurableAlerts();
+    }
     return () => {
       socket.off("alert.created", handleAlertCreated);
       socket.emit("unsubscribe", "alerts");

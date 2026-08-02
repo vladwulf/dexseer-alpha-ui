@@ -284,6 +284,52 @@ export type ScannerAssetDetailsResponse = {
   recent_alerts: [];
   session_edge: null;
   updated_at: string | null;
+  momentum_intelligence?: {
+    five_minutes: MomentumIntelligenceSnapshot | null;
+    fifteen_minutes: MomentumIntelligenceSnapshot | null;
+    one_hour: MomentumIntelligenceSnapshot | null;
+  };
+};
+
+export type MomentumIntelligenceState =
+  | "neutral"
+  | "bullish_slow"
+  | "bullish_default"
+  | "bullish_unusual"
+  | "bearish_slow"
+  | "bearish_default"
+  | "bearish_unusual";
+
+/** A null timeframe snapshot means the backend has no current, non-stale state. */
+export type MomentumIntelligenceSnapshot = {
+  state: MomentumIntelligenceState;
+  direction?: "long" | "short" | null;
+  severity?: "slow" | "default" | "unusual" | null;
+  updated_at?: string | null;
+  [key: string]: unknown;
+};
+
+export type MomentumIntelligenceHistoryTimeframe = "5m" | "15m" | "1h";
+
+export type MomentumIntelligenceHistoryEntry = {
+  id?: string;
+  time?: string;
+  triggered_at?: string;
+  from_state: MomentumIntelligenceState;
+  to_state: MomentumIntelligenceState;
+  direction?: "long" | "short" | null;
+  [key: string]: unknown;
+};
+
+export type MomentumIntelligenceHistoryResponse = {
+  data: MomentumIntelligenceHistoryEntry[];
+  meta?: Record<string, unknown>;
+};
+
+export type MomentumIntelligenceHistoryRequest = {
+  timeframe: MomentumIntelligenceHistoryTimeframe;
+  from?: string;
+  to?: string;
 };
 
 export type ScannerDetailsChartRequest = {
@@ -375,6 +421,18 @@ async function getScannerCharts(params: ScannerBatchChartsRequest) {
 async function getScannerAssetDetails(assetId: number) {
   const response = await axios.get<ScannerAssetDetailsResponse>(
     `${FRONTEND_API_BASE}/scanners/movers/assets/${assetId}/details`,
+  );
+  return response.data;
+}
+
+async function getMomentumIntelligenceHistory(
+  assetId: number,
+  params: MomentumIntelligenceHistoryRequest,
+) {
+  const response = await axios.get<MomentumIntelligenceHistoryResponse>(
+    `${FRONTEND_API_BASE}/scanners/movers/assets/${assetId}/intelligence-history${buildQueryString(
+      params,
+    )}`,
   );
   return response.data;
 }
@@ -472,6 +530,18 @@ export function useGetScannerAssetDetails(assetId: number | null | undefined) {
     queryFn: () => getScannerAssetDetails(assetId ?? 0),
     enabled: assetId !== null && assetId !== undefined,
     ...SOCKET_PRIMED_QUERY_OPTIONS,
+  });
+}
+
+export function useGetMomentumIntelligenceHistory(
+  assetId: number | null | undefined,
+  params: MomentumIntelligenceHistoryRequest,
+) {
+  return useQuery({
+    queryKey: ["scanner-v2-momentum-intelligence-history", assetId, params],
+    queryFn: () => getMomentumIntelligenceHistory(assetId ?? 0, params),
+    enabled: assetId !== null && assetId !== undefined,
+    ...NO_FRONTEND_CACHE_QUERY_OPTIONS,
   });
 }
 
