@@ -5,6 +5,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AlertsChartWrapper } from "@/features/alerts-explorer/AlertChartWrapper";
 import {
   type AlertListItem,
@@ -20,7 +28,6 @@ const PAGE_SIZE = 10;
 const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
 const VOICE_ALERT_COOLDOWN_MS = 2_500;
 const ALL_STRATEGIES = "all";
-const ALL_EVENT_TYPES = "";
 
 const SPOKEN_TIMEFRAMES: Record<AlertTimeframe, string> = {
   "1m": "one minute",
@@ -52,13 +59,11 @@ function getVoiceAlertMessage(alert: AlertListItem) {
   const symbol = alert.instrument.base_asset_symbol || alert.instrument.instrument_symbol;
   const event = getMomentumEvent(alert);
   const transition = getStateTransition(alert);
-  const status = isConfirmed(alert) ? "confirmed" : "forming";
 
   return [
     `${symbol}: ${event}`,
     `${SPOKEN_TIMEFRAMES[alert.timeframe]} ${alert.direction}`,
     transition,
-    status,
   ]
     .filter(Boolean)
     .join(", ");
@@ -137,7 +142,7 @@ function AlertRow({
       ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className={`grid w-full min-w-[720px] grid-cols-[86px_92px_minmax(130px,1.15fr)_minmax(150px,1.45fr)_88px_96px] items-center gap-3 border-b border-white/[0.09] px-5 py-4 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_3px_0_0_#5dc887]" : "bg-transparent"}`}
+      className={`grid w-full min-w-[640px] grid-cols-[86px_92px_minmax(130px,1.15fr)_minmax(150px,1.45fr)_96px] items-center gap-3 border-b border-white/[0.09] px-5 py-4 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_3px_0_0_#5dc887]" : "bg-transparent"}`}
     >
       <span className="font-mono text-[0.93rem] tabular-nums text-white/50">
         {formatAlertTime(alert.triggered_at ?? alert.time)}
@@ -165,17 +170,7 @@ function AlertRow({
         >
           {getSetupLabel(alert)}
         </span>
-        <span className="truncate text-white/35">{isConfirmed(alert) ? "confirmed" : "forming"}</span>
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[0.88rem] font-bold text-white/90">
-          {isConfirmed(alert) ? "Confirmed" : "Live"}
-        </span>
-        <span className="mt-2 block h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-          <span
-            className={`block h-full rounded-full ${isConfirmed(alert) ? "w-full bg-[#5dc887]" : "w-2/3 bg-amber-400"}`}
-          />
-        </span>
+        <span className="truncate text-white/35">{alert.strategy_id.replace("momentum-intelligence-", "")}</span>
       </span>
       <span className="text-right font-mono text-[1rem] tabular-nums text-white/90">
         ${formatPrice(alert.price)}
@@ -189,7 +184,7 @@ export function MomentumAlertsPanel() {
     useState<StrategySelection>(ALL_STRATEGIES);
   const [direction, setDirection] = useState("");
   const [instrumentId, setInstrumentId] = useState("");
-  const [alertType, setAlertType] = useState(ALL_EVENT_TYPES);
+  const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<AlertSortBy>("triggered_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [page, setPage] = useState(0);
@@ -206,7 +201,10 @@ export function MomentumAlertsPanel() {
     offset: 0,
     direction: direction || undefined,
     instrumentId: instrumentId || undefined,
-    alertType: alertType || undefined,
+    // The API supports one event type. For a multi-select, fetch the current
+    // alert stream and apply the selected event types in the client.
+    alertType:
+      selectedEventTypes.length === 1 ? selectedEventTypes[0] : undefined,
     sortBy,
     sortOrder,
   };
@@ -242,6 +240,13 @@ export function MomentumAlertsPanel() {
           : [oneHourQuery];
   const alerts = activeQueries
     .flatMap((query) => query.data?.data ?? [])
+    .filter(
+      (alert) =>
+        selectedEventTypes.length === 0 ||
+        selectedEventTypes.includes(
+          alert.alert_type ?? String(alert.trigger_values.event_type ?? ""),
+        ),
+    )
     .sort((left, right) => {
       const comparison =
         sortBy === "alert_type"
@@ -253,7 +258,7 @@ export function MomentumAlertsPanel() {
     .slice(page * PAGE_SIZE, queryLimit);
   const isLoading = activeQueries.some((query) => query.isLoading);
   const isError = activeQueries.some((query) => query.isError);
-  const alertQueryScope = `${strategyId}:${direction}:${instrumentId}:${alertType}:${sortBy}:${sortOrder}:${page}`;
+  const alertQueryScope = `${strategyId}:${direction}:${instrumentId}:${selectedEventTypes.join(",")}:${sortBy}:${sortOrder}:${page}`;
   const totalAlerts = activeQueries.reduce(
     (total, query) => total + (query.data?.meta.total ?? 0),
     0,
@@ -319,7 +324,7 @@ export function MomentumAlertsPanel() {
         strategyId,
         direction,
         instrumentId,
-        alertType,
+        eventTypes: selectedEventTypes,
         sortBy,
         sortOrder,
         page,
@@ -346,7 +351,7 @@ export function MomentumAlertsPanel() {
   }, [
     alerts,
     direction,
-    alertType,
+    selectedEventTypes,
     instrumentId,
     isLoading,
     page,
@@ -446,21 +451,54 @@ export function MomentumAlertsPanel() {
             placeholder="Filter symbol…"
             className="h-9 min-w-36 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 placeholder:text-white/30 outline-none transition-colors hover:border-white/25 focus:border-[#5dc887]/60"
           />
-          <select
-            value={alertType}
-            onChange={(event) => {
-              setAlertType(event.target.value);
-              setPage(0);
-            }}
-            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
-          >
-            <option value={ALL_EVENT_TYPES}>All event types</option>
-            {(alertTypesQuery.data ?? []).map(({ alert_type, total }) => (
-              <option key={alert_type} value={alert_type}>
-                {alert_type.replaceAll("_", " ")} ({total})
-              </option>
-            ))}
-          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
+              >
+                {selectedEventTypes.length === 0
+                  ? "All event types"
+                  : `${selectedEventTypes.length} event type${selectedEventTypes.length === 1 ? "" : "s"}`}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-64 border-white/15 bg-[#101312] font-mono text-xs text-white/80"
+            >
+              <DropdownMenuLabel className="text-[0.65rem] uppercase tracking-[0.14em] text-white/40">
+                Event types
+              </DropdownMenuLabel>
+              <DropdownMenuCheckboxItem
+                checked={selectedEventTypes.length === 0}
+                onSelect={(event) => event.preventDefault()}
+                onCheckedChange={() => {
+                  setSelectedEventTypes([]);
+                  setPage(0);
+                }}
+              >
+                All event types
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              {(alertTypesQuery.data ?? []).map(({ alert_type, total }) => (
+                <DropdownMenuCheckboxItem
+                  key={alert_type}
+                  checked={selectedEventTypes.includes(alert_type)}
+                  onSelect={(event) => event.preventDefault()}
+                  onCheckedChange={(checked) => {
+                    setSelectedEventTypes((current) =>
+                      checked
+                        ? [...current, alert_type]
+                        : current.filter((type) => type !== alert_type),
+                    );
+                    setPage(0);
+                  }}
+                >
+                  {alert_type.replaceAll("_", " ")} ({total})
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <select
             value={sortBy}
             onChange={(event) => {
@@ -502,12 +540,11 @@ export function MomentumAlertsPanel() {
           </span>
         </div>
         <div className="overflow-x-auto">
-          <div className="grid min-w-[720px] grid-cols-[86px_92px_minmax(130px,1.15fr)_minmax(150px,1.45fr)_88px_96px] gap-3 border-b border-white/[0.1] bg-[#0c0f0e] px-5 py-3 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+          <div className="grid min-w-[640px] grid-cols-[86px_92px_minmax(130px,1.15fr)_minmax(150px,1.45fr)_96px] gap-3 border-b border-white/[0.1] bg-[#0c0f0e] px-5 py-3 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/40">
             <span>Time</span>
             <span>Symbol</span>
             <span>Event</span>
             <span>Setup</span>
-            <span>State</span>
             <span className="text-right">Price</span>
           </div>
         {isLoading && (
