@@ -8,16 +8,29 @@ import {
 import { AlertsChartWrapper } from "@/features/alerts-explorer/AlertChartWrapper";
 import {
   type AlertListItem,
+  type AlertSortBy,
   type AlertTimeframe,
   MOMENTUM_INTELLIGENCE_STRATEGY_IDS,
+  type SortOrder,
   useGetAlertsPage,
+  useGetAlertTypes,
 } from "@/features/alerts-explorer/hooks/alerts.api";
 
 const PAGE_SIZE = 10;
-const ALERTS_REFETCH_INTERVAL_MS = 30_000;
 const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
 const VOICE_ALERT_COOLDOWN_MS = 2_500;
 const ALL_STRATEGIES = "all";
+const ALL_EVENT_TYPES = "";
+
+const SPOKEN_TIMEFRAMES: Record<AlertTimeframe, string> = {
+  "1m": "one minute",
+  "5m": "five minutes",
+  "15m": "fifteen minutes",
+  "30m": "thirty minutes",
+  "1h": "one hour",
+  "4h": "four hours",
+  "1d": "one day",
+};
 
 type StrategySelection =
   | typeof ALL_STRATEGIES
@@ -36,16 +49,23 @@ const formatTime = (time: string) =>
   }).format(new Date(time));
 
 function getVoiceAlertMessage(alert: AlertListItem) {
-  const symbol = alert.instrument.instrument_symbol.split("").join(" ");
-  const direction = alert.direction.toLowerCase().includes("short")
-    ? "trending short"
-    : "trending long";
+  const symbol = alert.instrument.base_asset_symbol || alert.instrument.instrument_symbol;
+  const event = getMomentumEvent(alert);
+  const transition = getStateTransition(alert);
+  const status = isConfirmed(alert) ? "confirmed" : "forming";
 
-  return `${symbol} is ${direction}`;
+  return [
+    `${symbol}: ${event}`,
+    `${SPOKEN_TIMEFRAMES[alert.timeframe]} ${alert.direction}`,
+    transition,
+    status,
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 function getMomentumEvent(alert: AlertListItem) {
-  const eventType = alert.trigger_values.event_type;
+  const eventType = alert.alert_type ?? alert.trigger_values.event_type;
   if (typeof eventType !== "string") return "state update";
 
   return (
@@ -70,6 +90,37 @@ function getStateTransition(alert: AlertListItem) {
   return `${from} → ${to}`;
 }
 
+function getEventTone(alert: AlertListItem) {
+  const event = getMomentumEvent(alert);
+  if (event.includes("pullback")) return "blue";
+  if (event.includes("exited") || alert.direction.toLowerCase().includes("short")) {
+    return "red";
+  }
+  return "green";
+}
+
+function getSetupLabel(alert: AlertListItem) {
+  const event = getMomentumEvent(alert);
+  if (event.includes("pullback")) return `↘ Pullback · ${alert.timeframe}`;
+
+  return `${alert.direction.toLowerCase().includes("short") ? "↓" : "↑"} ${alert.direction} · ${alert.timeframe}`;
+}
+
+function formatAlertTime(time: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(new Date(time));
+}
+
+const EVENT_TONE_CLASSES = {
+  blue: "bg-[#1685dc]/[0.18] text-[#4ca7f8]",
+  green: "bg-[#2d9d62]/[0.22] text-[#57d992]",
+  red: "bg-[#d65361]/[0.2] text-[#ff7180]",
+} as const;
+
 function AlertRow({
   alert,
   selected,
@@ -86,36 +137,47 @@ function AlertRow({
       ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className={`grid w-full grid-cols-[minmax(110px,1fr)_72px_80px_110px_90px_100px] gap-3 border-b border-white/7 px-4 py-3 text-left font-mono text-xs outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.09]" : "bg-transparent"}`}
+      className={`grid w-full min-w-[720px] grid-cols-[86px_92px_minmax(130px,1.15fr)_minmax(150px,1.45fr)_88px_96px] items-center gap-3 border-b border-white/[0.09] px-5 py-4 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_3px_0_0_#5dc887]" : "bg-transparent"}`}
     >
+      <span className="font-mono text-[0.93rem] tabular-nums text-white/50">
+        {formatAlertTime(alert.triggered_at ?? alert.time)}
+      </span>
       <span className="min-w-0">
-        <span className="block truncate font-semibold text-white/90">
-          {alert.instrument.instrument_symbol}
+        <span className="block truncate text-[1.05rem] font-bold italic text-white/95">
+          {alert.instrument.instrument_symbol.replace(/[-_/].*$/, "")}
         </span>
-        <span className="block truncate pt-1 text-[0.62rem] text-white/35">
-          {alert.strategy_id}
+        <span className="block pt-0.5 font-mono text-[0.65rem] tracking-[0.12em] text-white/35">
+          {alert.instrument.quote_asset_symbol || "USDT"}
         </span>
       </span>
-      <span
-        className={
-          alert.direction.toLowerCase().includes("short")
-            ? "text-[#e35561]"
-            : "text-[#5dc887]"
-        }
-      >
-        {alert.direction}
+      <span className="min-w-0">
+        <span className="block truncate text-[1.02rem] font-semibold text-white/95">
+          {getMomentumEvent(alert)}
+        </span>
+        <span className="block truncate pt-1 text-[0.76rem] text-white/45">
+          {getStateTransition(alert) ??
+            `${alert.direction} momentum intelligence signal`}
+        </span>
       </span>
-      <span className="text-white/60">{alert.timeframe}</span>
-      <span
-        className={isConfirmed(alert) ? "text-[#5dc887]" : "text-amber-300"}
-      >
-        {getMomentumEvent(alert)} · {isConfirmed(alert) ? "closed" : "live"}
-        {getStateTransition(alert) ? ` · ${getStateTransition(alert)}` : ""}
+      <span className="flex min-w-0 items-center gap-2 text-[0.8rem]">
+        <span
+          className={`shrink-0 rounded-lg px-2.5 py-1.5 font-semibold ${EVENT_TONE_CLASSES[getEventTone(alert)]}`}
+        >
+          {getSetupLabel(alert)}
+        </span>
+        <span className="truncate text-white/35">{isConfirmed(alert) ? "confirmed" : "forming"}</span>
       </span>
-      <span className="text-white/55">
-        {formatTime(alert.triggered_at ?? alert.time)}
+      <span className="min-w-0">
+        <span className="block text-[0.88rem] font-bold text-white/90">
+          {isConfirmed(alert) ? "Confirmed" : "Live"}
+        </span>
+        <span className="mt-2 block h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <span
+            className={`block h-full rounded-full ${isConfirmed(alert) ? "w-full bg-[#5dc887]" : "w-2/3 bg-amber-400"}`}
+          />
+        </span>
       </span>
-      <span className="text-right text-white/75">
+      <span className="text-right font-mono text-[1rem] tabular-nums text-white/90">
         ${formatPrice(alert.price)}
       </span>
     </button>
@@ -127,6 +189,9 @@ export function MomentumAlertsPanel() {
     useState<StrategySelection>(ALL_STRATEGIES);
   const [direction, setDirection] = useState("");
   const [instrumentId, setInstrumentId] = useState("");
+  const [alertType, setAlertType] = useState(ALL_EVENT_TYPES);
+  const [sortBy, setSortBy] = useState<AlertSortBy>("triggered_at");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [page, setPage] = useState(0);
   const [voiceAlertsEnabled, setVoiceAlertsEnabled] = useState(
     () => localStorage.getItem(VOICE_ALERTS_STORAGE_KEY) !== "false",
@@ -139,10 +204,13 @@ export function MomentumAlertsPanel() {
   const baseQueryParams = {
     limit: queryLimit,
     offset: 0,
-    refetchInterval: ALERTS_REFETCH_INTERVAL_MS,
     direction: direction || undefined,
     instrumentId: instrumentId || undefined,
+    alertType: alertType || undefined,
+    sortBy,
+    sortOrder,
   };
+  const alertTypesQuery = useGetAlertTypes();
   const fiveMinuteQuery = useGetAlertsPage({
     ...baseQueryParams,
     enabled:
@@ -174,15 +242,18 @@ export function MomentumAlertsPanel() {
           : [oneHourQuery];
   const alerts = activeQueries
     .flatMap((query) => query.data?.data ?? [])
-    .sort(
-      (left, right) =>
-        Date.parse(right.triggered_at ?? right.time) -
-        Date.parse(left.triggered_at ?? left.time),
-    )
+    .sort((left, right) => {
+      const comparison =
+        sortBy === "alert_type"
+          ? (left.alert_type ?? "").localeCompare(right.alert_type ?? "")
+          : Date.parse(left.triggered_at ?? left.time) -
+            Date.parse(right.triggered_at ?? right.time);
+      return sortOrder === "asc" ? comparison : -comparison;
+    })
     .slice(page * PAGE_SIZE, queryLimit);
   const isLoading = activeQueries.some((query) => query.isLoading);
   const isError = activeQueries.some((query) => query.isError);
-  const alertQueryScope = `${strategyId}:${direction}:${instrumentId}:${page}`;
+  const alertQueryScope = `${strategyId}:${direction}:${instrumentId}:${alertType}:${sortBy}:${sortOrder}:${page}`;
   const totalAlerts = activeQueries.reduce(
     (total, query) => total + (query.data?.meta.total ?? 0),
     0,
@@ -244,7 +315,15 @@ export function MomentumAlertsPanel() {
         alertTime: alert.time,
       },
       message: getVoiceAlertMessage(alert),
-      filters: { strategyId, direction, instrumentId, page },
+      filters: {
+        strategyId,
+        direction,
+        instrumentId,
+        alertType,
+        sortBy,
+        sortOrder,
+        page,
+      },
       newAlertIds: newAlerts.map((newAlert) => newAlert.id),
       cooldownElapsedMs: now - lastVoiceAlertAtRef.current,
     });
@@ -267,9 +346,12 @@ export function MomentumAlertsPanel() {
   }, [
     alerts,
     direction,
+    alertType,
     instrumentId,
     isLoading,
     page,
+    sortBy,
+    sortOrder,
     strategyId,
     voiceAlertsEnabled,
   ]);
@@ -324,14 +406,17 @@ export function MomentumAlertsPanel() {
   return (
     <section className="grid min-h-[640px] xl:grid-cols-[minmax(0,1fr)_420px]">
       <div className="min-w-0 border-b border-white/8 xl:border-r xl:border-b-0">
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/8 px-4 py-3 font-mono text-xs">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.09] bg-[#0a0d0c] px-5 py-4 font-mono text-xs">
+          <span className="mr-1 text-[0.64rem] uppercase tracking-[0.2em] text-white/40">
+            Event
+          </span>
           <select
             value={strategyId}
             onChange={(event) => {
               setStrategyId(event.target.value as StrategySelection);
               setPage(0);
             }}
-            className="h-8 rounded border border-white/10 bg-[#101010] px-2 text-white/75"
+            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
           >
             <option value={ALL_STRATEGIES}>ALL</option>
             {MOMENTUM_INTELLIGENCE_STRATEGY_IDS.map((id) => (
@@ -346,7 +431,7 @@ export function MomentumAlertsPanel() {
               setDirection(event.target.value);
               setPage(0);
             }}
-            className="h-8 rounded border border-white/10 bg-[#101010] px-2 text-white/75"
+            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
           >
             <option value="">All directions</option>
             <option value="long">Long</option>
@@ -358,14 +443,52 @@ export function MomentumAlertsPanel() {
               setInstrumentId(event.target.value);
               setPage(0);
             }}
-            placeholder="Instrument ID"
-            className="h-8 min-w-36 rounded border border-white/10 bg-[#101010] px-2 text-white/75 placeholder:text-white/30"
+            placeholder="Filter symbol…"
+            className="h-9 min-w-36 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 placeholder:text-white/30 outline-none transition-colors hover:border-white/25 focus:border-[#5dc887]/60"
           />
+          <select
+            value={alertType}
+            onChange={(event) => {
+              setAlertType(event.target.value);
+              setPage(0);
+            }}
+            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
+          >
+            <option value={ALL_EVENT_TYPES}>All event types</option>
+            {(alertTypesQuery.data ?? []).map(({ alert_type, total }) => (
+              <option key={alert_type} value={alert_type}>
+                {alert_type.replaceAll("_", " ")} ({total})
+              </option>
+            ))}
+          </select>
+          <select
+            value={sortBy}
+            onChange={(event) => {
+              setSortBy(event.target.value as AlertSortBy);
+              setPage(0);
+            }}
+            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
+          >
+            <option value="triggered_at">Sort: triggered</option>
+            <option value="alert_type">Sort: event type</option>
+          </select>
+          <select
+            aria-label="Sort order"
+            value={sortOrder}
+            onChange={(event) => {
+              setSortOrder(event.target.value as SortOrder);
+              setPage(0);
+            }}
+            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
+          >
+            <option value="desc">Descending</option>
+            <option value="asc">Ascending</option>
+          </select>
           <button
             type="button"
             aria-pressed={voiceAlertsEnabled}
             onClick={handleVoiceAlertsChange}
-            className={`h-8 rounded border px-2 text-[0.65rem] uppercase tracking-[0.08em] transition-colors ${
+            className={`h-9 rounded-full border px-3 text-[0.65rem] uppercase tracking-[0.08em] transition-colors ${
               voiceAlertsEnabled
                 ? "border-[#5dc887]/40 bg-[#5dc887]/10 text-[#5dc887]"
                 : "border-white/10 text-white/45 hover:border-white/20 hover:text-white/70"
@@ -373,18 +496,20 @@ export function MomentumAlertsPanel() {
           >
             Voice {voiceAlertsEnabled ? "on" : "off"}
           </button>
-          <span className="ml-auto text-[0.62rem] uppercase tracking-[0.1em] text-white/35">
-            State-transition alerts
+          <span className="ml-auto flex items-center gap-2 whitespace-nowrap text-[0.72rem] text-[#5dc887]">
+            <span className="h-2 w-2 rounded-full bg-[#5dc887] shadow-[0_0_10px_#5dc887]" />
+            Streaming
           </span>
         </div>
-        <div className="grid grid-cols-[minmax(110px,1fr)_72px_80px_110px_90px_100px] gap-3 border-b border-white/8 px-4 py-2 font-mono text-[0.6rem] uppercase tracking-[0.1em] text-white/35">
-          <span>Instrument / strategy</span>
-          <span>Direction</span>
-          <span>Timeframe</span>
-          <span>Event / status</span>
-          <span>Triggered</span>
-          <span className="text-right">Price</span>
-        </div>
+        <div className="overflow-x-auto">
+          <div className="grid min-w-[720px] grid-cols-[86px_92px_minmax(130px,1.15fr)_minmax(150px,1.45fr)_88px_96px] gap-3 border-b border-white/[0.1] bg-[#0c0f0e] px-5 py-3 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+            <span>Time</span>
+            <span>Symbol</span>
+            <span>Event</span>
+            <span>Setup</span>
+            <span>State</span>
+            <span className="text-right">Price</span>
+          </div>
         {isLoading && (
           <p className="p-6 text-center font-mono text-xs text-white/40">
             Loading alert history…
@@ -412,6 +537,7 @@ export function MomentumAlertsPanel() {
             }}
           />
         ))}
+        </div>
         <div className="flex items-center justify-between border-t border-white/8 px-4 py-3 font-mono text-xs text-white/45">
           <span>
             {totalAlerts > 0

@@ -14,6 +14,14 @@ export type AlertTimeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 
 export type AlertDirection = string;
 export type AlertType = string;
+export type AlertEventType = string;
+export type AlertSortBy = "triggered_at" | "alert_type";
+export type SortOrder = "asc" | "desc";
+
+export type AlertTypeTotal = {
+  alert_type: AlertEventType;
+  total: number;
+};
 
 export type AlertListItem = {
   id: string;
@@ -25,6 +33,7 @@ export type AlertListItem = {
   strategy_version: number;
   direction: AlertDirection;
   type: AlertType;
+  alert_type?: AlertEventType;
   price: number;
   instrument: {
     venue: string;
@@ -144,6 +153,9 @@ type GetAlertsParams = {
   refetchInterval?: number;
   direction?: string;
   strategyId?: string;
+  alertType?: AlertEventType;
+  sortBy?: AlertSortBy;
+  sortOrder?: SortOrder;
 };
 
 const toNumber = (value: number | string | null | undefined) => {
@@ -208,6 +220,9 @@ async function getAlertsPaginated({
   instrumentId,
   direction,
   strategyId,
+  alertType,
+  sortBy = "triggered_at",
+  sortOrder = "desc",
 }: GetAlertsParams) {
   const response = await axios.get<AlertsResponse>(`${API_URL}/alerts`, {
     params: {
@@ -218,9 +233,25 @@ async function getAlertsPaginated({
       instrumentId,
       direction: direction || undefined,
       strategyId: strategyId || undefined,
+      alertType: alertType || undefined,
+      sortBy,
+      sortOrder,
     },
   });
   return response.data;
+}
+
+async function getAlertTypes() {
+  const response = await axios.get<AlertTypeTotal[]>(`${API_URL}/alerts/types`);
+  return response.data;
+}
+
+export function useGetAlertTypes(refetchInterval?: number) {
+  return useQuery({
+    refetchInterval,
+    queryKey: ["alerts/explorer/types"],
+    queryFn: getAlertTypes,
+  });
 }
 
 async function getAlertChart(alertId: string, timeframe: AlertTimeframe) {
@@ -238,6 +269,9 @@ export function useGetAlertsPaginated({
   refetchInterval,
   direction,
   strategyId,
+  alertType,
+  sortBy = "triggered_at",
+  sortOrder = "desc",
 }: Omit<GetAlertsParams, "offset">) {
   return useInfiniteQuery({
     refetchInterval,
@@ -249,6 +283,9 @@ export function useGetAlertsPaginated({
       instrumentId,
       direction,
       strategyId,
+      alertType,
+      sortBy,
+      sortOrder,
     ],
     queryFn: ({ pageParam = 0 }) =>
       getAlertsPaginated({
@@ -259,6 +296,9 @@ export function useGetAlertsPaginated({
         instrumentId,
         direction,
         strategyId,
+        alertType,
+        sortBy,
+        sortOrder,
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
@@ -278,6 +318,9 @@ export function useGetAlertsPage({
   refetchInterval,
   direction,
   strategyId,
+  alertType,
+  sortBy = "triggered_at",
+  sortOrder = "desc",
 }: GetAlertsParams) {
   return useQuery({
     enabled,
@@ -291,6 +334,9 @@ export function useGetAlertsPage({
       instrumentId,
       direction,
       strategyId,
+      alertType,
+      sortBy,
+      sortOrder,
     ],
     queryFn: () =>
       getAlertsPaginated({
@@ -301,6 +347,9 @@ export function useGetAlertsPage({
         instrumentId,
         direction,
         strategyId,
+        alertType,
+        sortBy,
+        sortOrder,
       }),
   });
 }
@@ -341,30 +390,45 @@ export function useLiveMomentumIntelligenceAlerts({
       });
     };
     const handleAlertCreated = (payload: LiveAlertPayload) => {
-      const strategyId = payload.strategy_id ?? payload.strategyId;
+      const strategyId =
+        payload.strategy_id ??
+        payload.strategyId ??
+        (typeof payload.type === "string"
+          ? payload.type.split(":", 1)[0]
+          : undefined);
       const strategyVersion =
         payload.strategy_version ?? payload.strategyVersion;
-      if (
+      const isUnsupportedMomentumAlert =
         !MOMENTUM_INTELLIGENCE_STRATEGY_IDS.includes(strategyId as never) ||
-        strategyVersion !== 2
-      ) {
-        return;
-      }
+        (strategyVersion != null && Number(strategyVersion) !== 2);
       const alert = normalizeLiveAlert({ ...payload, strategy_id: strategyId });
-      onAlertCreatedRef.current?.(alert);
+      if (!isUnsupportedMomentumAlert) {
+        onAlertCreatedRef.current?.(alert);
+      }
+      const alertEventType =
+        alert.alert_type ??
+        (typeof alert.trigger_values.event_type === "string"
+          ? alert.trigger_values.event_type
+          : undefined);
 
       for (const query of queryClient
         .getQueryCache()
         .findAll({ queryKey: ["alerts/explorer/paginated"] })) {
         const key = query.queryKey;
-        if (!Array.isArray(key) || key[6] !== alert.strategy_id) continue;
+        if (!Array.isArray(key)) continue;
+        const strategyId = key[6];
         const instrumentId = key[4];
         const direction = key[5];
+        const alertType = key[7];
         if (
+          (typeof strategyId === "string" &&
+            alert.strategy_id &&
+            strategyId !== alert.strategy_id) ||
           (typeof instrumentId === "string" &&
             instrumentId !== alert.instrument.instrument_id) ||
           (typeof direction === "string" &&
-            direction.toLowerCase() !== alert.direction.toLowerCase())
+            direction.toLowerCase() !== alert.direction.toLowerCase()) ||
+          (typeof alertType === "string" && alertType !== alertEventType)
         ) {
           continue;
         }
@@ -400,15 +464,21 @@ export function useLiveMomentumIntelligenceAlerts({
         .getQueryCache()
         .findAll({ queryKey: ["alerts/explorer/page"] })) {
         const key = query.queryKey;
-        if (!Array.isArray(key) || key[8] !== alert.strategy_id) continue;
+        if (!Array.isArray(key)) continue;
         const offset = key[3];
-        const instrumentId = key[6];
-        const direction = key[7];
+        const instrumentId = key[5];
+        const direction = key[6];
+        const strategyId = key[7];
+        const alertType = key[8];
         if (
+          (typeof strategyId === "string" &&
+            alert.strategy_id &&
+            strategyId !== alert.strategy_id) ||
           (typeof instrumentId === "string" &&
             instrumentId !== alert.instrument.instrument_id) ||
           (typeof direction === "string" &&
-            direction.toLowerCase() !== alert.direction.toLowerCase())
+            direction.toLowerCase() !== alert.direction.toLowerCase()) ||
+          (typeof alertType === "string" && alertType !== alertEventType)
         ) {
           continue;
         }
