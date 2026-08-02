@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   type AlertListItem,
-  useLiveMomentumSurgeAlerts,
+  useLiveMomentumIntelligenceAlerts,
 } from "@/features/alerts-explorer/hooks/alerts.api";
 import { cn } from "@/lib/utils";
 import { MomentumAlertsPanel } from "./components/MomentumAlertsPanel";
@@ -92,7 +92,7 @@ export function ScannerV2Screen() {
     },
     [isAlertsPreset],
   );
-  useLiveMomentumSurgeAlerts({ onAlertCreated: handleLiveAlert });
+  useLiveMomentumIntelligenceAlerts({ onAlertCreated: handleLiveAlert });
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;

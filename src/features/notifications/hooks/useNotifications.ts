@@ -21,6 +21,11 @@ type AlertEventPayload = {
   timeframe?: string;
   direction: string;
   type: string;
+  strategyId?: string;
+  triggerValues?: {
+    event_type?: string;
+    is_confirmed?: number | boolean;
+  };
   instrument: {
     instrument_symbol: string;
   };
@@ -53,6 +58,16 @@ function toNotification(alert: AlertEventPayload): Notification {
   const symbol = alert.instrument.instrument_symbol;
   const timeframe = alert.timeframe ? ` · ${alert.timeframe}` : "";
 
+  const isMomentumIntelligence = alert.strategyId?.startsWith(
+    "momentum-intelligence-",
+  );
+  const eventType = alert.triggerValues?.event_type?.replaceAll("_", " ");
+  const confirmation =
+    alert.triggerValues?.is_confirmed === 1 ||
+    alert.triggerValues?.is_confirmed === true
+      ? "closed candle"
+      : "provisional";
+
   return {
     id: alert.id,
     createdAt:
@@ -62,7 +77,9 @@ function toNotification(alert: AlertEventPayload): Notification {
       new Date().toISOString(),
     isRead: false,
     title: `${symbol} ${alert.direction.toUpperCase()}`,
-    description: `${alert.type.replaceAll("_", " ")}${timeframe}`,
+    description: isMomentumIntelligence
+      ? `${eventType ?? "state update"}${timeframe} · ${confirmation}`
+      : `${alert.type.replaceAll("_", " ")}${timeframe}`,
   };
 }
 

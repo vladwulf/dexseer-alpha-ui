@@ -41,6 +41,35 @@ export type AlertListItem = {
   thresholds: Record<string, unknown>;
 };
 
+type LiveAlertPayload = Omit<
+  Partial<AlertListItem>,
+  "instrument" | "trigger_values"
+> & {
+  id: string;
+  instrument: AlertListItem["instrument"];
+  strategyId?: string;
+  strategy_id?: string;
+  triggerValues?: Record<string, unknown>;
+  trigger_values?: Record<string, unknown>;
+};
+
+function normalizeLiveAlert(payload: LiveAlertPayload): AlertListItem {
+  return {
+    ...payload,
+    created_at: payload.created_at ?? new Date().toISOString(),
+    time: payload.time ?? payload.triggered_at ?? new Date().toISOString(),
+    timeframe: payload.timeframe ?? "5m",
+    strategy_id: payload.strategy_id ?? payload.strategyId ?? "",
+    strategy_version: payload.strategy_version ?? 1,
+    direction: payload.direction ?? "",
+    type: payload.type ?? "",
+    price: payload.price ?? 0,
+    trigger_values: payload.trigger_values ?? payload.triggerValues ?? {},
+    thresholds: payload.thresholds ?? {},
+    instrument: payload.instrument,
+  };
+}
+
 export type AlertsResponse = {
   data: AlertListItem[];
   meta: {
@@ -260,20 +289,20 @@ export function useGetAlertsPage({
   });
 }
 
-/** Momentum Surge entry strategies only. These are historical entry signals, not active states. */
-export const MOMENTUM_SURGE_STRATEGY_IDS = [
-  "momentum-surge-5m-v1",
-  "momentum-surge-15m-v1",
-  "momentum-surge-1h-v1",
+/** Momentum Intelligence reports state transitions, including provisional intrabar events. */
+export const MOMENTUM_INTELLIGENCE_STRATEGY_IDS = [
+  "momentum-intelligence-5m-v1",
+  "momentum-intelligence-15m-v1",
+  "momentum-intelligence-1h-v1",
 ] as const;
 
-type UseLiveMomentumSurgeAlertsOptions = {
+type UseLiveMomentumIntelligenceAlertsOptions = {
   onAlertCreated?: (alert: AlertListItem) => void;
 };
 
-export function useLiveMomentumSurgeAlerts({
+export function useLiveMomentumIntelligenceAlerts({
   onAlertCreated,
-}: UseLiveMomentumSurgeAlertsOptions = {}) {
+}: UseLiveMomentumIntelligenceAlertsOptions = {}) {
   const queryClient = useQueryClient();
   const onAlertCreatedRef = useRef(onAlertCreated);
 
@@ -287,14 +316,12 @@ export function useLiveMomentumSurgeAlerts({
     const socket = io(new URL("/ws", API_URL).toString(), {
       transports: ["websocket"],
     });
-    const handleAlertCreated = (
-      payload: AlertListItem & { strategyId?: string },
-    ) => {
+    const handleAlertCreated = (payload: LiveAlertPayload) => {
       const strategyId = payload.strategy_id ?? payload.strategyId;
-      if (!MOMENTUM_SURGE_STRATEGY_IDS.includes(strategyId as never)) {
+      if (!MOMENTUM_INTELLIGENCE_STRATEGY_IDS.includes(strategyId as never)) {
         return;
       }
-      const alert = { ...payload, strategy_id: strategyId } as AlertListItem;
+      const alert = normalizeLiveAlert({ ...payload, strategy_id: strategyId });
       onAlertCreatedRef.current?.(alert);
 
       for (const query of queryClient

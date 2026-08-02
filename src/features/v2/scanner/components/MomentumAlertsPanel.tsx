@@ -9,7 +9,7 @@ import { AlertsChartWrapper } from "@/features/alerts-explorer/AlertChartWrapper
 import {
   type AlertListItem,
   type AlertTimeframe,
-  MOMENTUM_SURGE_STRATEGY_IDS,
+  MOMENTUM_INTELLIGENCE_STRATEGY_IDS,
   useGetAlertsPage,
 } from "@/features/alerts-explorer/hooks/alerts.api";
 
@@ -21,7 +21,7 @@ const ALL_STRATEGIES = "all";
 
 type StrategySelection =
   | typeof ALL_STRATEGIES
-  | (typeof MOMENTUM_SURGE_STRATEGY_IDS)[number];
+  | (typeof MOMENTUM_INTELLIGENCE_STRATEGY_IDS)[number];
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 6 }).format(price);
@@ -44,6 +44,25 @@ function getVoiceAlertMessage(alert: AlertListItem) {
   return `${symbol} is ${direction}`;
 }
 
+function getMomentumEvent(alert: AlertListItem) {
+  const eventType = alert.trigger_values.event_type;
+  return typeof eventType === "string"
+    ? eventType.replaceAll("_", " ")
+    : "state update";
+}
+
+function isConfirmed(alert: AlertListItem) {
+  const value = alert.trigger_values.is_confirmed;
+  return value === 1 || value === "1" || value === true;
+}
+
+function getStateTransition(alert: AlertListItem) {
+  const from = alert.trigger_values.from_state;
+  const to = alert.trigger_values.to_state;
+  if (typeof from !== "string" || typeof to !== "string") return undefined;
+  return `${from} → ${to}`;
+}
+
 function AlertRow({
   alert,
   selected,
@@ -60,7 +79,7 @@ function AlertRow({
       ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className={`grid w-full grid-cols-[minmax(110px,1fr)_72px_80px_118px_100px] gap-3 border-b border-white/7 px-4 py-3 text-left font-mono text-xs outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.09]" : "bg-transparent"}`}
+      className={`grid w-full grid-cols-[minmax(110px,1fr)_72px_80px_110px_90px_100px] gap-3 border-b border-white/7 px-4 py-3 text-left font-mono text-xs outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.09]" : "bg-transparent"}`}
     >
       <span className="min-w-0">
         <span className="block truncate font-semibold text-white/90">
@@ -80,6 +99,12 @@ function AlertRow({
         {alert.direction}
       </span>
       <span className="text-white/60">{alert.timeframe}</span>
+      <span
+        className={isConfirmed(alert) ? "text-[#5dc887]" : "text-amber-300"}
+      >
+        {getMomentumEvent(alert)} · {isConfirmed(alert) ? "closed" : "live"}
+        {getStateTransition(alert) ? ` · ${getStateTransition(alert)}` : ""}
+      </span>
       <span className="text-white/55">
         {formatTime(alert.triggered_at ?? alert.time)}
       </span>
@@ -115,27 +140,27 @@ export function MomentumAlertsPanel() {
     ...baseQueryParams,
     enabled:
       strategyId === ALL_STRATEGIES ||
-      strategyId === MOMENTUM_SURGE_STRATEGY_IDS[0],
-    strategyId: MOMENTUM_SURGE_STRATEGY_IDS[0],
+      strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[0],
+    strategyId: MOMENTUM_INTELLIGENCE_STRATEGY_IDS[0],
   });
   const fifteenMinuteQuery = useGetAlertsPage({
     ...baseQueryParams,
     enabled:
       strategyId === ALL_STRATEGIES ||
-      strategyId === MOMENTUM_SURGE_STRATEGY_IDS[1],
-    strategyId: MOMENTUM_SURGE_STRATEGY_IDS[1],
+      strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[1],
+    strategyId: MOMENTUM_INTELLIGENCE_STRATEGY_IDS[1],
   });
   const oneHourQuery = useGetAlertsPage({
     ...baseQueryParams,
-    enabled: strategyId === MOMENTUM_SURGE_STRATEGY_IDS[2],
-    strategyId: MOMENTUM_SURGE_STRATEGY_IDS[2],
+    enabled: strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[2],
+    strategyId: MOMENTUM_INTELLIGENCE_STRATEGY_IDS[2],
   });
   const activeQueries =
     strategyId === ALL_STRATEGIES
       ? [fiveMinuteQuery, fifteenMinuteQuery]
-      : strategyId === MOMENTUM_SURGE_STRATEGY_IDS[0]
+      : strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[0]
         ? [fiveMinuteQuery]
-        : strategyId === MOMENTUM_SURGE_STRATEGY_IDS[1]
+        : strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[1]
           ? [fifteenMinuteQuery]
           : [oneHourQuery];
   const alerts = activeQueries
@@ -300,7 +325,7 @@ export function MomentumAlertsPanel() {
             className="h-8 rounded border border-white/10 bg-[#101010] px-2 text-white/75"
           >
             <option value={ALL_STRATEGIES}>ALL</option>
-            {MOMENTUM_SURGE_STRATEGY_IDS.map((id) => (
+            {MOMENTUM_INTELLIGENCE_STRATEGY_IDS.map((id) => (
               <option key={id} value={id}>
                 {id.replace("momentum-surge-", "").replace("-v1", "")}
               </option>
@@ -340,13 +365,14 @@ export function MomentumAlertsPanel() {
             Voice {voiceAlertsEnabled ? "on" : "off"}
           </button>
           <span className="ml-auto text-[0.62rem] uppercase tracking-[0.1em] text-white/35">
-            Detected entry alerts
+            State-transition alerts
           </span>
         </div>
-        <div className="grid grid-cols-[minmax(110px,1fr)_72px_80px_118px_100px] gap-3 border-b border-white/8 px-4 py-2 font-mono text-[0.6rem] uppercase tracking-[0.1em] text-white/35">
+        <div className="grid grid-cols-[minmax(110px,1fr)_72px_80px_110px_90px_100px] gap-3 border-b border-white/8 px-4 py-2 font-mono text-[0.6rem] uppercase tracking-[0.1em] text-white/35">
           <span>Instrument / strategy</span>
           <span>Direction</span>
           <span>Timeframe</span>
+          <span>Event / status</span>
           <span>Triggered</span>
           <span className="text-right">Price</span>
         </div>
@@ -362,7 +388,7 @@ export function MomentumAlertsPanel() {
         )}
         {!isLoading && !isError && alerts.length === 0 && (
           <p className="p-6 text-center font-mono text-xs text-white/40">
-            No Momentum Surge entries match these filters.
+            No Momentum Intelligence alerts match these filters.
           </p>
         )}
         {alerts.map((alert) => (
@@ -413,7 +439,7 @@ export function MomentumAlertsPanel() {
           <div className="flex h-full min-h-[640px] flex-col">
             <div className="border-b border-white/8 p-4 font-mono">
               <p className="text-[0.62rem] uppercase tracking-[0.12em] text-white/35">
-                Momentum Surge entry
+                Momentum Intelligence update
               </p>
               <div className="mt-2 flex items-baseline justify-between gap-3">
                 <h2 className="text-base font-semibold text-white/90">
@@ -424,8 +450,13 @@ export function MomentumAlertsPanel() {
                 </span>
               </div>
               <p className="mt-1 text-xs text-white/55">
-                {selectedAlert.direction} · {selectedAlert.timeframe} · $
-                {formatPrice(selectedAlert.price)}
+                {selectedAlert.direction} · {selectedAlert.timeframe} ·{" "}
+                {getMomentumEvent(selectedAlert)} ·{" "}
+                {isConfirmed(selectedAlert) ? "closed candle" : "provisional"} ·
+                {getStateTransition(selectedAlert)
+                  ? ` ${getStateTransition(selectedAlert)} ·`
+                  : ""}{" "}
+                ${formatPrice(selectedAlert.price)}
               </p>
             </div>
             <div className="h-72 border-b border-white/8">
