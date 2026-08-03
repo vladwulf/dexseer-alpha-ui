@@ -183,7 +183,7 @@ export function MomentumAlertsPanel() {
   const [strategyId, setStrategyId] =
     useState<StrategySelection>(ALL_STRATEGIES);
   const [direction, setDirection] = useState("");
-  const [instrumentId, setInstrumentId] = useState("");
+  const [symbol, setSymbol] = useState("");
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<AlertSortBy>("triggered_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
@@ -200,7 +200,7 @@ export function MomentumAlertsPanel() {
     limit: queryLimit,
     offset: 0,
     direction: direction || undefined,
-    instrumentId: instrumentId || undefined,
+    symbol: symbol || undefined,
     // The API supports one event type. For a multi-select, fetch the current
     // alert stream and apply the selected event types in the client.
     alertType:
@@ -258,7 +258,7 @@ export function MomentumAlertsPanel() {
     .slice(page * PAGE_SIZE, queryLimit);
   const isLoading = activeQueries.some((query) => query.isLoading);
   const isError = activeQueries.some((query) => query.isError);
-  const alertQueryScope = `${strategyId}:${direction}:${instrumentId}:${selectedEventTypes.join(",")}:${sortBy}:${sortOrder}:${page}`;
+  const alertQueryScope = `${strategyId}:${direction}:${symbol}:${selectedEventTypes.join(",")}:${sortBy}:${sortOrder}:${page}`;
   const totalAlerts = activeQueries.reduce(
     (total, query) => total + (query.data?.meta.total ?? 0),
     0,
@@ -323,7 +323,7 @@ export function MomentumAlertsPanel() {
       filters: {
         strategyId,
         direction,
-        instrumentId,
+        symbol,
         eventTypes: selectedEventTypes,
         sortBy,
         sortOrder,
@@ -352,7 +352,7 @@ export function MomentumAlertsPanel() {
     alerts,
     direction,
     selectedEventTypes,
-    instrumentId,
+    symbol,
     isLoading,
     page,
     sortBy,
@@ -443,9 +443,9 @@ export function MomentumAlertsPanel() {
             <option value="short">Short</option>
           </select>
           <input
-            value={instrumentId}
+            value={symbol}
             onChange={(event) => {
-              setInstrumentId(event.target.value);
+              setSymbol(event.target.value);
               setPage(0);
             }}
             placeholder="Filter symbol…"

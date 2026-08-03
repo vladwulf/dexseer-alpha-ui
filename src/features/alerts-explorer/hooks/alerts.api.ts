@@ -149,7 +149,7 @@ type GetAlertsParams = {
   limit?: number;
   offset?: number;
   type?: string;
-  instrumentId?: string;
+  symbol?: string;
   refetchInterval?: number;
   direction?: string;
   strategyId?: string;
@@ -217,7 +217,7 @@ async function getAlertsPaginated({
   limit = 50,
   offset = 0,
   type,
-  instrumentId,
+  symbol,
   direction,
   strategyId,
   alertType,
@@ -230,7 +230,7 @@ async function getAlertsPaginated({
       limit,
       offset,
       type: type || undefined,
-      instrumentId,
+      symbol,
       direction: direction || undefined,
       strategyId: strategyId || undefined,
       alertType: alertType || undefined,
@@ -265,7 +265,7 @@ export function useGetAlertsPaginated({
   timeframe,
   limit = 50,
   type,
-  instrumentId,
+  symbol,
   refetchInterval,
   direction,
   strategyId,
@@ -280,7 +280,7 @@ export function useGetAlertsPaginated({
       timeframe,
       limit,
       type,
-      instrumentId,
+      symbol,
       direction,
       strategyId,
       alertType,
@@ -293,7 +293,7 @@ export function useGetAlertsPaginated({
         limit,
         offset: pageParam,
         type,
-        instrumentId,
+        symbol,
         direction,
         strategyId,
         alertType,
@@ -314,7 +314,7 @@ export function useGetAlertsPage({
   limit = 50,
   offset = 0,
   type,
-  instrumentId,
+  symbol,
   refetchInterval,
   direction,
   strategyId,
@@ -331,7 +331,7 @@ export function useGetAlertsPage({
       limit,
       offset,
       type,
-      instrumentId,
+      symbol,
       direction,
       strategyId,
       alertType,
@@ -344,7 +344,7 @@ export function useGetAlertsPage({
         limit,
         offset,
         type,
-        instrumentId,
+        symbol,
         direction,
         strategyId,
         alertType,
@@ -417,15 +417,16 @@ export function useLiveMomentumIntelligenceAlerts({
         const key = query.queryKey;
         if (!Array.isArray(key)) continue;
         const strategyId = key[6];
-        const instrumentId = key[4];
+        const symbol = key[4];
         const direction = key[5];
         const alertType = key[7];
         if (
           (typeof strategyId === "string" &&
             alert.strategy_id &&
             strategyId !== alert.strategy_id) ||
-          (typeof instrumentId === "string" &&
-            instrumentId !== alert.instrument.instrument_id) ||
+          (typeof symbol === "string" &&
+            symbol.toLowerCase() !==
+              alert.instrument.instrument_symbol.toLowerCase()) ||
           (typeof direction === "string" &&
             direction.toLowerCase() !== alert.direction.toLowerCase()) ||
           (typeof alertType === "string" && alertType !== alertEventType)
@@ -466,7 +467,7 @@ export function useLiveMomentumIntelligenceAlerts({
         const key = query.queryKey;
         if (!Array.isArray(key)) continue;
         const offset = key[3];
-        const instrumentId = key[5];
+        const symbol = key[5];
         const direction = key[6];
         const strategyId = key[7];
         const alertType = key[8];
@@ -474,8 +475,9 @@ export function useLiveMomentumIntelligenceAlerts({
           (typeof strategyId === "string" &&
             alert.strategy_id &&
             strategyId !== alert.strategy_id) ||
-          (typeof instrumentId === "string" &&
-            instrumentId !== alert.instrument.instrument_id) ||
+          (typeof symbol === "string" &&
+            symbol.toLowerCase() !==
+              alert.instrument.instrument_symbol.toLowerCase()) ||
           (typeof direction === "string" &&
             direction.toLowerCase() !== alert.direction.toLowerCase()) ||
           (typeof alertType === "string" && alertType !== alertEventType)
