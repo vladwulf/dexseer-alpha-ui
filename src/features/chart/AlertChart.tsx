@@ -37,6 +37,11 @@ interface AlertChartProps {
    */
   alertTime: string;
   alertPrice?: number;
+  extremeTime?: string;
+  extremePrice?: number;
+  highlightAlertCandle?: boolean;
+  showAlertTimeMarker?: boolean;
+  inferAlertTimeFromPrice?: boolean;
   series: OHLCVExtended[];
   width?: number;
   height?: number;
@@ -69,6 +74,11 @@ interface AlertChartProps {
 export function AlertChart({
   alertTime,
   alertPrice,
+  extremeTime,
+  extremePrice,
+  highlightAlertCandle = true,
+  showAlertTimeMarker = true,
+  inferAlertTimeFromPrice = false,
   series,
   upColor = "#5dc887", // Green for up candles
   downColor = "#e35561", // Red for down candles
@@ -191,8 +201,24 @@ export function AlertChart({
       },
     });
 
-    // Convert alert timestamp to Unix timestamp for comparison
-    const alertTimestampUnix = parseCandleTime(alertTime) as Time;
+    // Opportunity rows provide the entry price but not the alert timestamp. In
+    // that case, anchor the entry marker to the first candle containing it.
+    const alertPriceCandle =
+      inferAlertTimeFromPrice &&
+      alertPrice != null &&
+      Number.isFinite(alertPrice)
+        ? series.find(
+            (candle) => candle.low <= alertPrice && candle.high >= alertPrice,
+          )
+        : undefined;
+    const alertTimestampUnix = (
+      alertPriceCandle
+        ? parseCandleTime(alertPriceCandle.time)
+        : parseCandleTime(alertTime)
+    ) as Time;
+    const extremeTimestampUnix = extremeTime
+      ? (parseCandleTime(extremeTime) as Time)
+      : undefined;
 
     const pivotTime: Time = (series
       .map((k) => Number(parseCandleTime(k.time)))
@@ -213,7 +239,7 @@ export function AlertChart({
           const time = parseCandleTime(kline.time) as Time;
           let candleColor: string | undefined;
 
-          if (time === alertTimestampUnix) {
+          if (highlightAlertCandle && time === alertTimestampUnix) {
             candleColor = "#facc15";
           } else if (Number(time) >= Number(pivotTime)) {
             candleColor = kline.close > kline.open ? upColor : downColor;
@@ -244,6 +270,13 @@ export function AlertChart({
       alertPrice != null && Number.isFinite(alertPrice)
         ? alertPrice
         : alertCandle?.close;
+    const extremeCandleTime =
+      extremeTimestampUnix == null
+        ? undefined
+        : (series
+            .map((k) => Number(parseCandleTime(k.time)))
+            .filter((time) => time <= Number(extremeTimestampUnix))
+            .pop() ?? Number(extremeTimestampUnix));
 
     const ribbonPlugin = new MARibbonIndicator({
       fillColor: "rgba(100, 100, 100, 0.2)",
@@ -345,6 +378,7 @@ export function AlertChart({
     };
 
     let alertTimeLine: HTMLDivElement | null = null;
+    let extremeTimeLine: HTMLDivElement | null = null;
     const alertPriceLine =
       triggerPrice == null
         ? null
@@ -355,6 +389,17 @@ export function AlertChart({
             lineStyle: LineStyle.Solid,
             axisLabelVisible: true,
             title: "alert",
+          });
+    const extremePriceLine =
+      extremePrice == null || !Number.isFinite(extremePrice)
+        ? null
+        : candlestickSeries.createPriceLine({
+            price: extremePrice,
+            color: "#a78bfa",
+            lineWidth: 1,
+            lineStyle: LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: "best move",
           });
 
     const updateAlertOverlay = () => {
@@ -373,7 +418,20 @@ export function AlertChart({
       alertTimeLine.style.transform = `translateX(${timeCoordinate}px)`;
     };
 
-    if (triggerPrice != null) {
+    const updateExtremeOverlay = () => {
+      if (!extremeTimeLine || extremeCandleTime == null) return;
+      const timeCoordinate = chart
+        .timeScale()
+        .timeToCoordinate(extremeCandleTime as Time);
+      if (timeCoordinate == null) {
+        extremeTimeLine.style.display = "none";
+        return;
+      }
+      extremeTimeLine.style.display = "block";
+      extremeTimeLine.style.transform = `translateX(${timeCoordinate}px)`;
+    };
+
+    if (triggerPrice != null && showAlertTimeMarker) {
       chartContainerRef.current
         .querySelectorAll("[data-alert-chart-trigger]")
         .forEach((node) => {
@@ -395,6 +453,23 @@ export function AlertChart({
       `;
 
       chartContainerRef.current.appendChild(alertTimeLine);
+    }
+
+    if (extremeCandleTime != null) {
+      extremeTimeLine = document.createElement("div");
+      extremeTimeLine.dataset.alertChartExtreme = "true";
+      extremeTimeLine.style.cssText = `
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        border-left: 2px dashed #a78bfa;
+        opacity: 0.9;
+        pointer-events: none;
+        z-index: 8;
+      `;
+      chartContainerRef.current.appendChild(extremeTimeLine);
     }
 
     // Find the index of the alert candle
@@ -437,7 +512,9 @@ export function AlertChart({
     }
 
     chart.timeScale().subscribeVisibleTimeRangeChange(updateAlertOverlay);
+    chart.timeScale().subscribeVisibleTimeRangeChange(updateExtremeOverlay);
     updateAlertOverlay();
+    updateExtremeOverlay();
 
     // Build data lookup by Unix timestamp (seconds)
     const dataByTime = new Map<number, OHLCVExtended>();
@@ -600,11 +677,18 @@ export function AlertChart({
     return () => {
       chart.unsubscribeCrosshairMove(updateLegend);
       chart.timeScale().unsubscribeVisibleTimeRangeChange(updateAlertOverlay);
+      chart.timeScale().unsubscribeVisibleTimeRangeChange(updateExtremeOverlay);
       if (alertPriceLine) {
         candlestickSeries.removePriceLine(alertPriceLine);
       }
+      if (extremePriceLine) {
+        candlestickSeries.removePriceLine(extremePriceLine);
+      }
       if (alertTimeLine?.parentNode) {
         alertTimeLine.parentNode.removeChild(alertTimeLine);
+      }
+      if (extremeTimeLine?.parentNode) {
+        extremeTimeLine.parentNode.removeChild(extremeTimeLine);
       }
       if (legend?.parentNode) {
         legend.parentNode.removeChild(legend);
@@ -621,6 +705,11 @@ export function AlertChart({
     upColor,
     downColor,
     alertPrice,
+    extremeTime,
+    extremePrice,
+    highlightAlertCandle,
+    showAlertTimeMarker,
+    inferAlertTimeFromPrice,
     showLegend,
     onActiveCandleChange,
   ]);

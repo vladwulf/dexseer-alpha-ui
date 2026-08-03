@@ -196,7 +196,7 @@ export function ScannerMarketStrip({
   );
 
   return (
-    <section className="border-b border-white/8 px-4 py-3 md:px-6">
+    <section className="border-b border-white/8 px-4 py-1 md:px-6">
       <div className="flex flex-wrap items-center gap-3 md:gap-6">
         <div className="flex flex-wrap items-center gap-4 md:gap-6">
           {items.map((item) => (
@@ -266,13 +266,12 @@ export function ScannerMarketStrip({
                                   : "oklch(1 0 0 / 20%)",
                           boxShadow:
                             state !== "closed"
-                              ? `0 0 5px ${
-                                  state === "market"
-                                    ? "oklch(0.72 0.25 145 / 50%)"
-                                    : state === "premarket"
-                                      ? "oklch(0.78 0.2 85 / 50%)"
-                                      : "oklch(0.75 0.18 60 / 50%)"
-                                }`
+                              ? `0 0 5px ${state === "market"
+                                ? "oklch(0.72 0.25 145 / 50%)"
+                                : state === "premarket"
+                                  ? "oklch(0.78 0.2 85 / 50%)"
+                                  : "oklch(0.75 0.18 60 / 50%)"
+                              }`
                               : "none",
                         }}
                       />

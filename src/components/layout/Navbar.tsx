@@ -27,6 +27,7 @@ import { useNotifications } from "@/features/notifications/hooks/useNotification
 
 const navLinks = [
   { to: "/", label: "Scanner" },
+  { to: "/opportunities", label: "Opportunities" },
   { to: "/analytics", label: "Intelligence" },
 ];
 

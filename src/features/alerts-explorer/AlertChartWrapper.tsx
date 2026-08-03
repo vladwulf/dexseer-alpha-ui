@@ -7,20 +7,34 @@ type Props = {
   alertTime: string;
   alertPrice: number;
   alertId: string;
-  expectedInstrumentId: string;
+  expectedInstrumentId?: string;
   timeframe: AlertTimeframe;
+  extremeTime?: string;
+  extremePrice?: number;
+  highlightAlertCandle?: boolean;
+  showAlertTimeMarker?: boolean;
+  inferAlertTimeFromPrice?: boolean;
+  enabled?: boolean;
   showLegend?: boolean;
   onActiveCandleChange?: (activeCandle: AlertChartActiveCandle) => void;
 };
 
 export function AlertsChartWrapper(props: Props) {
-  const chartData = useGetAlertChart(props.alertId, props.timeframe);
+  const chartData = useGetAlertChart(
+    props.alertId,
+    props.timeframe,
+    props.enabled,
+  );
 
   useEffect(() => {
     if (!import.meta.env.DEV || !chartData.data?.length) return;
 
     const chartInstrumentId = chartData.data[0]?.instrument_id;
-    if (chartInstrumentId && chartInstrumentId !== props.expectedInstrumentId) {
+    if (
+      props.expectedInstrumentId &&
+      chartInstrumentId &&
+      chartInstrumentId !== props.expectedInstrumentId
+    ) {
       console.warn("Alert chart instrument mismatch", {
         alertId: props.alertId,
         expectedInstrumentId: props.expectedInstrumentId,
@@ -78,6 +92,11 @@ export function AlertsChartWrapper(props: Props) {
           <AlertChart
             alertTime={props.alertTime}
             alertPrice={props.alertPrice}
+            extremeTime={props.extremeTime}
+            extremePrice={props.extremePrice}
+            highlightAlertCandle={props.highlightAlertCandle}
+            showAlertTimeMarker={props.showAlertTimeMarker}
+            inferAlertTimeFromPrice={props.inferAlertTimeFromPrice}
             onActiveCandleChange={props.onActiveCandleChange}
             series={chartData.data ?? []}
             showLegend={props.showLegend}

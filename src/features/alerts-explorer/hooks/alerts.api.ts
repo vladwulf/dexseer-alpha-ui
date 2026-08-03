@@ -143,6 +143,17 @@ export type AlertChartRow = {
   [key: string]: unknown;
 };
 
+export type Opportunity = {
+  alert_id: string;
+  instrument_symbol: string;
+  direction: AlertDirection;
+  timeframe: AlertTimeframe;
+  price_at_alert: number;
+  extreme_price: number;
+  extreme_time: string;
+  performance_pct: number;
+};
+
 type GetAlertsParams = {
   enabled?: boolean;
   timeframe?: AlertTimeframe;
@@ -259,6 +270,21 @@ async function getAlertChart(alertId: string, timeframe: AlertTimeframe) {
     `${API_URL}/alerts/${alertId}/chart/${timeframe}`,
   );
   return response.data.map(normalizeChartRow);
+}
+
+async function getOpportunities(limit: number) {
+  const response = await axios.get<Opportunity[] | { data: Opportunity[] }>(
+    `${API_URL}/alerts/opportunities`,
+    { params: { limit } },
+  );
+  return Array.isArray(response.data) ? response.data : response.data.data;
+}
+
+export function useGetOpportunities(limit = 20) {
+  return useQuery({
+    queryKey: ["alerts/opportunities", limit],
+    queryFn: () => getOpportunities(limit),
+  });
 }
 
 export function useGetAlertsPaginated({
@@ -525,9 +551,10 @@ export function useLiveMomentumIntelligenceAlerts({
 export function useGetAlertChart(
   alertId: string | undefined,
   timeframe: AlertTimeframe,
+  enabled = true,
 ) {
   return useQuery({
-    enabled: Boolean(alertId),
+    enabled: Boolean(alertId) && enabled,
     queryKey: ["alerts/explorer/chart", alertId, timeframe],
     queryFn: () => getAlertChart(alertId as string, timeframe),
   });
