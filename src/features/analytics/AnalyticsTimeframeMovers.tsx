@@ -105,8 +105,8 @@ export function AnalyticsTimeframeMovers() {
       </div>
       <div
         style={{
-          background: "oklch(0.12 0 0)",
-          border: "1px solid oklch(1 0 0 / 7%)",
+          background: "var(--ds-surface)",
+          border: "none",
           borderRadius: 12,
           padding: 24,
           marginBottom: 12,

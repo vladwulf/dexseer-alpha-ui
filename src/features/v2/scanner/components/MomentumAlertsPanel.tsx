@@ -56,7 +56,8 @@ const formatTime = (time: string) =>
   }).format(new Date(time));
 
 function getVoiceAlertMessage(alert: AlertListItem) {
-  const symbol = alert.instrument.base_asset_symbol || alert.instrument.instrument_symbol;
+  const symbol =
+    alert.instrument.base_asset_symbol || alert.instrument.instrument_symbol;
   const event = getMomentumEvent(alert);
   const transition = getStateTransition(alert);
 
@@ -98,7 +99,10 @@ function getStateTransition(alert: AlertListItem) {
 function getEventTone(alert: AlertListItem) {
   const event = getMomentumEvent(alert);
   if (event.includes("pullback")) return "blue";
-  if (event.includes("exited") || alert.direction.toLowerCase().includes("short")) {
+  if (
+    event.includes("exited") ||
+    alert.direction.toLowerCase().includes("short")
+  ) {
     return "red";
   }
   return "green";
@@ -142,37 +146,39 @@ function AlertRow({
       ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className={`grid w-full min-w-[640px] grid-cols-[86px_92px_minmax(130px,1.15fr)_minmax(150px,1.45fr)_96px] items-center gap-3 border-b border-white/[0.09] px-5 py-4 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_3px_0_0_#5dc887]" : "bg-transparent"}`}
+      className={`grid w-full min-w-[600px] grid-cols-[74px_86px_minmax(120px,1.1fr)_minmax(140px,1.35fr)_88px] items-center gap-2 border-b border-white/[0.08] px-3 py-2.5 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_2px_0_0_#5dc887]" : "bg-transparent"}`}
     >
-      <span className="font-mono text-[0.93rem] tabular-nums text-white/50">
+      <span className="font-mono text-[0.76rem] tabular-nums text-white/50">
         {formatAlertTime(alert.triggered_at ?? alert.time)}
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[1.05rem] font-bold italic text-white/95">
+        <span className="block truncate text-[0.9rem] font-bold italic leading-tight text-white/95">
           {alert.instrument.instrument_symbol.replace(/[-_/].*$/, "")}
         </span>
-        <span className="block pt-0.5 font-mono text-[0.65rem] tracking-[0.12em] text-white/35">
+        <span className="block pt-px font-mono text-[0.55rem] tracking-[0.12em] text-white/35">
           {alert.instrument.quote_asset_symbol || "USDT"}
         </span>
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[1.02rem] font-semibold text-white/95">
+        <span className="block truncate text-[0.9rem] font-semibold leading-tight text-white/95">
           {getMomentumEvent(alert)}
         </span>
-        <span className="block truncate pt-1 text-[0.76rem] text-white/45">
+        <span className="block truncate pt-0.5 text-[0.65rem] text-white/42">
           {getStateTransition(alert) ??
             `${alert.direction} momentum intelligence signal`}
         </span>
       </span>
-      <span className="flex min-w-0 items-center gap-2 text-[0.8rem]">
+      <span className="flex min-w-0 items-center gap-1.5 text-[0.65rem]">
         <span
-          className={`shrink-0 rounded-lg px-2.5 py-1.5 font-semibold ${EVENT_TONE_CLASSES[getEventTone(alert)]}`}
+          className={`shrink-0 rounded-md px-2 py-1 font-semibold ${EVENT_TONE_CLASSES[getEventTone(alert)]}`}
         >
           {getSetupLabel(alert)}
         </span>
-        <span className="truncate text-white/35">{alert.strategy_id.replace("momentum-intelligence-", "")}</span>
+        <span className="truncate text-white/35">
+          {alert.strategy_id.replace("momentum-intelligence-", "")}
+        </span>
       </span>
-      <span className="text-right font-mono text-[1rem] tabular-nums text-white/90">
+      <span className="text-right font-mono text-[0.82rem] tabular-nums text-white/90">
         ${formatPrice(alert.price)}
       </span>
     </button>
@@ -180,6 +186,7 @@ function AlertRow({
 }
 
 export function MomentumAlertsPanel() {
+  const [inspectorWidth, setInspectorWidth] = useState(420);
   const [strategyId, setStrategyId] =
     useState<StrategySelection>(ALL_STRATEGIES);
   const [direction, setDirection] = useState("");
@@ -189,11 +196,16 @@ export function MomentumAlertsPanel() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [page, setPage] = useState(0);
   const [voiceAlertsEnabled, setVoiceAlertsEnabled] = useState(
-    () => localStorage.getItem(VOICE_ALERTS_STORAGE_KEY) !== "false",
+    // Audio is opt-in: entering the Alerts page should never unexpectedly
+    // start speaking. A user who explicitly enabled it keeps that preference.
+    () => localStorage.getItem(VOICE_ALERTS_STORAGE_KEY) === "true",
   );
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const alertListRef = useRef<HTMLDivElement>(null);
   const knownAlertIdsRef = useRef(new Set<string>());
   const voiceAlertsPrimedRef = useRef(false);
+  const skipVoiceForNextPageRef = useRef(false);
   const lastVoiceAlertAtRef = useRef(0);
   const queryLimit = (page + 1) * PAGE_SIZE;
   const baseQueryParams = {
@@ -255,15 +267,15 @@ export function MomentumAlertsPanel() {
             Date.parse(right.triggered_at ?? right.time);
       return sortOrder === "asc" ? comparison : -comparison;
     })
-    .slice(page * PAGE_SIZE, queryLimit);
+    .slice(0, queryLimit);
   const isLoading = activeQueries.some((query) => query.isLoading);
   const isError = activeQueries.some((query) => query.isError);
-  const alertQueryScope = `${strategyId}:${direction}:${symbol}:${selectedEventTypes.join(",")}:${sortBy}:${sortOrder}:${page}`;
+  const alertQueryScope = `${strategyId}:${direction}:${symbol}:${selectedEventTypes.join(",")}:${sortBy}:${sortOrder}`;
   const totalAlerts = activeQueries.reduce(
     (total, query) => total + (query.data?.meta.total ?? 0),
     0,
   );
-  const totalPages = Math.max(1, Math.ceil(totalAlerts / PAGE_SIZE));
+  const hasMoreAlerts = alerts.length < totalAlerts;
   const [selectedAlertId, setSelectedAlertId] = useState<string>();
   const selectedAlert =
     alerts.find((alert) => alert.id === selectedAlertId) ?? alerts[0];
@@ -281,6 +293,26 @@ export function MomentumAlertsPanel() {
   }, [alertQueryScope]);
 
   useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    const scrollContainer = alertListRef.current;
+    if (!sentinel || !scrollContainer || !hasMoreAlerts || isLoading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          // These are older alerts being added by pagination, not new live
+          // alerts, so they must not be announced.
+          skipVoiceForNextPageRef.current = true;
+          setPage((current) => current + 1);
+        }
+      },
+      { root: scrollContainer, rootMargin: "240px" },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMoreAlerts, isLoading]);
+
+  useEffect(() => {
     if (!voiceAlertsPrimedRef.current) {
       // The panel first renders an empty list while its alert history loads.
       // Establish the baseline only after that request settles, so opening the
@@ -291,6 +323,16 @@ export function MomentumAlertsPanel() {
         knownAlertIdsRef.current.add(alert.id);
       });
       voiceAlertsPrimedRef.current = true;
+      return;
+    }
+
+    if (skipVoiceForNextPageRef.current) {
+      if (isLoading) return;
+
+      alerts.forEach((alert) => {
+        knownAlertIdsRef.current.add(alert.id);
+      });
+      skipVoiceForNextPageRef.current = false;
       return;
     }
 
@@ -409,8 +451,11 @@ export function MomentumAlertsPanel() {
   }, [alerts, selectedAlert?.id]);
 
   return (
-    <section className="grid min-h-[640px] xl:grid-cols-[minmax(0,1fr)_420px]">
-      <div className="min-w-0 border-b border-white/8 xl:border-r xl:border-b-0">
+    <section className="flex min-h-[640px] border border-white/8 bg-[#090b0d]">
+      <div
+        ref={alertListRef}
+        className="min-w-0 flex-1 border-b border-white/8 xl:overflow-y-auto xl:border-b-0"
+      >
         <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.09] bg-[#0a0d0c] px-5 py-4 font-mono text-xs">
           <span className="mr-1 text-[0.64rem] uppercase tracking-[0.2em] text-white/40">
             Event
@@ -540,73 +585,85 @@ export function MomentumAlertsPanel() {
           </span>
         </div>
         <div className="overflow-x-auto">
-          <div className="grid min-w-[640px] grid-cols-[86px_92px_minmax(130px,1.15fr)_minmax(150px,1.45fr)_96px] gap-3 border-b border-white/[0.1] bg-[#0c0f0e] px-5 py-3 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+          <div className="grid min-w-[600px] grid-cols-[74px_86px_minmax(120px,1.1fr)_minmax(140px,1.35fr)_88px] gap-2 border-b border-white/[0.1] bg-[#0c0f0e] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/40">
             <span>Time</span>
             <span>Symbol</span>
             <span>Event</span>
             <span>Setup</span>
             <span className="text-right">Price</span>
           </div>
-        {isLoading && (
-          <p className="p-6 text-center font-mono text-xs text-white/40">
-            Loading alert history…
-          </p>
-        )}
-        {isError && (
-          <p className="p-6 text-center font-mono text-xs text-[#e35561]">
-            Alerts unavailable.
-          </p>
-        )}
-        {!isLoading && !isError && alerts.length === 0 && (
-          <p className="p-6 text-center font-mono text-xs text-white/40">
-            No Momentum Intelligence alerts match these filters.
-          </p>
-        )}
-        {alerts.map((alert) => (
-          <AlertRow
-            key={alert.id}
-            alert={alert}
-            selected={selectedAlert?.id === alert.id}
-            onSelect={() => setSelectedAlertId(alert.id)}
-            buttonRef={(element) => {
-              if (element) rowRefs.current.set(alert.id, element);
-              else rowRefs.current.delete(alert.id);
-            }}
-          />
-        ))}
+          {isLoading && (
+            <p className="p-6 text-center font-mono text-xs text-white/40">
+              Loading alert history…
+            </p>
+          )}
+          {isError && (
+            <p className="p-6 text-center font-mono text-xs text-[#e35561]">
+              Alerts unavailable.
+            </p>
+          )}
+          {!isLoading && !isError && alerts.length === 0 && (
+            <p className="p-6 text-center font-mono text-xs text-white/40">
+              No Momentum Intelligence alerts match these filters.
+            </p>
+          )}
+          {alerts.map((alert) => (
+            <AlertRow
+              key={alert.id}
+              alert={alert}
+              selected={selectedAlert?.id === alert.id}
+              onSelect={() => setSelectedAlertId(alert.id)}
+              buttonRef={(element) => {
+                if (element) rowRefs.current.set(alert.id, element);
+                else rowRefs.current.delete(alert.id);
+              }}
+            />
+          ))}
         </div>
-        <div className="flex items-center justify-between border-t border-white/8 px-4 py-3 font-mono text-xs text-white/45">
-          <span>
-            {totalAlerts > 0
-              ? `${page * PAGE_SIZE + 1}-${Math.min((page + 1) * PAGE_SIZE, totalAlerts)} of ${totalAlerts}`
+        <div
+          ref={loadMoreRef}
+          className="border-t border-white/8 px-4 py-3 text-center font-mono text-[0.65rem] text-white/40"
+        >
+          {hasMoreAlerts
+            ? "Loading more alerts…"
+            : totalAlerts > 0
+              ? "End of alert history"
               : ""}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPage((current) => Math.max(0, current - 1))}
-              disabled={page === 0}
-              className="rounded border border-white/10 px-2 py-1 disabled:opacity-30"
-            >
-              Previous
-            </button>
-            <span>
-              {page + 1} / {totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                setPage((current) => Math.min(totalPages - 1, current + 1))
-              }
-              disabled={page >= totalPages - 1}
-              className="rounded border border-white/10 px-2 py-1 disabled:opacity-30"
-            >
-              Next
-            </button>
-          </div>
         </div>
       </div>
-      <aside className="min-w-0 bg-[#0a0a0a]">
+      <div
+        className="alerts-panel-resize hidden xl:block"
+        role="slider"
+        aria-label="Resize alert inspector"
+        aria-orientation="vertical"
+        aria-valuemin={300}
+        aria-valuemax={700}
+        aria-valuenow={inspectorWidth}
+        tabIndex={0}
+        onPointerDown={(event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
+          const startX = event.clientX;
+          const startWidth = inspectorWidth;
+          const onMove = (moveEvent: PointerEvent) => {
+            setInspectorWidth(
+              Math.min(
+                700,
+                Math.max(300, startWidth - (moveEvent.clientX - startX)),
+              ),
+            );
+          };
+          const onUp = () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+          };
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp, { once: true });
+        }}
+      />
+      <aside
+        className="hidden min-w-0 bg-[#0a0a0a] xl:block"
+        style={{ width: inspectorWidth }}
+      >
         {selectedAlert ? (
           <div className="flex h-full min-h-[640px] flex-col">
             <div className="border-b border-white/8 p-4 font-mono">

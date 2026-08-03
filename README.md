@@ -63,7 +63,6 @@ src/
 | `/` | Dashboard — market movers strip + screener table |
 | `/analytics` | Analytics — volume, movers, distribution, BTC correlation, breakout hours, runners |
 | `/assets/:symbol` | Asset Detail — full detail for a specific symbol |
-| `/simulation` | Longs simulation / backtest |
 | `/v2/scanner` | V2 Scanner — real-time perpetual futures scanner |
 
 `/patterns` and `/chart` routes are commented out in the router.

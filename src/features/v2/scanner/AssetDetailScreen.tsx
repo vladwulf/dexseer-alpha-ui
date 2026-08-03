@@ -33,7 +33,7 @@ const chipClassName =
 
 function AssetDetailNotFound() {
   return (
-    <div className="min-h-screen bg-[#050505] px-4 pb-16 pt-8 text-white">
+    <div className="asset-detail-screen min-h-screen px-4 pb-16 pt-8 text-white">
       <div className="mx-auto max-w-6xl">
         <Link
           to="/v2/scanner"
@@ -61,7 +61,7 @@ function AssetDetailNotFound() {
 
 function AssetDetailLoading() {
   return (
-    <div className="min-h-screen bg-[#050505] px-4 pb-16 pt-8 text-white">
+    <div className="asset-detail-screen min-h-screen px-4 pb-16 pt-8 text-white">
       <div className="mx-auto max-w-6xl">
         <Link
           to="/v2/scanner"
@@ -135,7 +135,7 @@ export function AssetDetailScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] px-4 pb-16 pt-8 text-white">
+    <div className="asset-detail-screen min-h-screen px-4 pb-16 pt-8 text-white">
       <div className="mx-auto max-w-6xl">
         <Link
           to="/v2/scanner"

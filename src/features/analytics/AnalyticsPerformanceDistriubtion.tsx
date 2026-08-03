@@ -205,8 +205,8 @@ export function AnalyticsPerformanceDistriubtion() {
 
       <div
         style={{
-          background: "oklch(0.12 0 0)",
-          border: "1px solid oklch(1 0 0 / 7%)",
+          background: "var(--ds-surface)",
+          border: "none",
           borderRadius: 12,
           padding: 24,
           marginBottom: 12,
@@ -241,7 +241,7 @@ export function AnalyticsPerformanceDistriubtion() {
                 style={{
                   minWidth: 92,
                   background: "oklch(0.13 0 0)",
-                  border: "1px solid oklch(1 0 0 / 7%)",
+                  border: "none",
                   borderRadius: 8,
                   padding: "12px 14px",
                 }}

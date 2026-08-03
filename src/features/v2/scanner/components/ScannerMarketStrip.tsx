@@ -196,21 +196,21 @@ export function ScannerMarketStrip({
   );
 
   return (
-    <section className="border-b border-white/8 px-4 py-1 md:px-6">
+    <section className="scanner-market-strip border border-[var(--ds-border)] bg-[var(--ds-surface)] px-4 py-1 md:px-6">
       <div className="flex flex-wrap items-center gap-3 md:gap-6">
         <div className="flex flex-wrap items-center gap-4 md:gap-6">
           {items.map((item) => (
             <div key={item.symbol} className="flex items-center gap-2">
-              <span className="[font-family:var(--font-display)] text-[0.88rem] font-bold italic text-white">
+              <span className="[font-family:var(--font-display)] text-[0.76rem] font-bold italic text-white">
                 {item.symbol}
               </span>
-              <span className="font-[var(--font-mono)] text-[0.82rem] text-white/92">
+              <span className="font-[var(--font-mono)] text-[0.7rem] text-white/92">
                 {item.price}
               </span>
-              <div className="flex items-center gap-1 text-[0.72rem] font-medium">
+              <div className="flex items-center gap-1 font-medium">
                 {/* <Pill value={item.change15m} label="15m" />
                 <Pill value={item.change1h} label="1h" /> */}
-                <Pill value={item.change24h} label="24h" />
+                <Pill compact value={item.change24h} label="24h" />
               </div>
             </div>
           ))}
@@ -218,11 +218,11 @@ export function ScannerMarketStrip({
           <div className="hidden h-8 w-px bg-white/10 xl:block" />
 
           <div className="flex items-center gap-3">
-            <span className="text-[0.72rem] uppercase tracking-[0.12em] text-white/45">
+            <span className="text-[0.62rem] uppercase tracking-[0.12em] text-white/45">
               breadth
             </span>
             <div className="flex items-center gap-2">
-              <span className="font-[var(--font-mono)] text-[0.72rem] text-[#79c68c]/80 tabular-nums">
+              <span className="font-[var(--font-mono)] text-[0.62rem] text-[#79c68c]/80 tabular-nums">
                 {breadth?.gainers ?? 0}
               </span>
               <div className="relative h-1.5 w-16 overflow-hidden rounded-full bg-white/10">
@@ -231,7 +231,7 @@ export function ScannerMarketStrip({
                   style={{ width: `${breadthBars * 10}%` }}
                 />
               </div>
-              <span className="font-[var(--font-mono)] text-[0.72rem] text-[#e35561]/65 tabular-nums">
+              <span className="font-[var(--font-mono)] text-[0.62rem] text-[#e35561]/65 tabular-nums">
                 {breadth?.losers ?? 0}
               </span>
             </div>
@@ -252,7 +252,7 @@ export function ScannerMarketStrip({
               return (
                 <Tooltip key={hub.label}>
                   <TooltipTrigger asChild>
-                    <div className="flex cursor-default items-center gap-1.5 font-[var(--font-mono)] text-[0.7rem]">
+                    <div className="flex cursor-default items-center gap-1.5 font-[var(--font-mono)] text-[0.62rem]">
                       <span
                         className="inline-block h-1.5 w-1.5 rounded-full"
                         style={{
@@ -266,12 +266,13 @@ export function ScannerMarketStrip({
                                   : "oklch(1 0 0 / 20%)",
                           boxShadow:
                             state !== "closed"
-                              ? `0 0 5px ${state === "market"
-                                ? "oklch(0.72 0.25 145 / 50%)"
-                                : state === "premarket"
-                                  ? "oklch(0.78 0.2 85 / 50%)"
-                                  : "oklch(0.75 0.18 60 / 50%)"
-                              }`
+                              ? `0 0 5px ${
+                                  state === "market"
+                                    ? "oklch(0.72 0.25 145 / 50%)"
+                                    : state === "premarket"
+                                      ? "oklch(0.78 0.2 85 / 50%)"
+                                      : "oklch(0.75 0.18 60 / 50%)"
+                                }`
                               : "none",
                         }}
                       />
@@ -295,7 +296,7 @@ export function ScannerMarketStrip({
             })}
           </TooltipProvider>
           <div className="h-3 w-px bg-white/15" />
-          <div className="flex items-center gap-1.5 font-[var(--font-mono)] text-[0.7rem]">
+          <div className="flex items-center gap-1.5 font-[var(--font-mono)] text-[0.62rem]">
             {!updatedAt ? (
               <>
                 <span className="relative flex h-1.5 w-1.5">
@@ -307,7 +308,7 @@ export function ScannerMarketStrip({
             ) : (
               <>
                 <span className="text-white/35">updated</span>
-                <span className="font-[var(--font-mono)] text-[0.82rem] text-white/55 tabular-nums">
+                <span className="font-[var(--font-mono)] text-[0.7rem] text-white/55 tabular-nums">
                   {formatUpdatedAt(updatedAt)}
                 </span>
               </>

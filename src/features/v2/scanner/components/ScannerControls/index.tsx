@@ -1,68 +1,18 @@
 import { ActionButtons } from "./components/ActionButtons";
-import { SearchField } from "./components/SearchField";
 import { TimeframeChips } from "./components/TimeframeChips";
 import type { ScannerControlsProps } from "./types";
-
-const PRESET_CHIPS = [
-  { value: "Classic Rolling", label: "Movers" },
-  { value: "Alerts", label: "Alerts" },
-] as const;
-
-function PresetChips({
-  preset,
-  unseenAlertsCount,
-  onPresetChange,
-}: {
-  preset: ScannerControlsProps["preset"];
-  unseenAlertsCount: ScannerControlsProps["unseenAlertsCount"];
-  onPresetChange: ScannerControlsProps["onPresetChange"];
-}) {
-  return (
-    <div className="flex items-center gap-1.5">
-      {PRESET_CHIPS.map(({ value, label }) => {
-        const isActive = preset === value;
-        return (
-          <button
-            key={value}
-            type="button"
-            onClick={() => onPresetChange(value)}
-            className={`h-7 rounded-full border px-3 text-[0.7rem] font-bold transition-all duration-150 ${
-              isActive
-                ? value === "Classic Rolling"
-                  ? "border-transparent bg-[#5dc887] text-[#040a06]"
-                  : "border-[rgba(93,200,135,0.35)] bg-[rgba(93,200,135,0.12)] text-[#5dc887]"
-                : "border-white/10 bg-white/[0.035] text-white/50 hover:border-white/18 hover:text-white/70"
-            }`}
-          >
-            {label}
-            {value === "Alerts" && unseenAlertsCount > 0 && (
-              <span className="ml-1.5 inline-flex min-w-4 items-center justify-center rounded-full bg-[#5dc887] px-1 text-[0.58rem] leading-4 text-[#040a06]">
-                {unseenAlertsCount > 99 ? "99+" : unseenAlertsCount}
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 export function ScannerControls({
   density,
   isManualRefreshing,
   minVolume: _minVolume,
-  preset,
   refreshInterval,
-  search,
   timeframe,
-  unseenAlertsCount,
   watchlistFilter: _watchlistFilter,
   onDensityChange,
   onManualRefresh,
   onMinVolumeChange: _onMinVolumeChange,
-  onPresetChange,
   onRefreshIntervalChange,
-  onSearchChange,
   onTimeframeChange,
   onWatchlistFilterChange: _onWatchlistFilterChange,
 }: ScannerControlsProps) {
@@ -82,32 +32,16 @@ export function ScannerControls({
       {/* Mobile layout (< md): stacked rows */}
       <div className="flex flex-col gap-2 md:hidden">
         <div className="flex items-center justify-between gap-2">
-          <PresetChips
-            preset={preset}
-            unseenAlertsCount={unseenAlertsCount}
-            onPresetChange={onPresetChange}
-          />
           {actionButtons}
         </div>
-        <div className="flex items-center gap-2">
-          <SearchField search={search} onSearchChange={onSearchChange} />
-          <TimeframeChips
-            timeframe={timeframe}
-            onTimeframeChange={onTimeframeChange}
-          />
-        </div>
+        <TimeframeChips
+          timeframe={timeframe}
+          onTimeframeChange={onTimeframeChange}
+        />
       </div>
 
       {/* Desktop layout (md+): single row */}
       <div className="hidden md:flex md:items-center md:gap-4">
-        <div className="flex min-w-0 items-center gap-3 overflow-hidden">
-          <SearchField search={search} onSearchChange={onSearchChange} />
-          <PresetChips
-            preset={preset}
-            unseenAlertsCount={unseenAlertsCount}
-            onPresetChange={onPresetChange}
-          />
-        </div>
         <div className="ml-auto flex items-center gap-3">
           <TimeframeChips
             timeframe={timeframe}
