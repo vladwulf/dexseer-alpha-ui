@@ -467,9 +467,9 @@ export function AnalyticsRunners() {
         }
       `}</style>
 
-      <div style={{ padding: "32px 0 48px" }}>
+      <div style={{ padding: "20px 0 32px" }}>
         {/* Header */}
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1
               style={{

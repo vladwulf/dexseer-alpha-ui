@@ -505,7 +505,10 @@ export function useGetScannerChart(
     queryKey: ["scanner-v2-chart", assetId, params],
     queryFn: () => getScannerChart(assetId ?? 0, params),
     enabled: assetId !== null && assetId !== undefined,
-    ...SOCKET_PRIMED_QUERY_OPTIONS,
+    // The selected chart is a short-lived seed for the live socket stream.
+    // Do not reuse a previously selected chart: fetch its latest history before
+    // subscribing to candles for the newly selected instrument.
+    ...NO_FRONTEND_CACHE_QUERY_OPTIONS,
   });
 }
 

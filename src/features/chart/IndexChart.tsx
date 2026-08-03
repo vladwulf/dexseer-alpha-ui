@@ -3,6 +3,7 @@ import {
   CandlestickSeries,
   ColorType,
   createChart,
+  HistogramSeries,
   type Time,
 } from "lightweight-charts";
 import { useEffect, useRef } from "react";
@@ -14,11 +15,12 @@ type ChartProps = {
   klines: OHLCVExtended[];
   upColor?: string;
   downColor?: string;
+  showVolume?: boolean;
   symbol: string;
 };
 
 export const IndexChart: React.FC<ChartProps> = (props) => {
-  const { klines, downColor, upColor, symbol } = props;
+  const { klines, downColor, showVolume = false, upColor, symbol } = props;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
@@ -32,7 +34,7 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     // Create chart instance with dark theme
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "#0a0a0a" },
+        background: { type: ColorType.Solid, color: "#0e0e0e" },
         textColor: "#d1d5db",
       },
       grid: {
@@ -133,6 +135,28 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
       // priceLineVisible: true, // hides the horizontal last price line
     });
 
+    if (showVolume) {
+      const volumeSeries = chart.addSeries(HistogramSeries, {
+        priceFormat: { type: "volume" },
+        priceScaleId: "",
+        lastValueVisible: false,
+        priceLineVisible: false,
+      });
+      volumeSeries.priceScale().applyOptions({
+        scaleMargins: { top: 0.78, bottom: 0 },
+      });
+      volumeSeries.setData(
+        klines.map((kline) => ({
+          time: parseCandleTime(kline.time) as Time,
+          value: Number(kline.asset_volume) || 0,
+          color:
+            kline.close >= kline.open
+              ? "rgba(38, 194, 129, 0.62)"
+              : "rgba(236, 85, 100, 0.62)",
+        })),
+      );
+    }
+
     // Fit content to visible area
     chart.timeScale().fitContent();
 
@@ -144,10 +168,13 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     return () => {
       chart.remove();
     };
-  }, [klines, upColor, downColor]);
+  }, [downColor, klines, showVolume, upColor]);
 
   return (
-    <div ref={chartContainerRef} className="rounded-md h-full w-full relative">
+    <div
+      ref={chartContainerRef}
+      className="relative h-full w-full rounded-md bg-[#0e0e0e]"
+    >
       <div className="absolute left-3 right-3 z-10">
         <h4>{symbol.replace("USDT", "")}</h4>
       </div>

@@ -196,7 +196,7 @@ export function ScannerMarketStrip({
   );
 
   return (
-    <section className="border-b border-white/8 px-4 py-1 md:px-6">
+    <section className="scanner-market-strip border border-[var(--ds-border)] bg-[var(--ds-surface)] px-4 py-1 md:px-6">
       <div className="flex flex-wrap items-center gap-3 md:gap-6">
         <div className="flex flex-wrap items-center gap-4 md:gap-6">
           {items.map((item) => (

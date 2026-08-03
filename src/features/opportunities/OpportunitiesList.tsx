@@ -60,20 +60,20 @@ function OpportunityCard({
     <article
       ref={cardRef}
       data-chart-ready={chartQuery.isFetched || undefined}
-      className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.025]"
+      className="overflow-hidden rounded-lg bg-[var(--ds-surface)] shadow-[inset_0_1px_rgb(255_255_255_/_4%),0_14px_30px_rgb(0_0_0_/_14%)]"
     >
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 p-4 text-left transition-colors hover:bg-white/[0.035]"
+        className="grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 p-4 text-left transition-colors hover:bg-[var(--ds-surface-raised)]"
         aria-expanded={isOpen}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-300/10 font-mono text-xs text-amber-200">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--ds-electric-soft)] font-mono text-xs text-[var(--ds-electric)]">
           {rank === 1 ? <Trophy className="h-4 w-4" /> : `#${rank}`}
         </span>
         <span className="min-w-0">
           <span className="flex items-center gap-2">
-            <strong className="font-mono text-sm text-white/90">
+            <strong className="font-mono text-sm text-[var(--ds-text-primary)]">
               {opportunity.instrument_symbol}
             </strong>
             <span
@@ -85,11 +85,11 @@ function OpportunityCard({
             >
               {opportunity.direction}
             </span>
-            <span className="font-mono text-[0.65rem] text-white/40">
+            <span className="font-mono text-[0.65rem] text-[var(--ds-text-tertiary)]">
               {opportunity.timeframe}
             </span>
           </span>
-          <span className="mt-1 block font-mono text-[0.68rem] text-white/45">
+          <span className="mt-1 block font-mono text-[0.68rem] text-[var(--ds-text-secondary)]">
             Entry ${formatPrice(opportunity.price_at_alert)} · Best ${" "}
             {formatPrice(opportunity.extreme_price)} ·{" "}
             {formatTime(opportunity.extreme_time)}
@@ -105,14 +105,14 @@ function OpportunityCard({
             {opportunity.performance_pct.toFixed(2)}%
           </span>
           {isOpen ? (
-            <ChevronUp className="h-4 w-4 text-white/45" />
+            <ChevronUp className="h-4 w-4 text-[var(--ds-text-tertiary)]" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-white/45" />
+            <ChevronDown className="h-4 w-4 text-[var(--ds-text-tertiary)]" />
           )}
         </span>
       </button>
       {isOpen && (
-        <div className="h-80 border-t border-white/8">
+        <div className="h-80 border-t border-[var(--ds-border)]">
           <AlertsChartWrapper
             alertId={opportunity.alert_id}
             alertTime={opportunity.extreme_time}
@@ -133,7 +133,7 @@ export function OpportunitiesList() {
 
   if (opportunities.isLoading) {
     return (
-      <p className="font-mono text-xs text-white/45">
+      <p className="font-mono text-xs text-[var(--ds-text-secondary)]">
         Loading opportunities...
       </p>
     );
@@ -147,7 +147,7 @@ export function OpportunitiesList() {
   }
   if (!opportunities.data?.length) {
     return (
-      <p className="font-mono text-xs text-white/45">
+      <p className="font-mono text-xs text-[var(--ds-text-secondary)]">
         No ranked opportunities yet.
       </p>
     );

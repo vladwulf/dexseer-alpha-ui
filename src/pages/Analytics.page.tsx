@@ -11,17 +11,44 @@ export function AnalyticsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen px-4 pb-16 pt-8 max-w-7xl mx-auto">
-      <AnalyticsVolume />
-      <AnalyticsTimeframeMovers />
-      <AnalyticsPerformanceDistriubtion />
-      <AnalyticsBtcCorrelation />
-      <AnalyticsBreakoutHours />
-      <AnalyticsRunners />
-      <ScannerMomentumHeatmap
-        selectedSymbol=""
-        onSelectSymbol={(symbol) => navigate(`/assets/${symbol}`)}
-      />
-    </div>
+    <main className="analytics-page">
+      <header className="analytics-page__header page-intro-card">
+        <div>
+          <p className="analytics-page__eyebrow">Market intelligence</p>
+          <h1>Intelligence</h1>
+        </div>
+        <p>
+          Market activity, momentum, and relative-strength signals across the
+          perpetuals universe.
+        </p>
+      </header>
+
+      <div className="analytics-page__dashboard">
+        <section className="analytics-page__widget analytics-page__widget--wide">
+          <AnalyticsVolume />
+        </section>
+        <section className="analytics-page__widget analytics-page__widget--half">
+          <AnalyticsTimeframeMovers />
+        </section>
+        <section className="analytics-page__widget analytics-page__widget--half">
+          <AnalyticsPerformanceDistriubtion />
+        </section>
+        <section className="analytics-page__widget analytics-page__widget--half">
+          <AnalyticsBtcCorrelation />
+        </section>
+        <section className="analytics-page__widget analytics-page__widget--half">
+          <AnalyticsBreakoutHours />
+        </section>
+        <section className="analytics-page__widget analytics-page__widget--wide">
+          <AnalyticsRunners />
+        </section>
+        <section className="analytics-page__widget analytics-page__widget--wide analytics-page__widget--heatmap">
+          <ScannerMomentumHeatmap
+            selectedSymbol=""
+            onSelectSymbol={(symbol) => navigate(`/assets/${symbol}`)}
+          />
+        </section>
+      </div>
+    </main>
   );
 }

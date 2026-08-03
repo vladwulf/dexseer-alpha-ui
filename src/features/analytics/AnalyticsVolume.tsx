@@ -155,9 +155,9 @@ export function AnalyticsVolume() {
         }
       `}</style>
 
-      <div style={{ padding: "32px 0 48px" }}>
+      <div style={{ padding: "20px 0 32px" }}>
         {/* ── Header ────────────────────────────────────────────────── */}
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1
               style={{
@@ -270,8 +270,8 @@ export function AnalyticsVolume() {
             <div
               key={s.label}
               style={{
-                background: "oklch(0.13 0 0)",
-                border: "1px solid oklch(1 0 0 / 7%)",
+                background: "var(--ds-surface-raised)",
+                border: "none",
                 borderRadius: 8,
                 padding: "16px 18px",
               }}
@@ -318,8 +318,8 @@ export function AnalyticsVolume() {
         {/* ── Hourly volume chart ────────────────────────────────────── */}
         <div
           style={{
-            background: "oklch(0.12 0 0)",
-            border: "1px solid oklch(1 0 0 / 7%)",
+            background: "var(--ds-surface)",
+            border: "none",
             borderRadius: 12,
             padding: 24,
             marginBottom: 12,
@@ -709,8 +709,8 @@ export function AnalyticsVolume() {
         {/* ── Asset breakdown ────────────────────────────────────────── */}
         <div
           style={{
-            background: "oklch(0.12 0 0)",
-            border: "1px solid oklch(1 0 0 / 7%)",
+            background: "var(--ds-surface)",
+            border: "none",
             borderRadius: 12,
             padding: 24,
           }}
