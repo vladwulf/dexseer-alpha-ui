@@ -234,7 +234,6 @@ export function AssetDetailScreen() {
                     </span>
                   </span>
                   <IndexChart
-                    symbol={asset.symbol}
                     klines={asset.chart}
                     upColor="#5dc887"
                     downColor="#e35561"

@@ -11,12 +11,14 @@ import { StatCard } from "../StatCard";
 type ActiveAssetPanelProps = {
   asset?: ScannerAsset;
   liveUpdatesEnabled?: boolean;
+  showStats?: boolean;
   timeframe: ScannerTimeframe;
 };
 
 export function ActiveAssetPanel({
   asset,
   liveUpdatesEnabled = true,
+  showStats = true,
   timeframe,
 }: ActiveAssetPanelProps) {
   const { seriesByAssetId } = useLiveChartSeries({
@@ -68,7 +70,7 @@ export function ActiveAssetPanel({
             <Pill value={asset.change24h} label="1d" />
           </div>
         </div>
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-2 2xl:flex">
           <ActionButton
             icon={<BellPlus className="h-3.5 w-3.5" />}
             variant="primary"
@@ -97,41 +99,42 @@ export function ActiveAssetPanel({
       </div>
       <div className="terminal-chart-wrap">
         <IndexChart
-          symbol={asset.symbol}
           klines={klines}
           upColor="#26c281"
           downColor="#ec5564"
           showVolume
         />
       </div>
-      <div className="terminal-stat-grid">
-        <StatCard label="Volume 24h" value={asset.volume} tone="neutral" />
-        <StatCard
-          label="RVOL"
-          value={asset.rvol === null ? "—" : `${asset.rvol.toFixed(1)}x`}
-          tone="accent"
-        />
-        <StatCard
-          label="OI 24h Δ"
-          value={formatSigned(asset.oiDelta)}
-          tone="positive"
-        />
-        <StatCard
-          label="Funding"
-          value={formatSigned(asset.funding, "%")}
-          tone="neutral"
-        />
-        <StatCard
-          label="ATR"
-          value={numberFormat.format(asset.atrPercent)}
-          tone="neutral"
-        />
-        <StatCard
-          label="BTC corr"
-          value={asset.btcCorrelation.toFixed(2)}
-          tone="neutral"
-        />
-      </div>
+      {showStats && (
+        <div className="terminal-stat-grid">
+          <StatCard label="Volume 24h" value={asset.volume} tone="neutral" />
+          <StatCard
+            label="RVOL"
+            value={asset.rvol === null ? "—" : `${asset.rvol.toFixed(1)}x`}
+            tone="accent"
+          />
+          <StatCard
+            label="OI 24h Δ"
+            value={formatSigned(asset.oiDelta)}
+            tone="positive"
+          />
+          <StatCard
+            label="Funding"
+            value={formatSigned(asset.funding, "%")}
+            tone="neutral"
+          />
+          <StatCard
+            label="ATR"
+            value={numberFormat.format(asset.atrPercent)}
+            tone="neutral"
+          />
+          <StatCard
+            label="BTC corr"
+            value={asset.btcCorrelation.toFixed(2)}
+            tone="neutral"
+          />
+        </div>
+      )}
     </div>
   );
 }

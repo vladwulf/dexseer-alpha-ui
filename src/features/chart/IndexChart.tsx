@@ -16,11 +16,10 @@ type ChartProps = {
   upColor?: string;
   downColor?: string;
   showVolume?: boolean;
-  symbol: string;
 };
 
 export const IndexChart: React.FC<ChartProps> = (props) => {
-  const { klines, downColor, showVolume = false, upColor, symbol } = props;
+  const { klines, downColor, showVolume = false, upColor } = props;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
@@ -174,10 +173,6 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     <div
       ref={chartContainerRef}
       className="relative h-full w-full rounded-md bg-[#0e0e0e]"
-    >
-      <div className="absolute left-3 right-3 z-10">
-        <h4>{symbol.replace("USDT", "")}</h4>
-      </div>
-    </div>
+    ></div>
   );
 };

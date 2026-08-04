@@ -10,10 +10,11 @@ import {
 } from "react";
 
 const STORAGE_KEY = "scanner-terminal-panel-sizes-v2";
-const DEFAULT_SIZES = { scanner: 32, inspector: 27, content: 78 };
+const DEFAULT_SIZES = { scanner: 32, inspector: 28, content: 78 };
 const COMPACT_DEFAULT_SIZES = { scanner: 75, inspector: 0, content: 78 };
 const MIN_SCANNER = 22;
-const MIN_INSPECTOR = 20;
+const MIN_INSPECTOR = 25;
+const MAX_INSPECTOR = 50;
 const MIN_ACTIVE = 25;
 const MIN_CONTENT = 55;
 const MAX_CONTENT = 85;
@@ -49,6 +50,7 @@ export function TerminalWorkspace({
   const [isHydrated, setIsHydrated] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<ResizeTarget | null>(null);
+  const resizeCleanupRef = useRef<(() => void) | null>(null);
   const verticalGroupRef = useRef<HTMLDivElement>(null);
 
   const activeSize = showInspector
@@ -85,9 +87,16 @@ export function TerminalWorkspace({
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sizes));
   }, [isHydrated, sizes]);
 
+  useEffect(
+    () => () => {
+      resizeCleanupRef.current?.();
+    },
+    [],
+  );
+
   const updateFromPointer = (
     target: ResizeTarget,
-    event: PointerEvent<HTMLDivElement>,
+    event: Pick<PointerEvent<HTMLDivElement>, "clientX" | "clientY">,
   ) => {
     const group =
       target === "dock" ? contentRef.current : verticalGroupRef.current;
@@ -106,11 +115,10 @@ export function TerminalWorkspace({
       setSizes((current) => ({ ...current, scanner }));
     }
     if (target === "inspector") {
-      const maximum = 100 - sizes.scanner - MIN_ACTIVE;
       const inspector = clamp(
         ((rect.right - event.clientX) / rect.width) * 100,
         MIN_INSPECTOR,
-        maximum,
+        MAX_INSPECTOR,
       );
       setSizes((current) => ({ ...current, inspector }));
     }
@@ -131,6 +139,20 @@ export function TerminalWorkspace({
     event.currentTarget.setPointerCapture(event.pointerId);
     resizingRef.current = target;
     updateFromPointer(target, event);
+
+    resizeCleanupRef.current?.();
+    const handleWindowPointerMove = (moveEvent: globalThis.PointerEvent) => {
+      updateFromPointer(target, moveEvent);
+    };
+    const handleWindowPointerUp = () => {
+      resizingRef.current = null;
+      window.removeEventListener("pointermove", handleWindowPointerMove);
+      window.removeEventListener("pointerup", handleWindowPointerUp);
+      resizeCleanupRef.current = null;
+    };
+    resizeCleanupRef.current = handleWindowPointerUp;
+    window.addEventListener("pointermove", handleWindowPointerMove);
+    window.addEventListener("pointerup", handleWindowPointerUp);
   };
 
   const handlePointerMove = (
@@ -145,6 +167,7 @@ export function TerminalWorkspace({
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
     resizingRef.current = null;
+    resizeCleanupRef.current?.();
   };
 
   const handleKeyDown = (
@@ -183,7 +206,7 @@ export function TerminalWorkspace({
           inspector: clamp(
             current.inspector - delta,
             MIN_INSPECTOR,
-            100 - current.scanner - MIN_ACTIVE,
+            MAX_INSPECTOR,
           ),
         };
       }
@@ -209,7 +232,12 @@ export function TerminalWorkspace({
     "aria-orientation": (target === "dock" ? "horizontal" : "vertical") as
       | "horizontal"
       | "vertical",
-    "aria-valuemax": target === "dock" ? MAX_CONTENT : 100 - MIN_ACTIVE,
+    "aria-valuemax":
+      target === "dock"
+        ? MAX_CONTENT
+        : target === "inspector"
+          ? MAX_INSPECTOR
+          : 100 - MIN_ACTIVE,
     "aria-valuemin":
       target === "dock"
         ? MIN_CONTENT
@@ -233,16 +261,17 @@ export function TerminalWorkspace({
   return (
     <div
       className={`terminal-workspace${isAlertsMode ? " terminal-workspace--alerts" : ""}${showInspector ? "" : " terminal-workspace--compact"}${hasDock ? "" : " terminal-workspace--no-dock"}`}
+      ref={verticalGroupRef}
     >
-      <div className="terminal-workspace__toolbar">{controls}</div>
-      <div className="terminal-workspace__content" ref={contentRef}>
-        <div
-          className="terminal-workspace__panels"
-          ref={verticalGroupRef}
-          style={
-            { flex: `${hasDock ? sizes.content : 100} 1 0px` } as CSSProperties
-          }
-        >
+      <div className="terminal-workspace__main">
+        <div className="terminal-workspace__toolbar">{controls}</div>
+        <div className="terminal-workspace__content" ref={contentRef}>
+          <div
+            className="terminal-workspace__panels"
+            style={
+              { flex: `${hasDock ? sizes.content : 100} 1 0px` } as CSSProperties
+            }
+          >
           <section
             className="terminal-workspace__scanner"
             data-panel="true"
@@ -265,34 +294,40 @@ export function TerminalWorkspace({
           >
             {activeAsset}
           </section>
+          </div>
           <div
-            className="terminal-resize-handle terminal-resize-handle--vertical"
-            {...getHandleProps("inspector")}
+            className="terminal-resize-handle terminal-resize-handle--horizontal"
+            {...getHandleProps("dock")}
           />
-          <aside
-            className="terminal-workspace__inspector"
+          <section
+            className="terminal-workspace__dock"
             data-panel="true"
-            id="inspector"
-            style={{ flex: `${sizes.inspector} 1 0px` } as CSSProperties}
-            aria-label="Asset inspector"
+            id="tables"
+            style={{ flex: `${dockSize} 1 0px` } as CSSProperties}
+            aria-label="Asset activity"
           >
-            {inspector}
-          </aside>
+            {bottomDock}
+          </section>
         </div>
-        <div
-          className="terminal-resize-handle terminal-resize-handle--horizontal"
-          {...getHandleProps("dock")}
-        />
-        <section
-          className="terminal-workspace__dock"
-          data-panel="true"
-          id="tables"
-          style={{ flex: `${dockSize} 1 0px` } as CSSProperties}
-          aria-label="Asset activity"
-        >
-          {bottomDock}
-        </section>
       </div>
+      <div
+        className="terminal-resize-handle terminal-resize-handle--vertical"
+        {...getHandleProps("inspector")}
+      />
+      <aside
+        className="terminal-workspace__inspector"
+        data-panel="true"
+        id="inspector"
+        style={
+          {
+            flex: "0 1 auto",
+            width: `clamp(25%, ${sizes.inspector}%, 50%)`,
+          } as CSSProperties
+        }
+        aria-label="Asset inspector"
+      >
+        {inspector}
+      </aside>
     </div>
   );
 }

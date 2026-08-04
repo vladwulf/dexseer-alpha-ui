@@ -38,17 +38,12 @@ export function ScannerSidePanel({
     if (delta > 80) onMobileOpenChange(false);
   }
 
-  const bodyContent = asset ? (
-    <ScannerSidePanelBody asset={asset} timeframe={timeframe} />
-  ) : (
-    <ScannerSidePanelSkeleton />
-  );
-
-  const mobileContent = asset ? (
+  const panelContent = asset ? (
     <>
       <ActiveAssetPanel
         asset={asset}
         liveUpdatesEnabled={liveUpdatesEnabled}
+        showStats={false}
         timeframe={timeframe}
       />
       <ScannerSidePanelBody asset={asset} timeframe={timeframe} />
@@ -60,7 +55,7 @@ export function ScannerSidePanel({
   return (
     <>
       <aside className="hide-scrollbar hidden h-full min-h-0 bg-[#090b0d] xl:block xl:w-full xl:overflow-y-auto">
-        {bodyContent}
+        {panelContent}
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
@@ -76,7 +71,7 @@ export function ScannerSidePanel({
           <SheetDescription className="sr-only">
             Asset intelligence details for the selected scanner symbol.
           </SheetDescription>
-          <div className="min-h-full pb-6 xl:hidden">{mobileContent}</div>
+          <div className="min-h-full pb-6 xl:hidden">{panelContent}</div>
         </SheetContent>
       </Sheet>
     </>

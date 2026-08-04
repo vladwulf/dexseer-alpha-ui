@@ -104,7 +104,7 @@ export function ScannerV2Screen() {
   return (
     <div className="terminal-screen">
       <div className="terminal-container">
-        <div className="sticky top-11 z-40 bg-transparent">
+        <div className="z-40 bg-transparent">
           <ScannerMarketStrip
             breadth={marketStripQuery.data?.breadth}
             items={marketStripItems}
@@ -160,6 +160,7 @@ export function ScannerV2Screen() {
               timeframe={timeframe}
             />
           }
+          showInspector
         />
       </div>
     </div>
