@@ -1,3 +1,4 @@
+import { ChevronDown, Volume2, VolumeX } from "lucide-react";
 import { type Ref, useEffect, useRef, useState } from "react";
 import {
   Accordion,
@@ -5,11 +6,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -26,22 +30,68 @@ import {
 
 const PAGE_SIZE = 10;
 const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
+const VOICE_ALERT_GENDER_STORAGE_KEY = "scanner-v2-voice-alert-gender";
 const VOICE_ALERT_COOLDOWN_MS = 2_500;
 const ALL_STRATEGIES = "all";
 
-const SPOKEN_TIMEFRAMES: Record<AlertTimeframe, string> = {
-  "1m": "one minute",
-  "5m": "five minutes",
-  "15m": "fifteen minutes",
-  "30m": "thirty minutes",
-  "1h": "one hour",
-  "4h": "four hours",
-  "1d": "one day",
-};
+type VoiceGender = "female" | "male";
+
+const FEMALE_VOICE_NAMES =
+  /ava|samantha|victoria|karen|moira|tessa|susan|zira|hazel|heather|fiona|serena|siri.*female|google us english/i;
+const MALE_VOICE_NAMES =
+  /alex|daniel|david|fred|jorge|tom|aaron|arthur|oliver|rishi|lee|siri.*male/i;
 
 type StrategySelection =
   | typeof ALL_STRATEGIES
   | (typeof MOMENTUM_INTELLIGENCE_STRATEGY_IDS)[number];
+
+type FilterOption<T extends string> = { label: string; value: T };
+
+function FilterDropdown<T extends string>({
+  ariaLabel,
+  value,
+  options,
+  onValueChange,
+}: {
+  ariaLabel: string;
+  value: T;
+  options: FilterOption<T>[];
+  onValueChange: (value: T) => void;
+}) {
+  const selectedOption = options.find((option) => option.value === value);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          aria-label={ariaLabel}
+          className="h-9 rounded-md border-white/15 bg-white/[0.025] px-3 font-mono text-xs font-normal text-white/75 shadow-none hover:border-white/25 hover:bg-white/[0.05] hover:text-white"
+        >
+          {selectedOption?.label}
+          <ChevronDown />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="border-white/15 bg-[#101312] font-mono text-xs text-white/80"
+      >
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={(nextValue) => onValueChange(nextValue as T)}
+        >
+          {options.map((option) => (
+            <DropdownMenuRadioItem key={option.value} value={option.value}>
+              {option.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 6 }).format(price);
@@ -59,15 +109,17 @@ function getVoiceAlertMessage(alert: AlertListItem) {
   const symbol =
     alert.instrument.base_asset_symbol || alert.instrument.instrument_symbol;
   const event = getMomentumEvent(alert);
-  const transition = getStateTransition(alert);
 
-  return [
-    `${symbol}: ${event}`,
-    `${SPOKEN_TIMEFRAMES[alert.timeframe]} ${alert.direction}`,
-    transition,
-  ]
-    .filter(Boolean)
-    .join(", ");
+  return `${symbol}: ${event.replace("pullback", "pull back")}`;
+}
+
+function getVoiceForGender(
+  voices: SpeechSynthesisVoice[],
+  gender: VoiceGender,
+) {
+  const voiceNamePattern =
+    gender === "female" ? FEMALE_VOICE_NAMES : MALE_VOICE_NAMES;
+  return voices.find((voice) => voiceNamePattern.test(voice.name));
 }
 
 function getMomentumEvent(alert: AlertListItem) {
@@ -200,6 +252,12 @@ export function MomentumAlertsPanel() {
     // start speaking. A user who explicitly enabled it keeps that preference.
     () => localStorage.getItem(VOICE_ALERTS_STORAGE_KEY) === "true",
   );
+  const [voiceGender, setVoiceGender] = useState<VoiceGender>(() =>
+    localStorage.getItem(VOICE_ALERT_GENDER_STORAGE_KEY) === "male"
+      ? "male"
+      : "female",
+  );
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const alertListRef = useRef<HTMLDivElement>(null);
@@ -293,6 +351,16 @@ export function MomentumAlertsPanel() {
   }, [alertQueryScope]);
 
   useEffect(() => {
+    if (!window.speechSynthesis) return;
+
+    const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
+    loadVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () =>
+      window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+  }, []);
+
+  useEffect(() => {
     const sentinel = loadMoreRef.current;
     const scrollContainer = alertListRef.current;
     if (!sentinel || !scrollContainer || !hasMoreAlerts || isLoading) return;
@@ -377,6 +445,8 @@ export function MomentumAlertsPanel() {
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(getVoiceAlertMessage(alert));
+    const selectedVoice = getVoiceForGender(voices, voiceGender);
+    if (selectedVoice) utterance.voice = selectedVoice;
     utterance.rate = 1.1;
     utterance.volume = 0.7;
     utterance.onstart = () => {
@@ -401,6 +471,8 @@ export function MomentumAlertsPanel() {
     sortOrder,
     strategyId,
     voiceAlertsEnabled,
+    voiceGender,
+    voices,
   ]);
 
   const handleVoiceAlertsChange = () => {
@@ -410,6 +482,11 @@ export function MomentumAlertsPanel() {
       if (!nextEnabled) window.speechSynthesis?.cancel();
       return nextEnabled;
     });
+  };
+
+  const handleVoiceGenderChange = (gender: VoiceGender) => {
+    setVoiceGender(gender);
+    localStorage.setItem(VOICE_ALERT_GENDER_STORAGE_KEY, gender);
   };
 
   useEffect(() => {
@@ -460,33 +537,36 @@ export function MomentumAlertsPanel() {
           <span className="mr-1 text-[0.64rem] uppercase tracking-[0.2em] text-white/40">
             Event
           </span>
-          <select
+          <FilterDropdown
+            ariaLabel="Strategy"
             value={strategyId}
-            onChange={(event) => {
-              setStrategyId(event.target.value as StrategySelection);
+            options={[
+              { label: "All strategies", value: ALL_STRATEGIES },
+              ...MOMENTUM_INTELLIGENCE_STRATEGY_IDS.map((id) => ({
+                label: id
+                  .replace("momentum-intelligence-", "")
+                  .replace("-v2", ""),
+                value: id,
+              })),
+            ]}
+            onValueChange={(value) => {
+              setStrategyId(value);
               setPage(0);
             }}
-            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
-          >
-            <option value={ALL_STRATEGIES}>ALL</option>
-            {MOMENTUM_INTELLIGENCE_STRATEGY_IDS.map((id) => (
-              <option key={id} value={id}>
-                {id.replace("momentum-intelligence-", "").replace("-v2", "")}
-              </option>
-            ))}
-          </select>
-          <select
+          />
+          <FilterDropdown
+            ariaLabel="Direction"
             value={direction}
-            onChange={(event) => {
-              setDirection(event.target.value);
+            options={[
+              { label: "All directions", value: "" },
+              { label: "Long", value: "long" },
+              { label: "Short", value: "short" },
+            ]}
+            onValueChange={(value) => {
+              setDirection(value);
               setPage(0);
             }}
-            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
-          >
-            <option value="">All directions</option>
-            <option value="long">Long</option>
-            <option value="short">Short</option>
-          </select>
+          />
           <input
             value={symbol}
             onChange={(event) => {
@@ -494,18 +574,20 @@ export function MomentumAlertsPanel() {
               setPage(0);
             }}
             placeholder="Filter symbol…"
-            className="h-9 min-w-36 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 placeholder:text-white/30 outline-none transition-colors hover:border-white/25 focus:border-[#5dc887]/60"
+            className="h-9 min-w-36 rounded-md border border-white/15 bg-white/[0.025] px-3 text-white/75 placeholder:text-white/30 outline-none transition-colors hover:border-white/25 focus:border-[#5dc887]/60"
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
+              <Button
                 type="button"
-                className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-md border-white/15 bg-white/[0.025] px-3 font-mono text-xs font-normal text-white/75 shadow-none hover:border-white/25 hover:bg-white/[0.05] hover:text-white"
               >
                 {selectedEventTypes.length === 0
                   ? "All event types"
                   : `${selectedEventTypes.length} event type${selectedEventTypes.length === 1 ? "" : "s"}`}
-              </button>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
@@ -544,41 +626,77 @@ export function MomentumAlertsPanel() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <select
+          <FilterDropdown
+            ariaLabel="Sort field"
             value={sortBy}
-            onChange={(event) => {
-              setSortBy(event.target.value as AlertSortBy);
+            options={[
+              { label: "Sort: triggered", value: "triggered_at" },
+              { label: "Sort: event type", value: "alert_type" },
+            ]}
+            onValueChange={(value) => {
+              setSortBy(value);
               setPage(0);
             }}
-            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
-          >
-            <option value="triggered_at">Sort: triggered</option>
-            <option value="alert_type">Sort: event type</option>
-          </select>
-          <select
-            aria-label="Sort order"
+          />
+          <FilterDropdown
+            ariaLabel="Sort order"
             value={sortOrder}
-            onChange={(event) => {
-              setSortOrder(event.target.value as SortOrder);
+            options={[
+              { label: "Descending", value: "desc" },
+              { label: "Ascending", value: "asc" },
+            ]}
+            onValueChange={(value) => {
+              setSortOrder(value);
               setPage(0);
             }}
-            className="h-9 rounded-full border border-white/15 bg-white/[0.025] px-3 text-white/75 outline-none transition-colors hover:border-white/25"
-          >
-            <option value="desc">Descending</option>
-            <option value="asc">Ascending</option>
-          </select>
-          <button
-            type="button"
-            aria-pressed={voiceAlertsEnabled}
-            onClick={handleVoiceAlertsChange}
-            className={`h-9 rounded-full border px-3 text-[0.65rem] uppercase tracking-[0.08em] transition-colors ${
-              voiceAlertsEnabled
-                ? "border-[#5dc887]/40 bg-[#5dc887]/10 text-[#5dc887]"
-                : "border-white/10 text-white/45 hover:border-white/20 hover:text-white/70"
-            }`}
-          >
-            Voice {voiceAlertsEnabled ? "on" : "off"}
-          </button>
+          />
+          <div className="flex overflow-hidden rounded-md">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-pressed={voiceAlertsEnabled}
+              onClick={handleVoiceAlertsChange}
+              className={`h-9 rounded-r-none border px-3 text-[0.65rem] uppercase tracking-[0.08em] shadow-none ${
+                voiceAlertsEnabled
+                  ? "border-[#5dc887]/40 bg-[#5dc887]/10 text-[#5dc887] hover:bg-[#5dc887]/15 hover:text-[#5dc887]"
+                  : "border-white/10 bg-transparent text-white/45 hover:border-white/20 hover:bg-white/[0.03] hover:text-white/70"
+              }`}
+            >
+              {voiceAlertsEnabled ? <Volume2 /> : <VolumeX />}
+              Voice {voiceAlertsEnabled ? "on" : "off"}
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  aria-label="Select voice"
+                  className="h-9 rounded-l-none border-l-0 border-white/10 bg-transparent px-2 text-white/60 shadow-none hover:border-white/20 hover:bg-white/[0.03] hover:text-white"
+                >
+                  {voiceGender}
+                  <ChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-36">
+                <DropdownMenuLabel>Alert voice</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  checked={voiceGender === "female"}
+                  onCheckedChange={() => handleVoiceGenderChange("female")}
+                >
+                  Female
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={voiceGender === "male"}
+                  onCheckedChange={() => handleVoiceGenderChange("male")}
+                >
+                  Male
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <span className="ml-auto flex items-center gap-2 whitespace-nowrap text-[0.72rem] text-[#5dc887]">
             <span className="h-2 w-2 rounded-full bg-[#5dc887] shadow-[0_0_10px_#5dc887]" />
             Streaming
