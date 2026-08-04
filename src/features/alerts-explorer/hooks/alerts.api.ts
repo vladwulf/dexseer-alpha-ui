@@ -1,5 +1,6 @@
 import {
   type InfiniteData,
+  keepPreviousData,
   useInfiniteQuery,
   useQuery,
   useQueryClient,
@@ -352,6 +353,9 @@ export function useGetAlertsPage({
   return useQuery({
     enabled,
     refetchInterval,
+    // The alert limit changes as the list is paged. Retaining the existing
+    // rows during that request prevents the scroll container from collapsing.
+    placeholderData: keepPreviousData,
     queryKey: [
       "alerts/explorer/page",
       timeframe,

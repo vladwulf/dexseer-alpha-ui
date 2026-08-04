@@ -1,4 +1,14 @@
-import { ChevronDown, Volume2, VolumeX } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  ChevronDown,
+  Flame,
+  LoaderCircle,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  XCircle,
+} from "lucide-react";
 import { type Ref, useEffect, useRef, useState } from "react";
 import {
   Accordion,
@@ -29,7 +39,7 @@ import {
 } from "@/features/alerts-explorer/hooks/alerts.api";
 import { getMomentumAlertLabel } from "@/features/v2/scanner/lib/momentumLabels";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
 const VOICE_ALERT_GENDER_STORAGE_KEY = "scanner-v2-voice-alert-gender";
 const VOICE_ALERT_COOLDOWN_MS = 2_500;
@@ -166,6 +176,43 @@ const EVENT_TONE_CLASSES = {
   red: "bg-[#d65361]/[0.2] text-[#ff7180]",
 } as const;
 
+const ALERT_TABLE_COLUMNS =
+  "grid-cols-[74px_132px_minmax(120px,1.1fr)_minmax(140px,1.35fr)_88px]";
+
+function EventStateIcon({ alert }: { alert: AlertListItem }) {
+  const event = getMomentumEvent(alert);
+
+  if (event.includes("pullback")) {
+    return <RotateCcw aria-hidden="true" className="size-3" />;
+  }
+
+  if (event.includes("exited")) {
+    return <XCircle aria-hidden="true" className="size-3" />;
+  }
+
+  return alert.direction.toLowerCase().includes("short") ? (
+    <ArrowDownRight aria-hidden="true" className="size-3" />
+  ) : (
+    <ArrowUpRight aria-hidden="true" className="size-3" />
+  );
+}
+
+function isUnusualMomentum(alert: AlertListItem) {
+  const values = [
+    alert.momentum_label,
+    alert.alert_type,
+    alert.type,
+    alert.trigger_values.event_type,
+    alert.trigger_values.severity,
+    alert.trigger_values.state,
+  ];
+
+  return values.some(
+    (value) =>
+      typeof value === "string" && value.toLowerCase().includes("unusual"),
+  );
+}
+
 function AlertRow({
   alert,
   selected,
@@ -177,19 +224,33 @@ function AlertRow({
   onSelect: () => void;
   buttonRef: Ref<HTMLButtonElement>;
 }) {
+  const unusual = isUnusualMomentum(alert);
+
   return (
     <button
       ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className={`grid w-full min-w-[600px] grid-cols-[74px_86px_minmax(120px,1.1fr)_minmax(140px,1.35fr)_88px] items-center gap-2 border-b border-white/[0.08] px-3 py-2.5 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_2px_0_0_#5dc887]" : "bg-transparent"}`}
+      className={`grid w-full min-w-[650px] ${ALERT_TABLE_COLUMNS} items-center gap-2 border-b border-white/[0.08] px-3 py-2.5 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_2px_0_0_#5dc887]" : unusual ? "bg-[#ffae45]/[0.045] shadow-[inset_2px_0_0_#ffae45] hover:bg-[#ffae45]/[0.075]" : "bg-transparent"}`}
     >
       <span className="font-mono text-[0.76rem] tabular-nums text-white/50">
         {formatAlertTime(alert.triggered_at ?? alert.time)}
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[0.9rem] font-bold italic leading-tight text-white/95">
-          {alert.instrument.instrument_symbol.replace(/[-_/].*$/, "")}
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-[0.9rem] font-bold italic leading-tight text-white/95">
+            {alert.instrument.instrument_symbol.replace(/[-_/].*$/, "")}
+          </span>
+          {isUnusualMomentum(alert) && (
+            <span
+              role="img"
+              aria-label="Unusual momentum"
+              title="Unusual momentum"
+              className="alert-unusual-flame shrink-0 text-[#ffae45]"
+            >
+              <Flame aria-hidden="true" className="size-3.5 fill-current" />
+            </span>
+          )}
         </span>
         <span className="block pt-px font-mono text-[0.55rem] tracking-[0.12em] text-white/35">
           {alert.instrument.quote_asset_symbol || "USDT"}
@@ -203,14 +264,13 @@ function AlertRow({
           {alert.direction} momentum intelligence signal
         </span>
       </span>
-      <span className="flex min-w-0 items-center gap-1.5 text-[0.65rem]">
+      <span className="flex min-w-0 items-center text-[0.65rem]">
         <span
-          className={`shrink-0 rounded-md px-2 py-1 font-semibold ${EVENT_TONE_CLASSES[getEventTone(alert)]}`}
+          title={getSetupLabel(alert)}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 font-semibold ${EVENT_TONE_CLASSES[getEventTone(alert)]}`}
         >
-          {getSetupLabel(alert)}
-        </span>
-        <span className="truncate text-white/35">
-          {alert.strategy_id.replace("momentum-intelligence-", "")}
+          <EventStateIcon alert={alert} />
+          {getSetupLabel(alert).replace(/^[↑↓↘]\s*/, "")}
         </span>
       </span>
       <span className="text-right font-mono text-[0.82rem] tabular-nums text-white/90">
@@ -247,6 +307,7 @@ export function MomentumAlertsPanel() {
   const knownAlertIdsRef = useRef(new Set<string>());
   const voiceAlertsPrimedRef = useRef(false);
   const skipVoiceForNextPageRef = useRef(false);
+  const isLoadingMoreRef = useRef(false);
   const lastVoiceAlertAtRef = useRef(0);
   const queryLimit = (page + 1) * PAGE_SIZE;
   const baseQueryParams = {
@@ -310,6 +371,7 @@ export function MomentumAlertsPanel() {
     })
     .slice(0, queryLimit);
   const isLoading = activeQueries.some((query) => query.isLoading);
+  const isFetchingMore = activeQueries.some((query) => query.isFetching);
   const isError = activeQueries.some((query) => query.isError);
   const alertQueryScope = `${strategyId}:${direction}:${symbol}:${selectedEventTypes.join(",")}:${sortBy}:${sortOrder}`;
   const totalAlerts = activeQueries.reduce(
@@ -331,7 +393,12 @@ export function MomentumAlertsPanel() {
 
     voiceAlertsPrimedRef.current = false;
     knownAlertIdsRef.current.clear();
+    isLoadingMoreRef.current = false;
   }, [alertQueryScope]);
+
+  useEffect(() => {
+    if (!isFetchingMore) isLoadingMoreRef.current = false;
+  }, [isFetchingMore]);
 
   useEffect(() => {
     if (!window.speechSynthesis) return;
@@ -346,13 +413,23 @@ export function MomentumAlertsPanel() {
   useEffect(() => {
     const sentinel = loadMoreRef.current;
     const scrollContainer = alertListRef.current;
-    if (!sentinel || !scrollContainer || !hasMoreAlerts || isLoading) return;
+    if (
+      !sentinel ||
+      !scrollContainer ||
+      !hasMoreAlerts ||
+      isLoading ||
+      isFetchingMore
+    ) {
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {
+        if (entries[0]?.isIntersecting && !isLoadingMoreRef.current) {
           // These are older alerts being added by pagination, not new live
-          // alerts, so they must not be announced.
+          // alerts, so they must not be announced. The ref prevents the
+          // sentinel from incrementing more than once before the fetch settles.
+          isLoadingMoreRef.current = true;
           skipVoiceForNextPageRef.current = true;
           setPage((current) => current + 1);
         }
@@ -361,7 +438,7 @@ export function MomentumAlertsPanel() {
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMoreAlerts, isLoading]);
+  }, [hasMoreAlerts, isFetchingMore, isLoading]);
 
   useEffect(() => {
     if (!voiceAlertsPrimedRef.current) {
@@ -686,7 +763,9 @@ export function MomentumAlertsPanel() {
           </span>
         </div>
         <div className="overflow-x-auto">
-          <div className="grid min-w-[600px] grid-cols-[74px_86px_minmax(120px,1.1fr)_minmax(140px,1.35fr)_88px] gap-2 border-b border-white/[0.1] bg-[#0c0f0e] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/40">
+          <div
+            className={`grid min-w-[650px] ${ALERT_TABLE_COLUMNS} gap-2 border-b border-white/[0.1] bg-[#0c0f0e] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/40`}
+          >
             <span>Time</span>
             <span>Symbol</span>
             <span>Event</span>
@@ -725,11 +804,23 @@ export function MomentumAlertsPanel() {
           ref={loadMoreRef}
           className="border-t border-white/8 px-4 py-3 text-center font-mono text-[0.65rem] text-white/40"
         >
-          {hasMoreAlerts
-            ? "Loading more alerts…"
-            : totalAlerts > 0
-              ? "End of alert history"
-              : ""}
+          {hasMoreAlerts ? (
+            isFetchingMore ? (
+              <span className="inline-flex items-center gap-2 text-white/55">
+                <LoaderCircle
+                  aria-hidden="true"
+                  className="size-3 animate-[spin_1.8s_linear_infinite] text-[#5dc887]"
+                />
+                Loading more alerts…
+              </span>
+            ) : (
+              "Scroll for more alerts"
+            )
+          ) : totalAlerts > 0 ? (
+            "End of alert history"
+          ) : (
+            ""
+          )}
         </div>
       </div>
       <div

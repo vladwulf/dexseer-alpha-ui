@@ -993,6 +993,29 @@ button.terminal-alert-row:hover {
   padding: 20px;
 }
 
+@keyframes alert-unusual-flame-flicker {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.9) rotate(-4deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) rotate(4deg);
+  }
+}
+
+.alert-unusual-flame {
+  animation: alert-unusual-flame-flicker 1.25s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgb(255 139 45 / 60%));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-unusual-flame {
+    animation: none;
+  }
+}
+
 .asset-detail-screen {
   background: var(--ds-canvas);
 }
