@@ -31,7 +31,7 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
   const scannerQuery = useGetScanner(
     {
       preset: getScannerPresetKey("Classic Rolling"),
-      limit: 10,
+      limit: 20,
       ...scannerSortParams,
     },
     {

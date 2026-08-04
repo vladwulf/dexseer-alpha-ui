@@ -613,7 +613,7 @@ export function MomentumAlertsPanel() {
   }, [alerts, selectedAlert?.id]);
 
   return (
-    <section className="flex min-h-[640px] border border-white/8 bg-[#090b0d]">
+    <section className="flex min-h-[640px] border border-white/8 bg-[var(--ds-canvas)]">
       <div
         ref={alertListRef}
         className="min-w-0 flex-1 border-b border-white/8 xl:overflow-y-auto xl:border-b-0"
