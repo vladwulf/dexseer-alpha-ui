@@ -29,7 +29,7 @@ export function getMomentumAlertEventType(alert: MomentumAlertSource) {
 
 /** Uses the backend's descriptive label; legacy alerts retain their old fallback. */
 export function getMomentumAlertLabel(alert: MomentumAlertSource) {
-  if (isMomentumPullback(alert)) return "pullback entered";
+  if (isMomentumPullback(alert)) return "pullback";
 
   return (
     formatLabel(alert.momentum_label) ??
