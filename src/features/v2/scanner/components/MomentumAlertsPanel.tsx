@@ -34,7 +34,7 @@ import {
   type AlertTimeframe,
   MOMENTUM_INTELLIGENCE_STRATEGY_IDS,
   type SortOrder,
-  useGetAlertsPage,
+  useGetAlertsPaginated,
   useGetAlertTypes,
 } from "@/features/alerts-explorer/hooks/alerts.api";
 import {
@@ -292,7 +292,6 @@ export function MomentumAlertsPanel() {
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<AlertSortBy>("triggered_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [page, setPage] = useState(0);
   const [voiceAlertsEnabled, setVoiceAlertsEnabled] = useState(
     // Audio is opt-in: entering the Alerts page should never unexpectedly
     // start speaking. A user who explicitly enabled it keeps that preference.
@@ -312,10 +311,8 @@ export function MomentumAlertsPanel() {
   const skipVoiceForNextPageRef = useRef(false);
   const isLoadingMoreRef = useRef(false);
   const lastVoiceAlertAtRef = useRef(0);
-  const queryLimit = (page + 1) * PAGE_SIZE;
   const baseQueryParams = {
-    limit: queryLimit,
-    offset: 0,
+    limit: PAGE_SIZE,
     direction: direction || undefined,
     symbol: symbol || undefined,
     // The API supports one event type. For a multi-select, fetch the current
@@ -326,21 +323,21 @@ export function MomentumAlertsPanel() {
     sortOrder,
   };
   const alertTypesQuery = useGetAlertTypes();
-  const fiveMinuteQuery = useGetAlertsPage({
+  const fiveMinuteQuery = useGetAlertsPaginated({
     ...baseQueryParams,
     enabled:
       strategyId === ALL_STRATEGIES ||
       strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[0],
     strategyId: MOMENTUM_INTELLIGENCE_STRATEGY_IDS[0],
   });
-  const fifteenMinuteQuery = useGetAlertsPage({
+  const fifteenMinuteQuery = useGetAlertsPaginated({
     ...baseQueryParams,
     enabled:
       strategyId === ALL_STRATEGIES ||
       strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[1],
     strategyId: MOMENTUM_INTELLIGENCE_STRATEGY_IDS[1],
   });
-  const oneHourQuery = useGetAlertsPage({
+  const oneHourQuery = useGetAlertsPaginated({
     ...baseQueryParams,
     enabled:
       strategyId === ALL_STRATEGIES ||
@@ -355,7 +352,9 @@ export function MomentumAlertsPanel() {
         : strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[1]
           ? [fifteenMinuteQuery]
           : [oneHourQuery];
-  const loadedAlerts = activeQueries.flatMap((query) => query.data?.data ?? []);
+  const loadedAlerts = activeQueries.flatMap(
+    (query) => query.data?.pages.flatMap((page) => page.data) ?? [],
+  );
   const alertTypes = (() => {
     const types = new Map(
       (alertTypesQuery.data ?? []).map(({ alert_type, total }) => [
@@ -393,17 +392,14 @@ export function MomentumAlertsPanel() {
           : Date.parse(left.triggered_at ?? left.time) -
             Date.parse(right.triggered_at ?? right.time);
       return sortOrder === "asc" ? comparison : -comparison;
-    })
-    .slice(0, queryLimit);
+    });
   const isLoading = activeQueries.some((query) => query.isLoading);
-  const isFetchingMore = activeQueries.some((query) => query.isFetching);
+  const isFetchingMore = activeQueries.some(
+    (query) => query.isFetchingNextPage,
+  );
   const isError = activeQueries.some((query) => query.isError);
   const alertQueryScope = `${strategyId}:${direction}:${symbol}:${selectedEventTypes.join(",")}:${sortBy}:${sortOrder}`;
-  const totalAlerts = activeQueries.reduce(
-    (total, query) => total + (query.data?.meta.total ?? 0),
-    0,
-  );
-  const hasMoreAlerts = alerts.length < totalAlerts;
+  const hasMoreAlerts = activeQueries.some((query) => query.hasNextPage);
   const [selectedAlertId, setSelectedAlertId] = useState<string>();
   const selectedAlert =
     alerts.find((alert) => alert.id === selectedAlertId) ?? alerts[0];
@@ -456,14 +452,16 @@ export function MomentumAlertsPanel() {
           // sentinel from incrementing more than once before the fetch settles.
           isLoadingMoreRef.current = true;
           skipVoiceForNextPageRef.current = true;
-          setPage((current) => current + 1);
+          activeQueries.forEach((query) => {
+            if (query.hasNextPage) query.fetchNextPage();
+          });
         }
       },
       { root: scrollContainer, rootMargin: "240px" },
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMoreAlerts, isFetchingMore, isLoading]);
+  }, [activeQueries, hasMoreAlerts, isFetchingMore, isLoading]);
 
   useEffect(() => {
     if (!voiceAlertsPrimedRef.current) {
@@ -522,7 +520,6 @@ export function MomentumAlertsPanel() {
         eventTypes: selectedEventTypes,
         sortBy,
         sortOrder,
-        page,
       },
       newAlertIds: newAlerts.map((newAlert) => newAlert.id),
       cooldownElapsedMs: now - lastVoiceAlertAtRef.current,
@@ -551,7 +548,6 @@ export function MomentumAlertsPanel() {
     selectedEventTypes,
     symbol,
     isLoading,
-    page,
     sortBy,
     sortOrder,
     strategyId,
@@ -636,7 +632,6 @@ export function MomentumAlertsPanel() {
             ]}
             onValueChange={(value) => {
               setStrategyId(value);
-              setPage(0);
             }}
           />
           <FilterDropdown
@@ -649,14 +644,12 @@ export function MomentumAlertsPanel() {
             ]}
             onValueChange={(value) => {
               setDirection(value);
-              setPage(0);
             }}
           />
           <input
             value={symbol}
             onChange={(event) => {
               setSymbol(event.target.value);
-              setPage(0);
             }}
             placeholder="Filter symbol…"
             className="h-9 min-w-36 rounded-md border border-white/15 bg-white/[0.025] px-3 text-white/75 placeholder:text-white/30 outline-none transition-colors hover:border-white/25 focus:border-[#5dc887]/60"
@@ -686,7 +679,6 @@ export function MomentumAlertsPanel() {
                 onSelect={(event) => event.preventDefault()}
                 onCheckedChange={() => {
                   setSelectedEventTypes([]);
-                  setPage(0);
                 }}
               >
                 All event types
@@ -703,7 +695,6 @@ export function MomentumAlertsPanel() {
                         ? [...current, alert_type]
                         : current.filter((type) => type !== alert_type),
                     );
-                    setPage(0);
                   }}
                 >
                   {alert_type.replaceAll("_", " ")} ({total})
@@ -720,7 +711,6 @@ export function MomentumAlertsPanel() {
             ]}
             onValueChange={(value) => {
               setSortBy(value);
-              setPage(0);
             }}
           />
           <FilterDropdown
@@ -732,7 +722,6 @@ export function MomentumAlertsPanel() {
             ]}
             onValueChange={(value) => {
               setSortOrder(value);
-              setPage(0);
             }}
           />
           <div className="flex overflow-hidden rounded-md">
@@ -841,7 +830,7 @@ export function MomentumAlertsPanel() {
             ) : (
               "Scroll for more alerts"
             )
-          ) : totalAlerts > 0 ? (
+          ) : alerts.length > 0 ? (
             "End of alert history"
           ) : (
             ""

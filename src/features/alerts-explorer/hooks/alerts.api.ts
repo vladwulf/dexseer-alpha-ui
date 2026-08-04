@@ -290,6 +290,7 @@ export function useGetOpportunities(limit = 20) {
 }
 
 export function useGetAlertsPaginated({
+  enabled = true,
   timeframe,
   limit = 50,
   type,
@@ -302,6 +303,7 @@ export function useGetAlertsPaginated({
   sortOrder = "desc",
 }: Omit<GetAlertsParams, "offset">) {
   return useInfiniteQuery({
+    enabled,
     refetchInterval,
     queryKey: [
       "alerts/explorer/paginated",
@@ -482,7 +484,10 @@ export function useLiveMomentumIntelligenceAlerts({
               pages: [
                 {
                   ...firstPage,
-                  data: [alert, ...firstPage.data],
+                  data: [alert, ...firstPage.data].slice(
+                    0,
+                    firstPage.meta.limit,
+                  ),
                   meta: { ...firstPage.meta, total: firstPage.meta.total + 1 },
                 },
                 ...current.pages.slice(1),
