@@ -724,7 +724,7 @@ export function ScannerTable({
   return (
     <div
       ref={tableContainerRef}
-      className="min-w-0 border-b border-white/8 xl:flex-1 xl:border-b-0"
+      className="min-w-0 border-b border-white/8 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-auto xl:border-b-0"
     >
       <Table className="min-w-max w-full border-collapse hide-scrollbar-x">
         <TableHeader className="bg-[#0d0d0d]">
@@ -737,7 +737,7 @@ export function ScannerTable({
                 <TableHead
                   key={header.id}
                   className={cn(
-                    "px-3 py-4 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/35",
+                    "sticky top-0 z-10 bg-[#0d0d0d] px-3 py-4 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/35 shadow-[0_1px_0_rgba(255,255,255,0.08)]",
                     header.column.id === "symbol" && SYMBOL_COLUMN_WIDTH_CLASS,
                     header.column.getCanSort()
                       ? "cursor-pointer select-none"
@@ -746,8 +746,8 @@ export function ScannerTable({
                   onClick={header.column.getToggleSortingHandler()}
                   style={{
                     background: header.column.getIsSorted()
-                      ? "oklch(0.72 0.18 248 / 6%)"
-                      : undefined,
+                      ? "#0d1b2a"
+                      : "#0d0d0d",
                     boxShadow: header.column.getIsSorted()
                       ? "inset 0 -2px 0 oklch(0.72 0.18 248 / 75%)"
                       : undefined,

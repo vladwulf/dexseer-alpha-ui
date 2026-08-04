@@ -234,7 +234,7 @@ function AlertRow({
       ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className={`grid w-full min-w-[650px] ${ALERT_TABLE_COLUMNS} items-center gap-2 border-b border-white/[0.08] px-3 py-2.5 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_2px_0_0_#5dc887]" : unusual ? "bg-[#ffae45]/[0.045] shadow-[inset_2px_0_0_#ffae45] hover:bg-[#ffae45]/[0.075]" : "bg-transparent"}`}
+      className={`grid w-full min-w-[650px] ${ALERT_TABLE_COLUMNS} items-center gap-2 border-b border-white/[0.08] px-3 py-1.5 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_2px_0_0_#5dc887]" : unusual ? "bg-[#ffae45]/[0.045] shadow-[inset_2px_0_0_#ffae45] hover:bg-[#ffae45]/[0.075]" : "bg-transparent"}`}
     >
       <span className="font-mono text-[0.76rem] tabular-nums text-white/50">
         {formatAlertTime(alert.triggered_at ?? alert.time)}
@@ -394,6 +394,7 @@ export function MomentumAlertsPanel() {
       return sortOrder === "asc" ? comparison : -comparison;
     });
   const isLoading = activeQueries.some((query) => query.isLoading);
+  const isFetching = activeQueries.some((query) => query.isFetching);
   const isFetchingMore = activeQueries.some(
     (query) => query.isFetchingNextPage,
   );
@@ -413,7 +414,6 @@ export function MomentumAlertsPanel() {
     if (!alertQueryScope) return;
 
     voiceAlertsPrimedRef.current = false;
-    knownAlertIdsRef.current.clear();
     isLoadingMoreRef.current = false;
   }, [alertQueryScope]);
 
@@ -468,7 +468,7 @@ export function MomentumAlertsPanel() {
       // The panel first renders an empty list while its alert history loads.
       // Establish the baseline only after that request settles, so opening the
       // Alerts view never treats existing history as new live alerts.
-      if (isLoading) return;
+      if (isLoading || isFetching) return;
 
       alerts.forEach((alert) => {
         knownAlertIdsRef.current.add(alert.id);
@@ -478,7 +478,7 @@ export function MomentumAlertsPanel() {
     }
 
     if (skipVoiceForNextPageRef.current) {
-      if (isLoading) return;
+      if (isLoading || isFetching) return;
 
       alerts.forEach((alert) => {
         knownAlertIdsRef.current.add(alert.id);
@@ -547,6 +547,7 @@ export function MomentumAlertsPanel() {
     direction,
     selectedEventTypes,
     symbol,
+    isFetching,
     isLoading,
     sortBy,
     sortOrder,
@@ -611,8 +612,7 @@ export function MomentumAlertsPanel() {
   return (
     <section className="flex min-h-[640px] border border-white/8 bg-[var(--ds-canvas)]">
       <div
-        ref={alertListRef}
-        className="min-w-0 flex-1 border-b border-white/8 xl:overflow-y-auto xl:border-b-0"
+        className="flex min-w-0 flex-1 flex-col overflow-hidden border-b border-white/8 xl:border-b-0"
       >
         <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.09] bg-[#0a0d0c] px-5 py-4 font-mono text-xs">
           <span className="mr-1 text-[0.64rem] uppercase tracking-[0.2em] text-white/40">
@@ -776,9 +776,9 @@ export function MomentumAlertsPanel() {
             Streaming
           </span>
         </div>
-        <div className="overflow-x-auto">
+        <div ref={alertListRef} className="min-h-0 flex-1 overflow-auto">
           <div
-            className={`grid min-w-[650px] ${ALERT_TABLE_COLUMNS} gap-2 border-b border-white/[0.1] bg-[#0c0f0e] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/40`}
+            className={`sticky top-0 z-10 grid min-w-[650px] ${ALERT_TABLE_COLUMNS} gap-2 border-b border-white/[0.1] bg-[#0c0f0e] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/40 shadow-[0_1px_0_rgba(255,255,255,0.08)]`}
           >
             <span>Time</span>
             <span>Symbol</span>
@@ -813,28 +813,26 @@ export function MomentumAlertsPanel() {
               }}
             />
           ))}
-        </div>
-        <div
-          ref={loadMoreRef}
-          className="border-t border-white/8 px-4 py-3 text-center font-mono text-[0.65rem] text-white/40"
-        >
-          {hasMoreAlerts ? (
-            isFetchingMore ? (
-              <span className="inline-flex items-center gap-2 text-white/55">
-                <LoaderCircle
-                  aria-hidden="true"
-                  className="size-3 animate-[spin_1.8s_linear_infinite] text-[#5dc887]"
-                />
-                Loading more alerts…
-              </span>
+          <div
+            ref={loadMoreRef}
+            className="border-t border-white/8 px-4 py-3 text-center font-mono text-[0.65rem] text-white/40"
+          >
+            {hasMoreAlerts ? (
+              isFetchingMore ? (
+                <span className="inline-flex items-center gap-2 text-white/55">
+                  <LoaderCircle
+                    aria-hidden="true"
+                    className="size-3 animate-[spin_1.8s_linear_infinite] text-[#5dc887]"
+                  />
+                  Loading more alerts…
+                </span>
+              ) : (
+                "Scroll for more alerts"
+              )
             ) : (
-              "Scroll for more alerts"
-            )
-          ) : alerts.length > 0 ? (
-            "End of alert history"
-          ) : (
-            ""
-          )}
+              alerts.length > 0 ? "End of alert history" : ""
+            )}
+          </div>
         </div>
       </div>
       <div
