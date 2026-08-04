@@ -10,6 +10,7 @@ import { StatCard } from "../StatCard";
 
 type ActiveAssetPanelProps = {
   asset?: ScannerAsset;
+  flushChart?: boolean;
   liveUpdatesEnabled?: boolean;
   showStats?: boolean;
   timeframe: ScannerTimeframe;
@@ -17,6 +18,7 @@ type ActiveAssetPanelProps = {
 
 export function ActiveAssetPanel({
   asset,
+  flushChart = false,
   liveUpdatesEnabled = true,
   showStats = true,
   timeframe,
@@ -97,7 +99,13 @@ export function ActiveAssetPanel({
         <span>Price structure</span>
         <span>{timeframe} · live</span>
       </div>
-      <div className="terminal-chart-wrap">
+      <div
+        className={
+          flushChart
+            ? "terminal-chart-wrap terminal-chart-wrap--flush"
+            : "terminal-chart-wrap"
+        }
+      >
         <IndexChart
           klines={klines}
           upColor="#26c281"

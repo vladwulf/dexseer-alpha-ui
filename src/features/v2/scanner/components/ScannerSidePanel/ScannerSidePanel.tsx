@@ -42,6 +42,7 @@ export function ScannerSidePanel({
     <>
       <ActiveAssetPanel
         asset={asset}
+        flushChart
         liveUpdatesEnabled={liveUpdatesEnabled}
         showStats={false}
         timeframe={timeframe}
@@ -54,14 +55,14 @@ export function ScannerSidePanel({
 
   return (
     <>
-      <aside className="hide-scrollbar hidden h-full min-h-0 bg-[var(--ds-canvas)] xl:block xl:w-full xl:overflow-y-auto">
+      <aside className="hide-scrollbar hidden h-full min-h-0 bg-[var(--ds-surface)] xl:block xl:w-full xl:overflow-y-auto">
         {panelContent}
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent
           side="right"
-          className="w-full overflow-y-auto border-white/8 bg-[var(--ds-canvas)] p-0 sm:max-w-[460px]"
+          className="w-full overflow-y-auto border-white/8 bg-[var(--ds-surface)] p-0 sm:max-w-[460px]"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >

@@ -69,7 +69,7 @@ const MOMENTUM_COLUMNS = new Set([
   "momentumChoppiness",
 ]);
 
-const SYMBOL_COLUMN_WIDTH_CLASS = "w-[112px] min-w-[112px]";
+const SYMBOL_COLUMN_WIDTH_CLASS = "w-[144px] min-w-[144px]";
 function scoreColor(pct: number) {
   return pct >= 70
     ? "#5dc887"
@@ -353,12 +353,9 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
       const asset = row.original;
       return (
         <div
-          className={cn(
-            "flex items-center gap-3 overflow-hidden",
-            SYMBOL_COLUMN_WIDTH_CLASS,
-          )}
+          className={cn("flex items-center gap-3", SYMBOL_COLUMN_WIDTH_CLASS)}
         >
-          <div className="min-w-0 truncate">
+          <div className="min-w-0">
             <Link
               to={`/assets/${asset.symbol}`}
               onClick={(e) => e.stopPropagation()}
@@ -815,7 +812,7 @@ export function ScannerTable({
                   !isSelected &&
                     indexChange.has(row.original.symbol) &&
                     "scanner-row-index-change",
-                  density === "expanded" ? "h-20" : "h-14",
+                  density === "expanded" ? "h-20" : "h-11",
                 )}
                 onClick={() => onSelectSymbol(row.original.symbol)}
               >
@@ -823,7 +820,8 @@ export function ScannerTable({
                   <TableCell
                     key={cell.id}
                     className={cn(
-                      "whitespace-nowrap px-3 py-3 text-[0.78rem]",
+                      "whitespace-nowrap px-3 text-[0.78rem]",
+                      density === "expanded" ? "py-3" : "py-1.5",
                       cell.column.id === "symbol" && SYMBOL_COLUMN_WIDTH_CLASS,
                     )}
                   >

@@ -441,6 +441,9 @@
   padding: 10px 12px 4px;
   background: var(--ds-canvas-raised);
 }
+.terminal-chart-wrap--flush {
+  padding: 0;
+}
 .terminal-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
