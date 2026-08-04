@@ -27,6 +27,7 @@ import {
   useGetAlertsPage,
   useGetAlertTypes,
 } from "@/features/alerts-explorer/hooks/alerts.api";
+import { getMomentumAlertLabel } from "@/features/v2/scanner/lib/momentumLabels";
 
 const PAGE_SIZE = 10;
 const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
@@ -123,29 +124,12 @@ function getVoiceForGender(
 }
 
 function getMomentumEvent(alert: AlertListItem) {
-  const eventType = alert.alert_type ?? alert.trigger_values.event_type;
-  if (typeof eventType !== "string") return "state update";
-
-  return (
-    {
-      entered: "entered",
-      exited: "exited",
-      severity_changed: "severity changed",
-      pullback_entered: "pullback entered",
-    }[eventType] ?? eventType.replaceAll("_", " ")
-  );
+  return getMomentumAlertLabel(alert);
 }
 
 function isConfirmed(alert: AlertListItem) {
   const value = alert.trigger_values.is_confirmed;
   return value === 1 || value === "1" || value === true;
-}
-
-function getStateTransition(alert: AlertListItem) {
-  const from = alert.trigger_values.from_state;
-  const to = alert.trigger_values.to_state;
-  if (typeof from !== "string" || typeof to !== "string") return undefined;
-  return `${from} → ${to}`;
 }
 
 function getEventTone(alert: AlertListItem) {
@@ -216,8 +200,7 @@ function AlertRow({
           {getMomentumEvent(alert)}
         </span>
         <span className="block truncate pt-0.5 text-[0.65rem] text-white/42">
-          {getStateTransition(alert) ??
-            `${alert.direction} momentum intelligence signal`}
+          {alert.direction} momentum intelligence signal
         </span>
       </span>
       <span className="flex min-w-0 items-center gap-1.5 text-[0.65rem]">
@@ -800,9 +783,6 @@ export function MomentumAlertsPanel() {
                 {selectedAlert.direction} · {selectedAlert.timeframe} ·{" "}
                 {getMomentumEvent(selectedAlert)} ·{" "}
                 {isConfirmed(selectedAlert) ? "closed candle" : "provisional"} ·
-                {getStateTransition(selectedAlert)
-                  ? ` ${getStateTransition(selectedAlert)} ·`
-                  : ""}{" "}
                 ${formatPrice(selectedAlert.price)}
               </p>
             </div>

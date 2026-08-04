@@ -4,6 +4,7 @@ import {
   useGetAlertsPage,
 } from "@/features/alerts-explorer/hooks/alerts.api";
 import { formatSigned } from "../../lib/formatters";
+import { getMomentumAlertLabel } from "../../lib/momentumLabels";
 import type { ScannerAsset } from "../../types";
 
 type DockTab = "alerts" | "signals" | "activity" | "context";
@@ -25,7 +26,7 @@ function alertTime(alert: AlertListItem) {
 }
 
 function alertLabel(alert: AlertListItem) {
-  return (alert.alert_type ?? alert.type ?? "signal").replaceAll("_", " ");
+  return getMomentumAlertLabel(alert);
 }
 
 function setupLabel(alert: AlertListItem) {
@@ -39,13 +40,9 @@ function setupLabel(alert: AlertListItem) {
 }
 
 function eventContext(alert: AlertListItem) {
-  const from = alert.trigger_values.from_state;
-  const to = alert.trigger_values.to_state;
-  return typeof from === "string" && typeof to === "string"
-    ? `${from.replaceAll("_", " ")} → ${to.replaceAll("_", " ")}`
-    : alert.strategy_id
-        .replace("momentum-intelligence-", "")
-        .replace("-v2", "");
+  return alert.strategy_id
+    .replace("momentum-intelligence-", "")
+    .replace("-v2", "");
 }
 
 export function TerminalBottomDock({

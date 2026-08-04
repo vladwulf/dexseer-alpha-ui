@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { API_URL } from "@/config";
+import { getMomentumAlertLabel } from "@/features/v2/scanner/lib/momentumLabels";
 
 const STORAGE_KEY = "dexseer.notifications";
 const MAX_NOTIFICATIONS = 50;
@@ -21,6 +22,8 @@ type AlertEventPayload = {
   timeframe?: string;
   direction: string;
   type: string;
+  alert_type?: string;
+  momentum_label?: string;
   strategyId?: string;
   triggerValues?: {
     event_type?: string;
@@ -61,7 +64,6 @@ function toNotification(alert: AlertEventPayload): Notification {
   const isMomentumIntelligence = alert.strategyId?.startsWith(
     "momentum-intelligence-",
   );
-  const eventType = alert.triggerValues?.event_type?.replaceAll("_", " ");
   const confirmation =
     alert.triggerValues?.is_confirmed === 1 ||
     alert.triggerValues?.is_confirmed === true
@@ -78,7 +80,13 @@ function toNotification(alert: AlertEventPayload): Notification {
     isRead: false,
     title: `${symbol} ${alert.direction.toUpperCase()}`,
     description: isMomentumIntelligence
-      ? `${eventType ?? "state update"}${timeframe} · ${confirmation}`
+      ? `${getMomentumAlertLabel({
+          momentum_label: alert.momentum_label,
+          alert_type: alert.alert_type,
+          type: alert.type,
+          trigger_values: alert.triggerValues,
+          strategy_id: alert.strategyId,
+        })}${timeframe} · ${confirmation}`
       : `${alert.type.replaceAll("_", " ")}${timeframe}`,
   };
 }

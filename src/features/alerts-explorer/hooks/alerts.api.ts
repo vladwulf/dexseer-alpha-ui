@@ -34,6 +34,7 @@ export type AlertListItem = {
   direction: AlertDirection;
   type: AlertType;
   alert_type?: AlertEventType;
+  momentum_label?: string;
   price: number;
   instrument: {
     venue: string;
