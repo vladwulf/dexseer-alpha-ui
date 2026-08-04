@@ -37,7 +37,10 @@ import {
   useGetAlertsPage,
   useGetAlertTypes,
 } from "@/features/alerts-explorer/hooks/alerts.api";
-import { getMomentumAlertLabel } from "@/features/v2/scanner/lib/momentumLabels";
+import {
+  getMomentumAlertEventType,
+  getMomentumAlertLabel,
+} from "@/features/v2/scanner/lib/momentumLabels";
 
 const PAGE_SIZE = 20;
 const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
@@ -352,19 +355,41 @@ export function MomentumAlertsPanel() {
         : strategyId === MOMENTUM_INTELLIGENCE_STRATEGY_IDS[1]
           ? [fifteenMinuteQuery]
           : [oneHourQuery];
-  const alerts = activeQueries
-    .flatMap((query) => query.data?.data ?? [])
+  const loadedAlerts = activeQueries.flatMap((query) => query.data?.data ?? []);
+  const alertTypes = (() => {
+    const types = new Map(
+      (alertTypesQuery.data ?? []).map(({ alert_type, total }) => [
+        alert_type,
+        total,
+      ]),
+    );
+
+    for (const alert of loadedAlerts) {
+      const eventType = getMomentumAlertEventType(alert);
+      if (eventType === "pullback_entered" && !types.has(eventType)) {
+        types.set(
+          eventType,
+          loadedAlerts.filter(
+            (item) => getMomentumAlertEventType(item) === eventType,
+          ).length,
+        );
+      }
+    }
+
+    return [...types].map(([alert_type, total]) => ({ alert_type, total }));
+  })();
+  const alerts = loadedAlerts
     .filter(
       (alert) =>
         selectedEventTypes.length === 0 ||
-        selectedEventTypes.includes(
-          alert.alert_type ?? String(alert.trigger_values.event_type ?? ""),
-        ),
+        selectedEventTypes.includes(getMomentumAlertEventType(alert) ?? ""),
     )
     .sort((left, right) => {
       const comparison =
         sortBy === "alert_type"
-          ? (left.alert_type ?? "").localeCompare(right.alert_type ?? "")
+          ? (getMomentumAlertEventType(left) ?? "").localeCompare(
+              getMomentumAlertEventType(right) ?? "",
+            )
           : Date.parse(left.triggered_at ?? left.time) -
             Date.parse(right.triggered_at ?? right.time);
       return sortOrder === "asc" ? comparison : -comparison;
@@ -667,7 +692,7 @@ export function MomentumAlertsPanel() {
                 All event types
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator className="bg-white/10" />
-              {(alertTypesQuery.data ?? []).map(({ alert_type, total }) => (
+              {alertTypes.map(({ alert_type, total }) => (
                 <DropdownMenuCheckboxItem
                   key={alert_type}
                   checked={selectedEventTypes.includes(alert_type)}
