@@ -84,9 +84,9 @@
   --font-mono: "JetBrains Mono", monospace;
   --font-body: "DM Sans", sans-serif;
   --ds-canvas: #0a0a0a;
-  --ds-canvas-raised: #0e0e0e;
-  --ds-surface: #121212;
-  --ds-surface-raised: #181818;
+  --ds-canvas-raised: var(--ds-canvas);
+  --ds-surface: var(--ds-canvas);
+  --ds-surface-raised: var(--ds-canvas);
   --ds-border: rgb(255 255 255 / 10%);
   --ds-border-strong: rgb(255 255 255 / 16%);
   --ds-text-primary: #f4f4f5;
