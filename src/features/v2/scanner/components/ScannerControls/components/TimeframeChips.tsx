@@ -12,7 +12,10 @@ export function TimeframeChips({
   onTimeframeChange,
 }: TimeframeChipsProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div
+      className="flex items-center gap-2"
+      data-preserve-scanner-selection
+    >
       <span className="hidden shrink-0 whitespace-nowrap font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[oklch(0.42_0_0)] md:block">
         Timeframe
       </span>

@@ -680,7 +680,15 @@ export function ScannerTable({
     }
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (!tableContainerRef.current?.contains(event.target as Node)) {
+      const target = event.target;
+      const preservesSelection =
+        target instanceof Element &&
+        target.closest("[data-preserve-scanner-selection]");
+
+      if (
+        !preservesSelection &&
+        !tableContainerRef.current?.contains(target as Node)
+      ) {
         onSelectSymbol("");
       }
     };
