@@ -12,7 +12,7 @@ export function RecentAlertsList({
   alertCount,
 }: RecentAlertsListProps) {
   return (
-    <div className="my-4">
+    <div className="scanner-side-panel__alerts my-5">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/46">
           Recent alerts
@@ -27,7 +27,7 @@ export function RecentAlertsList({
         {alerts.map((alert) => (
           <div
             key={`${alert.label}-${alert.time}`}
-            className="flex items-center justify-between rounded-xl border border-white/6 bg-white/[0.025] px-3 py-2"
+            className="scanner-side-panel__alert flex items-center justify-between rounded-xl border border-white/6 bg-white/[0.025] px-3 py-2"
           >
             <div className="flex items-center gap-3">
               <Badge

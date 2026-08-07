@@ -12,16 +12,22 @@ import { ScannerSidePanelSkeleton } from "./components/ScannerSidePanelSkeleton"
 
 type ScannerSidePanelProps = {
   asset?: ScannerAsset;
+  hasMoreChartHistory?: boolean;
+  isLoadingMoreChartHistory?: boolean;
   liveUpdatesEnabled?: boolean;
   mobileOpen: boolean;
+  onLoadMoreChartHistory?: () => void;
   onMobileOpenChange: (open: boolean) => void;
   timeframe: ScannerTimeframe;
 };
 
 export function ScannerSidePanel({
   asset,
+  hasMoreChartHistory,
+  isLoadingMoreChartHistory,
   liveUpdatesEnabled,
   mobileOpen,
+  onLoadMoreChartHistory,
   onMobileOpenChange,
   timeframe,
 }: ScannerSidePanelProps) {
@@ -43,7 +49,10 @@ export function ScannerSidePanel({
       <ActiveAssetPanel
         asset={asset}
         flushChart
+        hasMoreChartHistory={hasMoreChartHistory}
+        isLoadingMoreChartHistory={isLoadingMoreChartHistory}
         liveUpdatesEnabled={liveUpdatesEnabled}
+        onLoadMoreChartHistory={onLoadMoreChartHistory}
         showStats={false}
         timeframe={timeframe}
       />
@@ -55,14 +64,14 @@ export function ScannerSidePanel({
 
   return (
     <>
-      <aside className="hide-scrollbar hidden h-full min-h-0 bg-[var(--ds-surface)] xl:block xl:w-full xl:overflow-y-auto">
+      <aside className="scanner-side-panel hide-scrollbar hidden h-full min-h-0 xl:block xl:w-full xl:overflow-y-auto">
         {panelContent}
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent
           side="right"
-          className="w-full overflow-y-auto border-white/8 bg-[var(--ds-surface)] p-0 sm:max-w-[460px]"
+          className="scanner-side-panel w-full overflow-y-auto border-white/8 p-0 sm:max-w-[460px]"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >

@@ -3,7 +3,7 @@ import {
   type AlertListItem,
   useGetAlertsPage,
 } from "@/features/alerts-explorer/hooks/alerts.api";
-import { formatSigned } from "../../lib/formatters";
+import { formatCompactUsd, formatSigned } from "../../lib/formatters";
 import { getMomentumAlertLabel } from "../../lib/momentumLabels";
 import type { ScannerAsset } from "../../types";
 
@@ -213,7 +213,7 @@ export function TerminalBottomDock({
         ) : null}
         {asset && activeTab === "activity" ? (
           <span>
-            {asset.alertCount} tracked alerts · {asset.volume} 24h volume ·{" "}
+            {asset.alertCount} tracked alerts · {formatCompactUsd(asset.volume)} 24h volume ·{" "}
             {formatSigned(asset.change24h)} today
           </span>
         ) : null}

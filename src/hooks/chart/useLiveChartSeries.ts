@@ -26,6 +26,7 @@ type ChartCandleEvent = {
 
 type ChartSeed = {
   assetId: number;
+  dataKey?: string;
   instrumentId?: string;
   data: OHLCVExtended[];
 };
@@ -157,7 +158,7 @@ export function useLiveChartSeries({
       const nextSeedKeyByAssetId = new Map<number, string>();
 
       for (const seed of seeds) {
-        const seedKey = `${timeframe}:${seed.assetId}:${seed.instrumentId ?? ""}`;
+        const seedKey = `${timeframe}:${seed.assetId}:${seed.instrumentId ?? ""}:${seed.dataKey ?? ""}`;
         const previousSeedKey = seedKeyByAssetIdRef.current.get(seed.assetId);
 
         nextSeedKeyByAssetId.set(seed.assetId, seedKey);

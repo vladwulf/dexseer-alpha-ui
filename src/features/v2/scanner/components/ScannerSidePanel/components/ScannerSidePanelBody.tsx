@@ -1,5 +1,9 @@
 import { BellPlus, BookmarkPlus, Clock3, Star, Volume2 } from "lucide-react";
-import { formatSigned, numberFormat } from "../../../lib/formatters";
+import {
+  formatCompactUsd,
+  formatFundingRate,
+  numberFormat,
+} from "../../../lib/formatters";
 import type { ScannerAsset, ScannerTimeframe } from "../../../types";
 import { ActionButton } from "../../ActionButton";
 import { DetailBlock } from "../../DetailBlock";
@@ -15,8 +19,8 @@ export function ScannerSidePanelBody({
   timeframe: ScannerTimeframe;
 }) {
   return (
-    <div className="px-4 py-4">
-      <div className="mb-4 rounded-[10px] border border-white/8 bg-white/[0.025] px-3 py-3">
+    <div className="scanner-side-panel__body px-4 py-5">
+      <div className="scanner-side-panel__setup mb-5 rounded-[10px] border border-white/8 px-3 py-3">
         <div className="mb-2 flex items-center justify-between text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/40">
           <span>Active setup · {timeframe}</span>
           <span>{asset.setupScore} / 100</span>
@@ -26,16 +30,20 @@ export function ScannerSidePanelBody({
         </p>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-3">
-        <StatCard label="Volume 24h" value={asset.volume} tone="neutral" />
+      <div className="mb-5 grid grid-cols-2 gap-2.5">
         <StatCard
-          label="OI 24h Δ"
-          value={formatSigned(asset.oiDelta)}
+          label="Volume 24h"
+          value={formatCompactUsd(asset.volume)}
+          tone="neutral"
+        />
+        <StatCard
+          label="Open interest"
+          value={formatCompactUsd(asset.openInterest)}
           tone="positive"
         />
         <StatCard
           label="Funding"
-          value={formatSigned(asset.funding, "%")}
+          value={formatFundingRate(asset.funding)}
           tone="neutral"
         />
         <StatCard
@@ -71,7 +79,7 @@ export function ScannerSidePanelBody({
         alertCount={asset.alertCount}
       />
 
-      <div className="mb-4 rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
+      <div className="scanner-side-panel__hours mb-5 rounded-[20px] border border-white/8 p-4">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/40">
             Best trading hours · 30d

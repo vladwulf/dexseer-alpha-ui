@@ -26,7 +26,13 @@ import {
   mergeChartSeriesIntoAsset,
   mergeDetailsIntoAsset,
 } from "./lib/apiAdapters";
-import { formatPrice, formatSigned, numberFormat } from "./lib/formatters";
+import {
+  formatCompactUsd,
+  formatFundingRate,
+  formatPrice,
+  formatSigned,
+  numberFormat,
+} from "./lib/formatters";
 
 const chipClassName =
   "inline-flex h-7 items-center rounded-[4px] border px-[9px] py-0 font-[var(--font-mono)] text-[0.7rem] font-medium tracking-[0.05em]";
@@ -197,20 +203,24 @@ export function AssetDetailScreen() {
           </div>
 
           <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Volume 24h" value={asset.volume} tone="neutral" />
+            <StatCard
+              label="Volume 24h"
+              value={formatCompactUsd(asset.volume)}
+              tone="neutral"
+            />
             <StatCard
               label="RVOL"
               value={asset.rvol === null ? "—" : `${asset.rvol.toFixed(1)}x`}
               tone="accent"
             />
             <StatCard
-              label="OI 24h Δ"
-              value={formatSigned(asset.oiDelta)}
+              label="Open interest"
+              value={formatCompactUsd(asset.openInterest)}
               tone="positive"
             />
             <StatCard
               label="Funding"
-              value={formatSigned(asset.funding, "%")}
+              value={formatFundingRate(asset.funding)}
               tone="neutral"
             />
           </div>
@@ -316,7 +326,11 @@ export function AssetDetailScreen() {
                 <StatCard
                   label="24h move"
                   value={formatSigned(asset.change24h)}
-                  tone={asset.change24h >= 0 ? "positive" : "neutral"}
+                  tone={
+                    asset.change24h !== null && asset.change24h >= 0
+                      ? "positive"
+                      : "neutral"
+                  }
                 />
               </div>
             </div>

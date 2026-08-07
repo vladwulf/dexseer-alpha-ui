@@ -2,16 +2,26 @@ import { Activity, BellPlus, BookmarkPlus, ExternalLink } from "lucide-react";
 import { Link } from "react-router";
 import { IndexChart } from "@/features/chart/IndexChart";
 import { useLiveChartSeries } from "@/hooks/chart/useLiveChartSeries";
-import { formatPrice, formatSigned, numberFormat } from "../../lib/formatters";
+import {
+  formatCompactUsd,
+  formatFundingRate,
+  formatPrice,
+  numberFormat,
+} from "../../lib/formatters";
 import type { ScannerAsset, ScannerTimeframe } from "../../types";
 import { ActionButton } from "../ActionButton";
 import { Pill } from "../Pill";
 import { StatCard } from "../StatCard";
 
+const SIDE_PANEL_EMA_PERIODS = [9, 20, 200] as const;
+
 type ActiveAssetPanelProps = {
   asset?: ScannerAsset;
   flushChart?: boolean;
+  hasMoreChartHistory?: boolean;
+  isLoadingMoreChartHistory?: boolean;
   liveUpdatesEnabled?: boolean;
+  onLoadMoreChartHistory?: () => void;
   showStats?: boolean;
   timeframe: ScannerTimeframe;
 };
@@ -19,7 +29,10 @@ type ActiveAssetPanelProps = {
 export function ActiveAssetPanel({
   asset,
   flushChart = false,
+  hasMoreChartHistory = false,
+  isLoadingMoreChartHistory = false,
   liveUpdatesEnabled = true,
+  onLoadMoreChartHistory,
   showStats = true,
   timeframe,
 }: ActiveAssetPanelProps) {
@@ -30,6 +43,7 @@ export function ActiveAssetPanel({
       ? [
           {
             assetId: asset.assetId,
+            dataKey: `${asset.chart[0]?.time ?? ""}:${asset.chart.length}:${asset.chart.at(-1)?.time ?? ""}`,
             instrumentId: asset.instrumentId,
             data: asset.chart,
           },
@@ -107,31 +121,43 @@ export function ActiveAssetPanel({
         }
       >
         <IndexChart
-          dataKey={asset.assetId}
-          initialVisibleCandleCount={flushChart ? 150 : undefined}
+          dataKey={`${asset.assetId}:${timeframe}`}
+          resetViewKey={`${timeframe}:${klines.at(-1)?.time ?? ""}`}
+          initialVisibleCandleCount={flushChart ? 100 : undefined}
           klines={klines}
           upColor="#26c281"
           downColor="#ec5564"
           showVolume
           interactive={flushChart}
+          hasMoreHistory={hasMoreChartHistory}
+          isLoadingMoreHistory={isLoadingMoreChartHistory}
+          onLoadMoreHistory={onLoadMoreChartHistory}
+          emaPeriods={flushChart ? SIDE_PANEL_EMA_PERIODS : undefined}
+          watermarkText={
+            flushChart ? asset.symbol.replace(/[-/_]?USDT$/i, "") : undefined
+          }
         />
       </div>
       {showStats && (
         <div className="terminal-stat-grid">
-          <StatCard label="Volume 24h" value={asset.volume} tone="neutral" />
+          <StatCard
+            label="Volume 24h"
+            value={formatCompactUsd(asset.volume)}
+            tone="neutral"
+          />
           <StatCard
             label="RVOL"
             value={asset.rvol === null ? "—" : `${asset.rvol.toFixed(1)}x`}
             tone="accent"
           />
           <StatCard
-            label="OI 24h Δ"
-            value={formatSigned(asset.oiDelta)}
+            label="Open interest"
+            value={formatCompactUsd(asset.openInterest)}
             tone="positive"
           />
           <StatCard
             label="Funding"
-            value={formatSigned(asset.funding, "%")}
+            value={formatFundingRate(asset.funding)}
             tone="neutral"
           />
           <StatCard

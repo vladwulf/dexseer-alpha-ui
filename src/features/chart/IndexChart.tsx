@@ -4,21 +4,38 @@ import {
   ColorType,
   createChart,
   HistogramSeries,
+  LineSeries,
+  type LogicalRange,
   type Time,
 } from "lightweight-charts";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
+import { getEMASeriesData } from "./indicators";
 import { normalizeChartData } from "./normalizeChartData";
+
+const EMA_COLORS: Record<number, string> = {
+  9: "#5b8ff9",
+  20: "#f5a623",
+  200: "#ff6a7a",
+};
+const NO_EMA_PERIODS: readonly number[] = [];
+const RIGHT_EDGE_PADDING_PX = 24;
 
 type ChartProps = {
   dataKey?: string | number;
   initialVisibleCandleCount?: number;
   interactive?: boolean;
   klines: OHLCVExtended[];
+  resetViewKey?: string | number;
   upColor?: string;
   downColor?: string;
+  emaPeriods?: readonly number[];
+  hasMoreHistory?: boolean;
+  isLoadingMoreHistory?: boolean;
+  onLoadMoreHistory?: () => void;
   showVolume?: boolean;
+  watermarkText?: string;
 };
 
 export const IndexChart: React.FC<ChartProps> = (props) => {
@@ -28,8 +45,14 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     dataKey,
     klines,
     downColor,
+    emaPeriods = NO_EMA_PERIODS,
+    hasMoreHistory = false,
+    isLoadingMoreHistory = false,
+    onLoadMoreHistory,
+    resetViewKey,
     showVolume = false,
     upColor,
+    watermarkText,
   } = props;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -40,8 +63,39 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
   const volumeSeriesRef = useRef<ReturnType<
     ReturnType<typeof createChart>["addSeries"]
   > | null>(null);
+  const emaSeriesRefs = useRef<
+    Map<number, ReturnType<ReturnType<typeof createChart>["addSeries"]>>
+  >(new Map());
   const currentDataKeyRef = useRef<string | number | undefined>(undefined);
+  const currentResetViewKeyRef = useRef<string | number | undefined>(
+    resetViewKey,
+  );
   const firstCandleTimeRef = useRef<Time | null>(null);
+  const chartDataLengthRef = useRef(0);
+  const initialVisibleCandleCountRef = useRef(initialVisibleCandleCount);
+  const hasMoreHistoryRef = useRef(hasMoreHistory);
+  const isLoadingMoreHistoryRef = useRef(isLoadingMoreHistory);
+  const onLoadMoreHistoryRef = useRef(onLoadMoreHistory);
+  const hasRequestedMoreHistoryRef = useRef(false);
+  const ignoreNextVisibleRangeChangeRef = useRef(false);
+  const [enabledEmaPeriods, setEnabledEmaPeriods] = useState<Set<number>>(
+    () => new Set(emaPeriods),
+  );
+
+  initialVisibleCandleCountRef.current = initialVisibleCandleCount;
+  hasMoreHistoryRef.current = hasMoreHistory;
+  isLoadingMoreHistoryRef.current = isLoadingMoreHistory;
+  onLoadMoreHistoryRef.current = onLoadMoreHistory;
+
+  useEffect(() => {
+    setEnabledEmaPeriods(new Set(emaPeriods));
+  }, [emaPeriods]);
+
+  useEffect(() => {
+    for (const [period, series] of emaSeriesRefs.current) {
+      series.applyOptions({ visible: enabledEmaPeriods.has(period) });
+    }
+  }, [enabledEmaPeriods]);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -62,6 +116,9 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
         borderVisible: false,
         timeVisible: true, // Show time in addition to date
         secondsVisible: false,
+        // Keep a consistent gap between the newest candle and price scale,
+        // including when fitContent() is used for short timeframes.
+        rightOffsetPixels: RIGHT_EDGE_PADDING_PX,
         shiftVisibleRangeOnNewBar: true,
         tickMarkFormatter: (time: number) => {
           // Convert Unix timestamp to local time for axis labels
@@ -90,7 +147,8 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
         vertTouchDrag: false,
       },
       handleScale: {
-        axisPressedMouseMove: false,
+        axisPressedMouseMove: interactive ? { time: true, price: true } : false,
+        axisDoubleClickReset: false,
         mouseWheel: false,
         pinch: false,
       },
@@ -140,18 +198,104 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
       volumeSeriesRef.current = volumeSeries;
     }
 
+    emaSeriesRefs.current = new Map(
+      emaPeriods.map((period) => [
+        period,
+        chart.addSeries(LineSeries, {
+          color: EMA_COLORS[period] ?? "#a3a3a3",
+          lineWidth: 1,
+          priceScaleId: "right",
+          lastValueVisible: false,
+          priceLineVisible: false,
+          crosshairMarkerVisible: false,
+        }),
+      ]),
+    );
+
     // Store refs
     chartRef.current = chart;
     candlestickSeriesRef.current = candlestickSeries;
 
+    const handleVisibleRangeChange = (range: LogicalRange | null) => {
+      if (ignoreNextVisibleRangeChangeRef.current) {
+        ignoreNextVisibleRangeChangeRef.current = false;
+        return;
+      }
+
+      if (!range || range.from > 10) {
+        hasRequestedMoreHistoryRef.current = false;
+        return;
+      }
+
+      if (
+        !hasRequestedMoreHistoryRef.current &&
+        hasMoreHistoryRef.current &&
+        !isLoadingMoreHistoryRef.current
+      ) {
+        hasRequestedMoreHistoryRef.current = true;
+        onLoadMoreHistoryRef.current?.();
+      }
+    };
+
+    chart
+      .timeScale()
+      .subscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
+
+    const resetChartView = (event: MouseEvent) => {
+      const container = chartContainerRef.current;
+      if (!container) return;
+
+      const bounds = container.getBoundingClientRect();
+      const isPriceScale =
+        event.clientX >= bounds.right - chart.priceScale("right").width();
+      const isTimeScale =
+        event.clientY >= bounds.bottom - chart.timeScale().height();
+
+      if (!isPriceScale && !isTimeScale) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      chart.priceScale("right").applyOptions({ autoScale: true });
+
+      const visibleCandleCount = initialVisibleCandleCountRef.current;
+      if (
+        visibleCandleCount &&
+        chartDataLengthRef.current > visibleCandleCount
+      ) {
+        chart.timeScale().setVisibleLogicalRange({
+          from: Math.max(0, chartDataLengthRef.current - visibleCandleCount),
+          to: chartDataLengthRef.current - 1,
+        });
+      } else {
+        chart.timeScale().fitContent();
+      }
+    };
+
+    if (interactive) {
+      chartContainerRef.current.addEventListener(
+        "dblclick",
+        resetChartView,
+        true,
+      );
+    }
+
     // Cleanup
     return () => {
+      chartContainerRef.current?.removeEventListener(
+        "dblclick",
+        resetChartView,
+        true,
+      );
+      chart
+        .timeScale()
+        .unsubscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
       chartRef.current = null;
       candlestickSeriesRef.current = null;
       volumeSeriesRef.current = null;
+      emaSeriesRefs.current.clear();
       chart.remove();
     };
-  }, [downColor, interactive, showVolume, upColor]);
+  }, [downColor, emaPeriods, interactive, showVolume, upColor]);
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -187,21 +331,58 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
           : "rgba(236, 85, 100, 0.62)",
     }));
     const firstCandleTime = chartData[0]?.time ?? null;
+    const previousDataLength = chartDataLengthRef.current;
+    const shouldResetView = currentResetViewKeyRef.current !== resetViewKey;
     const shouldResetData =
       currentDataKeyRef.current !== dataKey ||
-      firstCandleTimeRef.current !== firstCandleTime;
+      firstCandleTimeRef.current !== firstCandleTime ||
+      shouldResetView;
 
     if (shouldResetData) {
       const isNewDataSet = currentDataKeyRef.current !== dataKey;
+      const isHistoryPrepend =
+        !isNewDataSet &&
+        firstCandleTimeRef.current !== firstCandleTime &&
+        chartData.length > previousDataLength;
       const visibleRange = isNewDataSet
         ? null
         : chart.timeScale().getVisibleLogicalRange();
 
       candlestickSeries.setData(chartData);
       volumeSeriesRef.current?.setData(volumeData);
-      if (visibleRange) {
-        chart.timeScale().setVisibleLogicalRange(visibleRange);
-      } else if (initialVisibleCandleCount) {
+      for (const period of emaPeriods) {
+        emaSeriesRefs.current
+          .get(period)
+          ?.setData(getEMASeriesData(chartData, period));
+      }
+      if (
+        shouldResetView &&
+        initialVisibleCandleCount &&
+        chartData.length > initialVisibleCandleCount
+      ) {
+        chart.timeScale().fitContent();
+        ignoreNextVisibleRangeChangeRef.current = true;
+        chart.timeScale().setVisibleLogicalRange({
+          from: chartData.length - initialVisibleCandleCount,
+          to: chartData.length - 1,
+        });
+      } else if (shouldResetView) {
+        chart.timeScale().fitContent();
+      } else if (visibleRange) {
+        // Older history is inserted before existing bars, shifting every
+        // logical index to the right. Preserve the candles the user was
+        // viewing instead of restoring the old numerical range.
+        const historyOffset = isHistoryPrepend
+          ? chartData.length - previousDataLength
+          : 0;
+        chart.timeScale().setVisibleLogicalRange({
+          from: visibleRange.from + historyOffset,
+          to: visibleRange.to + historyOffset,
+        });
+      } else if (
+        initialVisibleCandleCount &&
+        chartData.length > initialVisibleCandleCount
+      ) {
         chart.timeScale().setVisibleLogicalRange({
           from: Math.max(0, chartData.length - initialVisibleCandleCount),
           to: chartData.length - 1,
@@ -211,6 +392,8 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
       }
       currentDataKeyRef.current = dataKey;
       firstCandleTimeRef.current = firstCandleTime;
+      currentResetViewKeyRef.current = resetViewKey;
+      chartDataLengthRef.current = chartData.length;
       return;
     }
 
@@ -223,14 +406,62 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     if (latestVolume) {
       volumeSeriesRef.current?.update(latestVolume);
     }
-  }, [dataKey, initialVisibleCandleCount, klines]);
+    for (const period of emaPeriods) {
+      const latestEma = getEMASeriesData(chartData, period).at(-1);
+      if (latestEma) emaSeriesRefs.current.get(period)?.update(latestEma);
+    }
+    chartDataLengthRef.current = chartData.length;
+  }, [dataKey, emaPeriods, initialVisibleCandleCount, klines, resetViewKey]);
 
   return (
-    <div
-      ref={chartContainerRef}
-      className={`relative h-full w-full rounded-md bg-[#0e0e0e] ${
-        interactive ? "cursor-grab touch-pan-y active:cursor-grabbing" : ""
-      }`}
-    ></div>
+    <div className="relative h-full w-full rounded-md bg-[#0e0e0e]">
+      {watermarkText && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center overflow-hidden px-4"
+        >
+          <span className="select-none whitespace-nowrap font-[var(--font-display)] text-[clamp(2.5rem,11vw,5rem)] font-bold italic tracking-[-0.05em] text-white/[0.1]">
+            {watermarkText}
+          </span>
+        </div>
+      )}
+      {emaPeriods.length > 0 && (
+        <div className="absolute left-2 top-2 z-10 flex flex-wrap gap-x-2.5 gap-y-1 rounded bg-black/55 px-2 py-1 font-[var(--font-mono)] text-[0.58rem] font-medium tabular-nums text-white/85 backdrop-blur-sm">
+          {emaPeriods.map((period) => (
+            <button
+              key={period}
+              type="button"
+              aria-pressed={enabledEmaPeriods.has(period)}
+              className={`flex cursor-pointer items-center gap-1 transition-opacity ${
+                enabledEmaPeriods.has(period) ? "" : "opacity-35"
+              }`}
+              onClick={() => {
+                setEnabledEmaPeriods((current) => {
+                  const next = new Set(current);
+                  if (next.has(period)) next.delete(period);
+                  else next.add(period);
+                  return next;
+                });
+              }}
+            >
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: EMA_COLORS[period] ?? "#a3a3a3" }}
+              />
+              EMA {period}
+            </button>
+          ))}
+        </div>
+      )}
+      <div
+        ref={chartContainerRef}
+        className={`h-full w-full ${
+          interactive
+            ? "cursor-crosshair touch-pan-y active:cursor-grabbing"
+            : ""
+        }`}
+      />
+    </div>
   );
 };
