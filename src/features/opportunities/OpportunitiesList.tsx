@@ -92,7 +92,7 @@ function OpportunityCard({
           <span className="mt-1 block font-mono text-[0.68rem] text-[var(--ds-text-secondary)]">
             Entry ${formatPrice(opportunity.price_at_alert)} · Best ${" "}
             {formatPrice(opportunity.extreme_price)} ·{" "}
-            {formatTime(opportunity.extreme_time)}
+            {formatTime(opportunity.alert_time)}
           </span>
         </span>
         <span className="flex items-center gap-3">
