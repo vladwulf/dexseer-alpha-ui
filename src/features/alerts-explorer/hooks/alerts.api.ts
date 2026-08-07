@@ -147,6 +147,7 @@ export type AlertChartRow = {
 
 export type Opportunity = {
   alert_id: string;
+  alert_time: string;
   instrument_symbol: string;
   direction: AlertDirection;
   timeframe: AlertTimeframe;

@@ -115,9 +115,8 @@ function OpportunityCard({
         <div className="h-80 border-t border-[var(--ds-border)]">
           <AlertsChartWrapper
             alertId={opportunity.alert_id}
-            alertTime={opportunity.extreme_time}
+            alertTime={opportunity.alert_time}
             alertPrice={opportunity.price_at_alert}
-            inferAlertTimeFromPrice
             timeframe={opportunity.timeframe}
             enabled={shouldLoadChart}
             showLegend={false}
