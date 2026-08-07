@@ -128,7 +128,7 @@ export function Navbar() {
           >
             <img
               src="/dexseer-logo3.svg"
-              className="h-5 w-5"
+              className="h-6 w-6 object-contain"
               alt="DexSeer logo"
             />
             <span
