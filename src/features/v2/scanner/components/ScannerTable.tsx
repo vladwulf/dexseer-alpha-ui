@@ -636,7 +636,6 @@ export function ScannerTable({
   onSelectSymbol,
   onSortingChange,
 }: ScannerTableProps) {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef(new Map<string, HTMLTableRowElement>());
   const { firstAppearance, indexChange } = useEntryFlash(
     assets,
@@ -679,20 +678,6 @@ export function ScannerTable({
       return;
     }
 
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      const preservesSelection =
-        target instanceof Element &&
-        target.closest("[data-preserve-scanner-selection]");
-
-      if (
-        !preservesSelection &&
-        !tableContainerRef.current?.contains(target as Node)
-      ) {
-        onSelectSymbol("");
-      }
-    };
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
         return;
@@ -720,20 +705,15 @@ export function ScannerTable({
       rowRefs.current.get(nextSymbol)?.scrollIntoView({ block: "nearest" });
     };
 
-    document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [assets, onSelectSymbol, selectedSymbol]);
 
   return (
-    <div
-      ref={tableContainerRef}
-      className="min-w-0 border-b border-white/8 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-auto xl:border-b-0"
-    >
+    <div className="min-w-0 border-b border-white/8 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-auto xl:border-b-0">
       <Table className="min-w-max w-full border-collapse hide-scrollbar-x">
         <TableHeader className="bg-[#0d0d0d]">
           {table.getHeaderGroups().map((headerGroup) => (
