@@ -6,6 +6,7 @@ import { useGetAlertChart } from "./hooks/alerts.api";
 type Props = {
   alertTime: string;
   alertPrice: number;
+  alertDirection?: string;
   alertId: string;
   expectedInstrumentId?: string;
   timeframe: AlertTimeframe;
@@ -92,6 +93,7 @@ export function AlertsChartWrapper(props: Props) {
           <AlertChart
             alertTime={props.alertTime}
             alertPrice={props.alertPrice}
+            alertDirection={props.alertDirection}
             extremeTime={props.extremeTime}
             extremePrice={props.extremePrice}
             highlightAlertCandle={props.highlightAlertCandle}
