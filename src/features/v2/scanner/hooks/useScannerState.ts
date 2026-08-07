@@ -10,9 +10,13 @@ import type { RefreshInterval } from "../types";
 
 type UseScannerStateOptions = {
   refreshInterval: RefreshInterval;
+  search?: string;
 };
 
-export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
+export function useScannerState({
+  refreshInterval,
+  search,
+}: UseScannerStateOptions) {
   const [selectedSymbol, setSelectedSymbol] = useState("");
   const {
     columnOrder,
@@ -34,6 +38,7 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
     {
       preset: getScannerPresetKey("Classic Rolling"),
       limit: 20,
+      search: search?.trim() || undefined,
       ...scannerSortParams,
     },
     {
@@ -51,11 +56,16 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
   }, [scannerQuery.data]);
 
   useEffect(() => {
-    if (selectedSymbol || !filteredAssets[0]) {
+    const firstAsset = filteredAssets[0];
+
+    if (
+      !firstAsset ||
+      filteredAssets.some((asset) => asset.symbol === selectedSymbol)
+    ) {
       return;
     }
 
-    setSelectedSymbol(filteredAssets[0].symbol);
+    setSelectedSymbol(firstAsset.symbol);
   }, [filteredAssets, selectedSymbol]);
 
   const selectedAsset =

@@ -13,12 +13,14 @@ export type ScannerControlsProps = {
   isManualRefreshing: boolean;
   minVolume: (typeof MIN_VOLUME_OPTIONS)[number];
   refreshInterval: RefreshInterval;
+  assetFilter: string;
   timeframe: ScannerTimeframe;
   watchlistFilter: (typeof WATCHLIST_OPTIONS)[number];
   onDensityChange: (value: DensityMode) => void;
   onManualRefresh: () => void;
   onMinVolumeChange: (value: (typeof MIN_VOLUME_OPTIONS)[number]) => void;
   onRefreshIntervalChange: (value: RefreshInterval) => void;
+  onAssetFilterChange: (value: string) => void;
   onTimeframeChange: (value: ScannerTimeframe) => void;
   onWatchlistFilterChange: (value: (typeof WATCHLIST_OPTIONS)[number]) => void;
 };

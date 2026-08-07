@@ -1,8 +1,10 @@
 import { ActionButtons } from "./components/ActionButtons";
 import { TimeframeChips } from "./components/TimeframeChips";
 import type { ScannerControlsProps } from "./types";
+import { Input } from "@/components/ui/input";
 
 export function ScannerControls({
+  assetFilter,
   density,
   isManualRefreshing,
   minVolume: _minVolume,
@@ -10,12 +12,29 @@ export function ScannerControls({
   timeframe,
   watchlistFilter: _watchlistFilter,
   onDensityChange,
+  onAssetFilterChange,
   onManualRefresh,
   onMinVolumeChange: _onMinVolumeChange,
   onRefreshIntervalChange,
   onTimeframeChange,
   onWatchlistFilterChange: _onWatchlistFilterChange,
 }: ScannerControlsProps) {
+  const assetFilterInput = (
+    <div className="flex w-full items-center gap-2 md:w-auto">
+      <span className="shrink-0 whitespace-nowrap font-mono text-[0.58rem] tracking-[0.12em] uppercase text-[var(--ds-text-tertiary)]">
+        Asset
+      </span>
+      <Input
+        aria-label="Filter assets"
+        className="!h-[26px] !w-full !rounded-[4px] border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-2 !py-1 font-mono !text-[11px] !leading-none font-medium tracking-[0.05em] text-[var(--ds-text-primary)] placeholder:text-[var(--ds-text-tertiary)] hover:border-[var(--ds-border-strong)] focus-visible:border-[var(--ds-electric)] focus-visible:ring-1 focus-visible:ring-[var(--ds-electric)] md:!w-40"
+        placeholder="Search symbol"
+        value={assetFilter}
+        onChange={(event) => onAssetFilterChange(event.target.value)}
+        onKeyDown={(event) => event.stopPropagation()}
+      />
+    </div>
+  );
+
   const actionButtons = (
     <ActionButtons
       density={density}
@@ -34,6 +53,7 @@ export function ScannerControls({
         <div className="flex items-center justify-between gap-2">
           {actionButtons}
         </div>
+        {assetFilterInput}
         <TimeframeChips
           timeframe={timeframe}
           onTimeframeChange={onTimeframeChange}
@@ -41,8 +61,9 @@ export function ScannerControls({
       </div>
 
       {/* Desktop layout (md+): single row */}
-      <div className="hidden md:flex md:items-center md:gap-4">
-        <div className="ml-auto flex items-center gap-3">
+      <div className="hidden items-center justify-between gap-4 md:flex">
+        {assetFilterInput}
+        <div className="flex items-center gap-3">
           <TimeframeChips
             timeframe={timeframe}
             onTimeframeChange={onTimeframeChange}

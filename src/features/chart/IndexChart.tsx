@@ -147,6 +147,18 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
           return `${hours}:${minutes}`;
         },
       },
+      localization: {
+        // Format the crosshair tooltip in the browser's local timezone.
+        timeFormatter: (time: number) =>
+          new Date(time * 1000).toLocaleString("default", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }),
+      },
       rightPriceScale: {
         visible: true, // Hide price scale for cleaner mini chart
         borderVisible: false,
@@ -354,20 +366,23 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     const markers: SeriesMarker<Time>[] = alertMarkers
       .flatMap<SeriesMarker<Time>>((alert) => {
         const alertTime = parseCandleTime(alert.time);
-        if (
-          alertTime < candleTimes[0] ||
-          alertTime > candleTimes[candleTimes.length - 1]
-        ) {
+        if (alertTime < candleTimes[0]) {
           return [];
         }
-        const candleTime = candleTimes.reduce<number | undefined>(
-          (nearest, time) =>
-            nearest === undefined ||
-            Math.abs(time - alertTime) < Math.abs(nearest - alertTime)
-              ? time
-              : nearest,
-          undefined,
-        );
+        const latestCandleTime = candleTimes[candleTimes.length - 1];
+        // Alerts can arrive after the current candle's opening timestamp while
+        // that candle is still forming. Anchor those markers to the live candle.
+        const candleTime =
+          alertTime >= latestCandleTime
+            ? latestCandleTime
+            : candleTimes.reduce<number | undefined>(
+                (nearest, time) =>
+                  nearest === undefined ||
+                  Math.abs(time - alertTime) < Math.abs(nearest - alertTime)
+                    ? time
+                    : nearest,
+                undefined,
+              );
         if (candleTime === undefined) return [];
 
         const isPullback = alert.kind === "pullback";

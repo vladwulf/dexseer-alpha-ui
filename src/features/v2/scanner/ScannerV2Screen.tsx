@@ -28,6 +28,7 @@ import {
 } from "./lib/apiAdapters";
 
 export function ScannerV2Screen() {
+  const [assetFilter, setAssetFilter] = useState("");
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<"manual" | "live">(
@@ -53,7 +54,7 @@ export function ScannerV2Screen() {
     setTimeframe,
     setWatchlistFilter,
     scannerQuery,
-  } = useScannerState({ refreshInterval });
+  } = useScannerState({ refreshInterval, search: assetFilter });
   const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
   const selectedAssetId = selectedAsset?.assetId;
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId, {
@@ -133,6 +134,7 @@ export function ScannerV2Screen() {
         <TerminalWorkspace
           controls={
             <ScannerControls
+              assetFilter={assetFilter}
               density={density}
               isManualRefreshing={isManualRefreshing}
               minVolume={minVolume}
@@ -140,6 +142,7 @@ export function ScannerV2Screen() {
               timeframe={timeframe}
               watchlistFilter={watchlistFilter}
               onDensityChange={setDensity}
+              onAssetFilterChange={setAssetFilter}
               onManualRefresh={handleManualRefresh}
               onMinVolumeChange={setMinVolume}
               onRefreshIntervalChange={setRefreshInterval}
