@@ -5,6 +5,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useGetAlertsPage } from "@/features/alerts-explorer/hooks/alerts.api";
 import type { ScannerAsset, ScannerTimeframe } from "../../types";
 import { ActiveAssetPanel } from "../ActiveAssetPanel/ActiveAssetPanel";
 import { ScannerSidePanelBody } from "./components/ScannerSidePanelBody";
@@ -32,6 +33,16 @@ export function ScannerSidePanel({
   timeframe,
 }: ScannerSidePanelProps) {
   const touchStartX = useRef<number | null>(null);
+  const alertSymbol = asset?.symbol.replace(/usdt$/i, "") ?? "";
+  const alertsQuery = useGetAlertsPage({
+    enabled: Boolean(asset),
+    limit: 5,
+    symbol: alertSymbol,
+    refetchInterval: 5_000,
+    sortBy: "triggered_at",
+    sortOrder: "desc",
+  });
+  const alerts = (alertsQuery.data?.data ?? []).slice(0, 5);
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
@@ -55,8 +66,16 @@ export function ScannerSidePanel({
         onLoadMoreChartHistory={onLoadMoreChartHistory}
         showStats={false}
         timeframe={timeframe}
+        alerts={alerts}
       />
-      <ScannerSidePanelBody asset={asset} timeframe={timeframe} />
+      <ScannerSidePanelBody
+        asset={asset}
+        timeframe={timeframe}
+        alerts={alerts}
+        alertCount={alertsQuery.data?.meta.total ?? 0}
+        isAlertsLoading={alertsQuery.isLoading}
+        isAlertsError={alertsQuery.isError}
+      />
     </>
   ) : (
     <ScannerSidePanelSkeleton />

@@ -1,4 +1,5 @@
 import { BellPlus, BookmarkPlus, Clock3, Star, Volume2 } from "lucide-react";
+import type { AlertListItem } from "@/features/alerts-explorer/hooks/alerts.api";
 import {
   formatCompactUsd,
   formatFundingRate,
@@ -14,9 +15,17 @@ import { RecentAlertsList } from "./RecentAlertsList";
 export function ScannerSidePanelBody({
   asset,
   timeframe,
+  alerts,
+  alertCount,
+  isAlertsLoading,
+  isAlertsError,
 }: {
   asset: ScannerAsset;
   timeframe: ScannerTimeframe;
+  alerts: AlertListItem[];
+  alertCount: number;
+  isAlertsLoading: boolean;
+  isAlertsError: boolean;
 }) {
   return (
     <div className="scanner-side-panel__body px-4 py-5">
@@ -75,8 +84,11 @@ export function ScannerSidePanelBody({
       />
 
       <RecentAlertsList
-        alerts={asset.recentAlerts}
-        alertCount={asset.alertCount}
+        alerts={alerts}
+        alertCount={alertCount}
+        isLoading={isAlertsLoading}
+        isError={isAlertsError}
+        symbol={asset.symbol.replace(/usdt$/i, "")}
       />
 
       <div className="scanner-side-panel__hours mb-5 rounded-[20px] border border-white/8 p-4">

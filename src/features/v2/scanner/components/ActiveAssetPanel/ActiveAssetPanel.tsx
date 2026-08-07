@@ -1,5 +1,7 @@
 import { Activity, BellPlus, BookmarkPlus, ExternalLink } from "lucide-react";
 import { Link } from "react-router";
+import type { AlertListItem } from "@/features/alerts-explorer/hooks/alerts.api";
+import type { ChartAlertMarker } from "@/features/chart/IndexChart";
 import { IndexChart } from "@/features/chart/IndexChart";
 import { useLiveChartSeries } from "@/hooks/chart/useLiveChartSeries";
 import {
@@ -8,6 +10,7 @@ import {
   formatPrice,
   numberFormat,
 } from "../../lib/formatters";
+import { isMomentumPullback } from "../../lib/momentumLabels";
 import type { ScannerAsset, ScannerTimeframe } from "../../types";
 import { ActionButton } from "../ActionButton";
 import { Pill } from "../Pill";
@@ -24,6 +27,7 @@ type ActiveAssetPanelProps = {
   onLoadMoreChartHistory?: () => void;
   showStats?: boolean;
   timeframe: ScannerTimeframe;
+  alerts?: AlertListItem[];
 };
 
 export function ActiveAssetPanel({
@@ -35,6 +39,7 @@ export function ActiveAssetPanel({
   onLoadMoreChartHistory,
   showStats = true,
   timeframe,
+  alerts = [],
 }: ActiveAssetPanelProps) {
   const { seriesByAssetId } = useLiveChartSeries({
     enabled: liveUpdatesEnabled,
@@ -53,6 +58,11 @@ export function ActiveAssetPanel({
   const klines = asset?.assetId
     ? (seriesByAssetId.get(asset.assetId) ?? asset.chart)
     : [];
+  const alertMarkers: ChartAlertMarker[] = alerts.map((alert) => ({
+    direction: alert.direction,
+    kind: isMomentumPullback(alert) ? "pullback" : "momentum",
+    time: alert.triggered_at ?? alert.time,
+  }));
 
   if (!asset) {
     return (
@@ -136,6 +146,7 @@ export function ActiveAssetPanel({
           watermarkText={
             flushChart ? asset.symbol.replace(/[-/_]?USDT$/i, "") : undefined
           }
+          alertMarkers={alertMarkers}
         />
       </div>
       {showStats && (

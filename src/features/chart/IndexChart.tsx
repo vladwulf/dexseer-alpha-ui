@@ -3,9 +3,11 @@ import {
   CandlestickSeries,
   ColorType,
   createChart,
+  createSeriesMarkers,
   HistogramSeries,
   LineSeries,
   type LogicalRange,
+  type SeriesMarker,
   type Time,
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
@@ -22,6 +24,12 @@ const EMA_COLORS: Record<number, string> = {
 const NO_EMA_PERIODS: readonly number[] = [];
 const RIGHT_EDGE_PADDING_PX = 24;
 
+export type ChartAlertMarker = {
+  direction: string;
+  kind: "momentum" | "pullback";
+  time: string;
+};
+
 type ChartProps = {
   dataKey?: string | number;
   initialVisibleCandleCount?: number;
@@ -36,6 +44,7 @@ type ChartProps = {
   onLoadMoreHistory?: () => void;
   showVolume?: boolean;
   watermarkText?: string;
+  alertMarkers?: ChartAlertMarker[];
 };
 
 export const IndexChart: React.FC<ChartProps> = (props) => {
@@ -53,6 +62,7 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     showVolume = false,
     upColor,
     watermarkText,
+    alertMarkers = [],
   } = props;
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -66,6 +76,9 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
   const emaSeriesRefs = useRef<
     Map<number, ReturnType<ReturnType<typeof createChart>["addSeries"]>>
   >(new Map());
+  const alertMarkersRef = useRef<ReturnType<
+    typeof createSeriesMarkers<Time>
+  > | null>(null);
   const currentDataKeyRef = useRef<string | number | undefined>(undefined);
   const currentResetViewKeyRef = useRef<string | number | undefined>(
     resetViewKey,
@@ -215,6 +228,7 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
     // Store refs
     chartRef.current = chart;
     candlestickSeriesRef.current = candlestickSeries;
+    alertMarkersRef.current = createSeriesMarkers(candlestickSeries, []);
 
     const handleVisibleRangeChange = (range: LogicalRange | null) => {
       if (ignoreNextVisibleRangeChangeRef.current) {
@@ -292,10 +306,60 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
       chartRef.current = null;
       candlestickSeriesRef.current = null;
       volumeSeriesRef.current = null;
+      alertMarkersRef.current = null;
       emaSeriesRefs.current.clear();
       chart.remove();
     };
   }, [downColor, emaPeriods, interactive, showVolume, upColor]);
+
+  useEffect(() => {
+    const markerSeries = alertMarkersRef.current;
+    if (!markerSeries || klines.length === 0) return;
+
+    const candleTimes = klines
+      .filter(
+        (kline) =>
+          kline.open != null &&
+          kline.high != null &&
+          kline.low != null &&
+          kline.close != null,
+      )
+      .map((kline) => parseCandleTime(kline.time));
+
+    const markers: SeriesMarker<Time>[] = alertMarkers
+      .flatMap<SeriesMarker<Time>>((alert) => {
+        const alertTime = parseCandleTime(alert.time);
+        if (
+          alertTime < candleTimes[0] ||
+          alertTime > candleTimes[candleTimes.length - 1]
+        ) {
+          return [];
+        }
+        const candleTime = candleTimes.reduce<number | undefined>(
+          (nearest, time) =>
+            nearest === undefined ||
+            Math.abs(time - alertTime) < Math.abs(nearest - alertTime)
+              ? time
+              : nearest,
+          undefined,
+        );
+        if (candleTime === undefined) return [];
+
+        const isPullback = alert.kind === "pullback";
+        const isShort = alert.direction.toLowerCase().includes("short");
+        return [
+          {
+            time: candleTime as Time,
+            position: isPullback || !isShort ? "belowBar" : "aboveBar",
+            color: isPullback ? "#4ca7f8" : "#ffae45",
+            shape: isPullback ? "circle" : isShort ? "arrowDown" : "arrowUp",
+          },
+        ];
+      })
+      .sort((left, right) => Number(left.time) - Number(right.time));
+
+    markerSeries.setMarkers(markers);
+  }, [alertMarkers, klines]);
 
   useEffect(() => {
     const chart = chartRef.current;

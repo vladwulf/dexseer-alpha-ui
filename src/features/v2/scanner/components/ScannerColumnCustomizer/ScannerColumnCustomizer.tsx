@@ -30,7 +30,9 @@ import { cn } from "@/lib/utils";
 import { useIsMobileScanner } from "../../hooks/useIsMobileScanner";
 import {
   DEFAULT_SCANNER_COLUMN_ORDER,
+  getScannerColumnPreset,
   SCANNER_COLUMN_GROUPS,
+  SCANNER_COLUMN_PRESETS,
   SCANNER_COLUMNS,
   type ScannerColumnDefinition,
 } from "../../lib/scannerColumns";
@@ -57,6 +59,7 @@ function ColumnCustomizerContent({
   );
   const normalizedQuery = query.trim().toLowerCase();
   const isVisible = (id: string) => columnOrder.includes(id);
+  const activePreset = getScannerColumnPreset(columnOrder);
 
   const toggleColumn = (column: ScannerColumnDefinition) => {
     if (column.locked) return;
@@ -84,6 +87,41 @@ function ColumnCustomizerContent({
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="border-b border-white/8 px-5 py-4">
+        <div className="mb-4">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="font-mono text-[0.6rem] font-semibold tracking-[0.13em] text-white/35 uppercase">
+              Column layouts
+            </h3>
+            <span className="font-mono text-[0.6rem] text-white/35">
+              {activePreset?.label ?? "Custom"}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+            {SCANNER_COLUMN_PRESETS.map((preset) => {
+              const selected = preset.id === activePreset?.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => onColumnOrderChange(preset.columnOrder)}
+                  className={cn(
+                    "rounded-md border px-2.5 py-2 text-left transition-colors",
+                    selected
+                      ? "border-[oklch(0.72_0.18_248_/_55%)] bg-[oklch(0.72_0.18_248_/_12%)]"
+                      : "border-white/[0.08] bg-white/[0.025] hover:border-white/18 hover:bg-white/[0.055]",
+                  )}
+                >
+                  <span className="block font-mono text-[0.68rem] font-medium text-white/80">
+                    {preset.label}
+                  </span>
+                  <span className="mt-0.5 block text-[0.6rem] leading-snug text-white/38">
+                    {preset.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-white/35" />
           <Input

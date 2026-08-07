@@ -305,42 +305,42 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
   },
   {
     accessorKey: "change5m",
-    header: "5m %",
+    header: "5m change",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <ChangePctCell value={row.original.change5m} />
     ),
   },
   {
     accessorKey: "change15m",
-    header: "15m %",
+    header: "15m change",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <ChangePctCell value={row.original.change15m} />
     ),
   },
   {
     accessorKey: "change1h",
-    header: "1h %",
+    header: "1h change",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <ChangePctCell value={row.original.change1h} />
     ),
   },
   {
     accessorKey: "change4h",
-    header: "4h %",
+    header: "4h change",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <ChangePctCell value={row.original.change4h} />
     ),
   },
   {
     accessorKey: "change24h",
-    header: "24h %",
+    header: "24h change",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <ChangePctCell value={row.original.change24h} />
     ),
   },
   {
     accessorKey: "volume",
-    header: "Volume",
+    header: "Volume 24h",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <span
         style={{
@@ -360,14 +360,14 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
   },
   {
     accessorKey: "rvol",
-    header: "RVOL",
+    header: "RVOL 24h",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <RvolCell value={row.original.rvol} />
     ),
   },
   {
     accessorKey: "openInterest",
-    header: "Open interest",
+    header: "OI",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <span
         style={{
@@ -382,14 +382,14 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
   },
   {
     accessorKey: "oiDelta",
-    header: "OI Δ",
+    header: "OI Δ 24h",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <OiDeltaCell value={row.original.oiDelta} />
     ),
   },
   {
     accessorKey: "funding",
-    header: "Funding",
+    header: "Funding rate",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <FundingCell value={row.original.funding} />
     ),
@@ -403,21 +403,21 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
   },
   {
     accessorKey: "btcCorrelation",
-    header: "BTC corr",
+    header: "BTC correlation",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <span>{row.original.btcCorrelation.toFixed(2)}</span>
     ),
   },
   {
     accessorKey: "alignedTimeframes",
-    header: "Strength",
+    header: "TF alignment",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <AlignedTfIndicator value={row.original.alignedTimeframes} />
     ),
   },
   {
     accessorKey: "momentumChoppiness",
-    header: "Chop",
+    header: "Choppiness",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <ChoppinessCell value={row.original.momentumChoppiness} />
     ),
