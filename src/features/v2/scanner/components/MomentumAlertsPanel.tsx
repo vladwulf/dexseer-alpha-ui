@@ -85,7 +85,7 @@ function FilterDropdown<T extends string>({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="border-white/15 bg-[#101312] font-mono text-xs text-white/80"
+        className="border-white/15 bg-[var(--ds-surface-raised)] font-mono text-xs text-white/80"
       >
         <DropdownMenuRadioGroup
           value={value}
@@ -608,10 +608,8 @@ export function MomentumAlertsPanel() {
 
   return (
     <section className="flex min-h-[640px] border border-white/8 bg-[var(--ds-canvas)]">
-      <div
-        className="flex min-w-0 flex-1 flex-col overflow-hidden border-b border-white/8 xl:border-b-0"
-      >
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.09] bg-[#0a0d0c] px-5 py-4 font-mono text-xs">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden border-b border-white/8 xl:border-b-0">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.09] bg-[var(--ds-surface)] px-5 py-4 font-mono text-xs">
           <span className="mr-1 text-[0.64rem] uppercase tracking-[0.2em] text-white/40">
             Event
           </span>
@@ -666,7 +664,7 @@ export function MomentumAlertsPanel() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
-              className="w-64 border-white/15 bg-[#101312] font-mono text-xs text-white/80"
+              className="w-64 border-white/15 bg-[var(--ds-surface-raised)] font-mono text-xs text-white/80"
             >
               <DropdownMenuLabel className="text-[0.65rem] uppercase tracking-[0.14em] text-white/40">
                 Event types
@@ -775,7 +773,7 @@ export function MomentumAlertsPanel() {
         </div>
         <div ref={alertListRef} className="min-h-0 flex-1 overflow-auto">
           <div
-            className={`sticky top-0 z-10 grid min-w-[650px] ${ALERT_TABLE_COLUMNS} gap-2 border-b border-white/[0.1] bg-[#0c0f0e] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/40 shadow-[0_1px_0_rgba(255,255,255,0.08)]`}
+            className={`sticky top-0 z-10 grid min-w-[650px] ${ALERT_TABLE_COLUMNS} gap-2 border-b border-white/[0.1] bg-[var(--ds-surface)] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/40 shadow-[0_1px_0_var(--ds-border)]`}
           >
             <span>Time</span>
             <span>Symbol</span>
@@ -826,8 +824,10 @@ export function MomentumAlertsPanel() {
               ) : (
                 "Scroll for more alerts"
               )
+            ) : alerts.length > 0 ? (
+              "End of alert history"
             ) : (
-              alerts.length > 0 ? "End of alert history" : ""
+              ""
             )}
           </div>
         </div>
@@ -862,7 +862,7 @@ export function MomentumAlertsPanel() {
         }}
       />
       <aside
-        className="hidden min-w-0 bg-[#0a0a0a] xl:block"
+        className="hidden min-w-0 bg-[var(--ds-canvas-raised)] xl:block"
         style={{ width: inspectorWidth }}
       >
         {selectedAlert ? (

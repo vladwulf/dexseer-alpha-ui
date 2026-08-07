@@ -1,4 +1,11 @@
-import { BellRing, CandlestickChart, SearchIcon, Waves } from "lucide-react";
+import {
+  BellRing,
+  CandlestickChart,
+  Check,
+  Palette,
+  SearchIcon,
+  Waves,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import {
@@ -11,6 +18,18 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  applyTheme,
+  getStoredTheme,
+  type ThemeName,
+  themes,
+} from "@/config/themes";
 
 const navLinks = [
   { to: "/", label: "Scanner" },
@@ -76,9 +95,9 @@ const navLinkStyle = (isActive: boolean): React.CSSProperties => ({
   textDecoration: "none",
   padding: "2px 0",
   borderRadius: "0",
-  color: isActive ? "oklch(0.96 0 0)" : "oklch(0.68 0 0)",
+  color: isActive ? "var(--ds-text-primary)" : "var(--ds-text-secondary)",
   borderBottom: isActive
-    ? "2px solid oklch(0.96 0 0)"
+    ? "2px solid var(--ds-text-primary)"
     : "2px solid transparent",
   transition: "color 0.15s, border-color 0.15s",
 });
@@ -86,10 +105,16 @@ const navLinkStyle = (isActive: boolean): React.CSSProperties => ({
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [themeName, setThemeName] = useState<ThemeName>(getStoredTheme);
   const location = useLocation();
 
   // Close menu on navigation
   const handleNavClick = () => setMenuOpen(false);
+
+  const handleThemeChange = (nextTheme: ThemeName) => {
+    applyTheme(nextTheme);
+    setThemeName(nextTheme);
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -137,19 +162,21 @@ export function Navbar() {
                 fontWeight: 700,
                 fontSize: "0.9rem",
                 letterSpacing: "0.02em",
-                color: "oklch(0.96 0 0)",
+                color: "var(--ds-text-primary)",
               }}
             >
-              DEX<span style={{ color: "oklch(0.72 0.18 248)" }}>SEER</span>
+              DEX<span style={{ color: "var(--ds-electric)" }}>SEER</span>
             </span>
             <span
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "0.55rem",
                 fontWeight: 500,
-                color: "#5dc887",
-                background: "rgba(93,200,135,0.08)",
-                border: "1px solid rgba(93,200,135,0.22)",
+                color: "var(--ds-positive)",
+                background:
+                  "color-mix(in srgb, var(--ds-positive) 8%, transparent)",
+                border:
+                  "1px solid color-mix(in srgb, var(--ds-positive) 22%, transparent)",
                 borderRadius: "2px",
                 padding: "1px 4px",
                 letterSpacing: "0.06em",
@@ -162,7 +189,7 @@ export function Navbar() {
           {/* Desktop: divider + nav links */}
           <div
             className="hidden h-4 w-px shrink-0 md:block"
-            style={{ background: "oklch(1 0 0 / 10%)" }}
+            style={{ background: "var(--ds-border)" }}
           />
           <nav className="hidden items-center gap-5 md:flex">
             {navLinks.map(({ to, label }) =>
@@ -193,16 +220,79 @@ export function Navbar() {
           {/* Spacer */}
           <div className="flex-1" />
 
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Choose color theme"
+                className="flex h-7 items-center gap-2 rounded-md border px-2 text-[var(--ds-text-secondary)] transition-colors hover:border-[var(--ds-border-strong)] hover:bg-white/[0.04] hover:text-[var(--ds-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-electric)]"
+                style={{ borderColor: "var(--ds-border)" }}
+              >
+                <Palette className="h-3.5 w-3.5" />
+                <span className="hidden font-mono text-[0.58rem] font-medium uppercase tracking-[0.08em] sm:block">
+                  {themes[themeName].label}
+                </span>
+                <span className="flex -space-x-1" aria-hidden="true">
+                  {themes[themeName].swatches.map((color) => (
+                    <span
+                      key={color}
+                      className="h-2.5 w-2.5 rounded-full border border-black/30"
+                      style={{ background: color }}
+                    />
+                  ))}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-60 border-[var(--ds-border)] bg-[var(--ds-surface)] p-1.5 text-[var(--ds-text-primary)] shadow-2xl"
+            >
+              <p className="px-2 pb-1 pt-0.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[var(--ds-text-tertiary)]">
+                Color theme
+              </p>
+              {Object.entries(themes).map(([name, theme]) => (
+                <DropdownMenuItem
+                  key={name}
+                  onSelect={() => handleThemeChange(name as ThemeName)}
+                  className="group my-0.5 rounded-md py-2 pl-2 pr-2 focus:bg-white/[0.06] focus:text-[var(--ds-text-primary)]"
+                >
+                  <span className="flex flex-1 items-center gap-2.5">
+                    <span className="flex -space-x-1">
+                      {theme.swatches.map((color) => (
+                        <span
+                          key={color}
+                          className="h-3.5 w-3.5 rounded-full border border-black/30"
+                          style={{ background: color }}
+                        />
+                      ))}
+                    </span>
+                    <span>
+                      <span className="block text-xs font-medium">
+                        {theme.label}
+                      </span>
+                      <span className="block text-[0.64rem] text-[var(--ds-text-tertiary)]">
+                        {theme.description}
+                      </span>
+                    </span>
+                  </span>
+                  {themeName === name && (
+                    <Check className="h-3.5 w-3.5 text-[var(--ds-electric)]" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Live indicator */}
           <div className="flex items-center gap-2">
             <div className="relative flex h-1.5 w-1.5">
               <span
                 className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-                style={{ background: "#5dc887" }}
+                style={{ background: "var(--ds-positive)" }}
               />
               <span
                 className="relative inline-flex h-1.5 w-1.5 rounded-full"
-                style={{ background: "#5dc887" }}
+                style={{ background: "var(--ds-positive)" }}
               />
             </div>
             <span
@@ -212,7 +302,7 @@ export function Navbar() {
                 fontSize: "0.58rem",
                 fontWeight: 500,
                 letterSpacing: "0.08em",
-                color: "oklch(0.5 0 0)",
+                color: "var(--ds-text-tertiary)",
                 textTransform: "uppercase",
               }}
             >
@@ -241,8 +331,8 @@ export function Navbar() {
                 width: 18,
                 height: 1.5,
                 background: menuOpen
-                  ? "oklch(0.72 0.18 248)"
-                  : "oklch(0.65 0 0)",
+                  ? "var(--ds-electric)"
+                  : "var(--ds-text-secondary)",
                 borderRadius: 1,
                 transform: menuOpen
                   ? "translateY(5.5px) rotate(45deg)"
@@ -255,7 +345,9 @@ export function Navbar() {
                 display: "block",
                 width: 18,
                 height: 1.5,
-                background: menuOpen ? "transparent" : "oklch(0.65 0 0)",
+                background: menuOpen
+                  ? "transparent"
+                  : "var(--ds-text-secondary)",
                 borderRadius: 1,
                 transition: "background 0.2s",
               }}
@@ -266,8 +358,8 @@ export function Navbar() {
                 width: 18,
                 height: 1.5,
                 background: menuOpen
-                  ? "oklch(0.72 0.18 248)"
-                  : "oklch(0.65 0 0)",
+                  ? "var(--ds-electric)"
+                  : "var(--ds-text-secondary)",
                 borderRadius: 1,
                 transform: menuOpen
                   ? "translateY(-5.5px) rotate(-45deg)"
@@ -283,8 +375,9 @@ export function Navbar() {
           <div
             className="md:hidden"
             style={{
-              borderTop: "1px solid oklch(1 0 0 / 7%)",
-              background: "oklch(0.1 0 0 / 95%)",
+              borderTop: "1px solid var(--ds-border)",
+              background:
+                "color-mix(in srgb, var(--ds-canvas) 95%, transparent)",
               padding: "6px 10px 10px",
             }}
           >
@@ -296,8 +389,8 @@ export function Navbar() {
               }}
               className="mb-2 flex w-full items-center gap-2 rounded-[8px] border px-3 py-2 text-left"
               style={{
-                borderColor: "oklch(1 0 0 / 10%)",
-                background: "oklch(1 0 0 / 4%)",
+                borderColor: "var(--ds-border)",
+                background: "rgb(255 255 255 / 4%)",
               }}
             >
               <SearchIcon className="h-3.5 w-3.5 text-white/60" />
@@ -305,7 +398,7 @@ export function Navbar() {
                 style={{
                   fontFamily: "var(--font-body)",
                   fontSize: "0.82rem",
-                  color: "oklch(0.62 0 0)",
+                  color: "var(--ds-text-secondary)",
                 }}
               >
                 search assets, alerts...
@@ -345,7 +438,9 @@ export function Navbar() {
                     padding: "8px 10px",
                     borderRadius: "4px",
                     borderBottom: "none",
-                    background: isActive ? "oklch(1 0 0 / 6%)" : "transparent",
+                    background: isActive
+                      ? "rgb(255 255 255 / 6%)"
+                      : "transparent",
                     marginBottom: 2,
                   }}
                 >

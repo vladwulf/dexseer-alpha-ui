@@ -11,6 +11,7 @@ import {
   type Time,
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
+import { THEME_CHANGE_EVENT } from "@/config/themes";
 import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { EMA_COLORS } from "./ema";
@@ -19,6 +20,15 @@ import { normalizeChartData } from "./normalizeChartData";
 
 const NO_EMA_PERIODS: readonly number[] = [];
 const RIGHT_EDGE_PADDING_PX = 24;
+
+function getChartTheme() {
+  const styles = getComputedStyle(document.documentElement);
+
+  return {
+    background: styles.getPropertyValue("--ds-canvas-raised").trim(),
+    textColor: styles.getPropertyValue("--ds-text-secondary").trim(),
+  };
+}
 
 export type ChartAlertMarker = {
   direction: string;
@@ -109,11 +119,11 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    // Create chart instance with dark theme
+    const chartTheme = getChartTheme();
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "#0e0e0e" },
-        textColor: "#d1d5db",
+        background: { type: ColorType.Solid, color: chartTheme.background },
+        textColor: chartTheme.textColor,
       },
       grid: {
         vertLines: { visible: false },
@@ -309,6 +319,25 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
   }, [downColor, emaPeriods, interactive, showVolume, upColor]);
 
   useEffect(() => {
+    const updateChartTheme = () => {
+      const chart = chartRef.current;
+      if (!chart) return;
+
+      const chartTheme = getChartTheme();
+      chart.applyOptions({
+        layout: {
+          background: { type: ColorType.Solid, color: chartTheme.background },
+          textColor: chartTheme.textColor,
+        },
+      });
+    };
+
+    window.addEventListener(THEME_CHANGE_EVENT, updateChartTheme);
+    return () =>
+      window.removeEventListener(THEME_CHANGE_EVENT, updateChartTheme);
+  }, []);
+
+  useEffect(() => {
     const markerSeries = alertMarkersRef.current;
     if (!markerSeries || klines.length === 0) return;
 
@@ -474,7 +503,7 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
   }, [dataKey, emaPeriods, initialVisibleCandleCount, klines, resetViewKey]);
 
   return (
-    <div className="relative h-full w-full rounded-md bg-[#0e0e0e]">
+    <div className="relative h-full w-full rounded-md bg-[var(--ds-canvas-raised)]">
       {watermarkText && (
         <div
           aria-hidden="true"
@@ -486,7 +515,14 @@ export const IndexChart: React.FC<ChartProps> = (props) => {
         </div>
       )}
       {emaPeriods.length > 0 && (
-        <div className="absolute left-2 top-2 z-10 flex flex-wrap gap-x-2.5 gap-y-1 rounded bg-black/55 px-2 py-1 font-[var(--font-mono)] text-[0.58rem] font-medium tabular-nums text-white/85 backdrop-blur-sm">
+        <div
+          className="absolute left-2 top-2 z-10 flex flex-wrap gap-x-2.5 gap-y-1 rounded border px-2 py-1 font-[var(--font-mono)] text-[0.58rem] font-medium tabular-nums text-[var(--ds-text-primary)] backdrop-blur-sm"
+          style={{
+            background:
+              "color-mix(in srgb, var(--ds-surface-raised) 88%, transparent)",
+            borderColor: "var(--ds-border)",
+          }}
+        >
           {emaPeriods.map((period) => (
             <button
               key={period}

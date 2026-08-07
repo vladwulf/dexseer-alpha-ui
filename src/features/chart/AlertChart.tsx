@@ -12,6 +12,7 @@ import {
   LineStyle,
 } from "lightweight-charts";
 import { useEffect, useRef } from "react";
+import { THEME_CHANGE_EVENT } from "@/config/themes";
 import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import { CHART_EMA_PERIODS, EMA_COLORS } from "./ema";
@@ -36,6 +37,15 @@ const getTimeValue = (time: Time): number =>
 // Keep the newest candle clear of the price scale when an alert is near the
 // end of the rendered range.
 const RIGHT_EDGE_PADDING_BARS = 3;
+
+function getChartTheme() {
+  const styles = getComputedStyle(document.documentElement);
+
+  return {
+    background: styles.getPropertyValue("--ds-canvas-raised").trim(),
+    textColor: styles.getPropertyValue("--ds-text-secondary").trim(),
+  };
+}
 
 interface AlertChartProps {
   /**
@@ -108,11 +118,11 @@ export function AlertChart({
   useEffect(() => {
     if (!chartContainerRef.current || !series || series.length === 0) return;
 
-    // Create chart instance with dark theme
+    const chartTheme = getChartTheme();
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "#0a0a0a" },
-        textColor: "#d1d5db",
+        background: { type: ColorType.Solid, color: chartTheme.background },
+        textColor: chartTheme.textColor,
       },
       grid: {
         vertLines: { visible: false },
@@ -705,6 +715,25 @@ export function AlertChart({
     initialVisibleCandleCount,
     onActiveCandleChange,
   ]);
+
+  useEffect(() => {
+    const updateChartTheme = () => {
+      const chart = chartRef.current;
+      if (!chart) return;
+
+      const chartTheme = getChartTheme();
+      chart.applyOptions({
+        layout: {
+          background: { type: ColorType.Solid, color: chartTheme.background },
+          textColor: chartTheme.textColor,
+        },
+      });
+    };
+
+    window.addEventListener(THEME_CHANGE_EVENT, updateChartTheme);
+    return () =>
+      window.removeEventListener(THEME_CHANGE_EVENT, updateChartTheme);
+  }, []);
 
   useEffect(() => {
     seriesRef.current = series;

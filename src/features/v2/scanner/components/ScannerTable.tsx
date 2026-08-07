@@ -321,9 +321,7 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
           className={cn("flex items-center gap-3", SYMBOL_COLUMN_WIDTH_CLASS)}
         >
           <div className="min-w-0">
-            <span
-              className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white"
-            >
+            <span className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white">
               {asset.symbol.replace("USDT", "")}
             </span>
             <div className="mt-1 font-[var(--font-mono)] text-[0.58rem] uppercase tracking-[0.12em] text-white/28">
@@ -694,7 +692,12 @@ export function ScannerTable({
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
+      if (
+        event.key !== "ArrowDown" &&
+        event.key !== "ArrowUp" &&
+        event.key !== "ArrowLeft" &&
+        event.key !== "ArrowRight"
+      ) {
         return;
       }
 
@@ -708,7 +711,11 @@ export function ScannerTable({
       event.preventDefault();
 
       const nextIndex = Math.min(
-        Math.max(selectedIndex + (event.key === "ArrowDown" ? 1 : -1), 0),
+        Math.max(
+          selectedIndex +
+            (event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1),
+          0,
+        ),
         assets.length - 1,
       );
       const nextSymbol = assets[nextIndex]?.symbol;
@@ -730,7 +737,7 @@ export function ScannerTable({
   return (
     <div className="min-w-0 border-b border-white/8 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-auto xl:border-b-0">
       <Table className="min-w-max w-full border-collapse hide-scrollbar-x">
-        <TableHeader className="bg-[#0d0d0d]">
+        <TableHeader className="bg-[var(--ds-surface)]">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
               key={headerGroup.id}
@@ -740,7 +747,7 @@ export function ScannerTable({
                 <TableHead
                   key={header.id}
                   className={cn(
-                    "sticky top-0 z-10 bg-[#0d0d0d] px-3 py-4 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/35 shadow-[0_1px_0_rgba(255,255,255,0.08)]",
+                    "sticky top-0 z-10 bg-[var(--ds-surface)] px-3 py-4 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/35 shadow-[0_1px_0_var(--ds-border)]",
                     header.column.id === "symbol" && SYMBOL_COLUMN_WIDTH_CLASS,
                     header.column.getCanSort()
                       ? "cursor-pointer select-none"
@@ -749,13 +756,13 @@ export function ScannerTable({
                   onClick={header.column.getToggleSortingHandler()}
                   style={{
                     background: header.column.getIsSorted()
-                      ? "#0d1b2a"
-                      : "#0d0d0d",
+                      ? "color-mix(in srgb, var(--ds-electric) 18%, var(--ds-surface))"
+                      : "var(--ds-surface)",
                     boxShadow: header.column.getIsSorted()
-                      ? "inset 0 -2px 0 oklch(0.72 0.18 248 / 75%)"
+                      ? "inset 0 -2px 0 var(--ds-electric)"
                       : undefined,
                     color: header.column.getIsSorted()
-                      ? "oklch(0.72 0.18 248)"
+                      ? "var(--ds-electric)"
                       : undefined,
                     transition: "background 0.12s",
                   }}
@@ -773,8 +780,8 @@ export function ScannerTable({
                           fontSize: "0.6rem",
                           lineHeight: 1,
                           color: header.column.getIsSorted()
-                            ? "oklch(0.72 0.18 248)"
-                            : "oklch(0.32 0 0)",
+                            ? "var(--ds-electric)"
+                            : "var(--ds-text-tertiary)",
                           transition: "color 0.12s",
                         }}
                       >
@@ -807,7 +814,7 @@ export function ScannerTable({
                 className={cn(
                   "border-b border-white/6",
                   isSelected
-                    ? "bg-[rgba(91,143,249,0.20)] shadow-[inset_3px_0_0_0_#5b8ff9] border-b-[rgba(91,143,249,0.25)]"
+                    ? "bg-[var(--ds-electric-soft)] shadow-[inset_3px_0_0_0_var(--ds-electric)] border-b-[var(--ds-border-strong)]"
                     : "hover:bg-white/[0.045]",
                   !isSelected &&
                     firstAppearance.has(row.original.symbol) &&

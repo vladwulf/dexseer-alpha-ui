@@ -1,4 +1,11 @@
 import { useMemo, useState } from "react";
+import { Keyboard } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ActiveAssetPanel } from "./components/ActiveAssetPanel";
 import { ScannerColumnCustomizer } from "./components/ScannerColumnCustomizer";
 import { ScannerControls } from "./components/ScannerControls";
@@ -68,10 +75,10 @@ export function ScannerV2Screen() {
         .flatMap((page) =>
           page.asset_id === selectedAsset.assetId
             ? mapScannerCandlesToOhlcv(
-                page.asset_id,
-                page.instrument_id,
-                page.candles,
-              )
+              page.asset_id,
+              page.instrument_id,
+              page.candles,
+            )
             : [],
         )
         .map((candle) => [candle.time, candle] as const),
@@ -141,7 +148,25 @@ export function ScannerV2Screen() {
           scanner={
             <>
               <div className="terminal-section-label">
-                <span className="text-white/38">% movers</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-white/38">Movers</span>
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          aria-label="Arrow key navigation"
+                          className="flex size-5 items-center justify-center rounded text-white/30 transition-colors hover:bg-white/6 hover:text-white/65 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40"
+                          type="button"
+                        >
+                          <Keyboard aria-hidden="true" className="size-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        Use ↑ ↓ ← → to switch assets
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <ScannerColumnCustomizer
                   columnOrder={columnOrder}
                   onColumnOrderChange={setColumnOrder}
