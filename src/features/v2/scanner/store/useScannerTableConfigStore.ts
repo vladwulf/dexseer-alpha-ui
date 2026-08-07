@@ -1,6 +1,10 @@
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import {
+  DEFAULT_SCANNER_COLUMN_ORDER,
+  normalizeScannerColumnOrder,
+} from "../lib/scannerColumns";
 import { MIN_VOLUME_OPTIONS, WATCHLIST_OPTIONS } from "../lib/scannerOptions";
 import type { DensityMode, ScannerPreset, ScannerTimeframe } from "../types";
 
@@ -8,6 +12,7 @@ type WatchlistFilter = (typeof WATCHLIST_OPTIONS)[number];
 type MinVolumeFilter = (typeof MIN_VOLUME_OPTIONS)[number];
 
 type ScannerTableConfigState = {
+  columnOrder: string[];
   density: DensityMode;
   minVolume: MinVolumeFilter;
   preset: ScannerPreset;
@@ -16,6 +21,7 @@ type ScannerTableConfigState = {
   timeframe: ScannerTimeframe;
   watchlistFilter: WatchlistFilter;
   setDensity: (density: DensityMode) => void;
+  setColumnOrder: (columnOrder: string[]) => void;
   setMinVolume: (minVolume: MinVolumeFilter) => void;
   setPreset: (preset: ScannerPreset) => void;
   setSorting: OnChangeFn<SortingState>;
@@ -41,6 +47,7 @@ function normalizePreset(preset: unknown): ScannerPreset {
 export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
   persist(
     (set) => ({
+      columnOrder: DEFAULT_SCANNER_COLUMN_ORDER,
       density: "compact",
       minVolume: MIN_VOLUME_OPTIONS[1],
       preset: "Classic Rolling",
@@ -53,6 +60,8 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
       timeframe: "1h",
       watchlistFilter: WATCHLIST_OPTIONS[0],
       setDensity: (density) => set({ density }),
+      setColumnOrder: (columnOrder) =>
+        set({ columnOrder: normalizeScannerColumnOrder(columnOrder) }),
       setMinVolume: (minVolume) => set({ minVolume }),
       setPreset: (preset) =>
         set((state) => ({
@@ -87,6 +96,7 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
       name: "scanner-v2-table-config",
       partialize: ({
         density,
+        columnOrder,
         minVolume,
         preset,
         sorting,
@@ -95,6 +105,7 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
         watchlistFilter,
       }) => ({
         density,
+        columnOrder,
         minVolume,
         preset,
         sorting,
@@ -103,7 +114,7 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
         watchlistFilter,
       }),
       storage: createJSONStorage(() => localStorage),
-      version: 2,
+      version: 3,
       migrate: (persistedState) => {
         if (typeof persistedState !== "object" || persistedState === null) {
           return persistedState;
@@ -111,6 +122,7 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
 
         const persisted = persistedState as {
           preset?: unknown;
+          columnOrder?: unknown;
           sorting?: SortingState;
           sortingsByPreset?: Partial<
             Record<ScannerPreset | "Momentum", SortingState>
@@ -134,6 +146,9 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
             sortingsByPreset[preset] ??
             getDefaultSortingForPreset(preset),
           sortingsByPreset,
+          columnOrder: normalizeScannerColumnOrder(
+            persisted.columnOrder ?? DEFAULT_SCANNER_COLUMN_ORDER,
+          ),
         };
       },
     },

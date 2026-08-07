@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGetScanner } from "../hooks/scanner.api";
 import {
   getScannerPresetKey,
@@ -15,19 +15,21 @@ type UseScannerStateOptions = {
 export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
   const [selectedSymbol, setSelectedSymbol] = useState("");
   const {
+    columnOrder,
     density,
     minVolume,
     sorting,
     timeframe,
     watchlistFilter,
     setDensity,
+    setColumnOrder,
     setMinVolume,
     setSorting,
     setTimeframe,
     setWatchlistFilter,
   } = useScannerTableConfigStore();
   const scannerSortParams = getScannerSortParams(sorting);
-  const refetchIntervalMs = refreshInterval === "live" ? 3000 : false;
+  const refetchIntervalMs = refreshInterval === "live" ? 5000 : false;
   const scannerQuery = useGetScanner(
     {
       preset: getScannerPresetKey("Classic Rolling"),
@@ -48,11 +50,20 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
     return scannerQuery.data.entries.map((row) => mapScannerRowToAsset(row));
   }, [scannerQuery.data]);
 
+  useEffect(() => {
+    if (selectedSymbol || !filteredAssets[0]) {
+      return;
+    }
+
+    setSelectedSymbol(filteredAssets[0].symbol);
+  }, [filteredAssets, selectedSymbol]);
+
   const selectedAsset =
     filteredAssets.find((asset) => asset.symbol === selectedSymbol) ??
     filteredAssets[0];
 
   return {
+    columnOrder,
     density,
     filteredAssets,
     minVolume,
@@ -63,6 +74,7 @@ export function useScannerState({ refreshInterval }: UseScannerStateOptions) {
     timeframe,
     watchlistFilter,
     setDensity,
+    setColumnOrder,
     setMinVolume,
     setSelectedSymbol,
     setSorting,

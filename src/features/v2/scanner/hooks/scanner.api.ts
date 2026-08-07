@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { API_URL } from "@/config";
 
@@ -43,19 +43,36 @@ export type ScannerChartTimeframe =
   | "1d";
 export type ScannerListTimeframe = ScannerChartTimeframe;
 export type ScannerSortBy =
+  | "symbol"
   | "price"
-  | "change_pct"
   | "change_5m"
   | "change_15m"
   | "change_1h"
   | "change_4h"
   | "change_24h"
+  | "volume_1m"
+  | "volume_5m"
+  | "volume_15m"
+  | "volume_30m"
+  | "volume_1h"
+  | "volume_4h"
   | "volume_24h"
+  | "rvol_1m"
+  | "rvol_5m"
+  | "rvol_15m"
+  | "rvol_30m"
+  | "rvol_1h"
+  | "rvol_4h"
   | "rvol_24h"
+  | "open_interest"
+  | "oi_change_5m"
+  | "oi_change_15m"
+  | "oi_change_30m"
+  | "oi_change_1h"
+  | "oi_change_4h"
   | "oi_change_24h"
   | "funding_rate"
-  | "alert_count"
-  | "score";
+  | "funding_rate_delta_8h";
 export type ScannerSortDirection = "asc" | "desc";
 
 export type MarketStripRequest = {
@@ -142,10 +159,29 @@ export type ScannerRow = {
   change_1h: number | null;
   change_4h: number | null;
   change_24h: number | null;
+  volume_1m: number | null;
+  volume_5m: number | null;
+  volume_15m: number | null;
+  volume_30m: number | null;
+  volume_1h: number | null;
+  volume_4h: number | null;
   volume_24h: number | null;
+  rvol_1m: number | null;
+  rvol_5m: number | null;
+  rvol_15m: number | null;
+  rvol_30m: number | null;
+  rvol_1h: number | null;
+  rvol_4h: number | null;
   rvol_24h: number | null;
+  open_interest: number | null;
+  oi_change_5m: number | null;
+  oi_change_15m: number | null;
+  oi_change_30m: number | null;
+  oi_change_1h: number | null;
+  oi_change_4h: number | null;
   oi_change_24h: number | null;
   funding_rate: number | null;
+  funding_rate_delta_8h: number | null;
   alert_count: number | null;
   score: number | null;
 };
@@ -211,6 +247,7 @@ export type ScannerResponse = ClassicScannerResponse;
 export type ScannerChartRequest = {
   timeframe?: ScannerChartTimeframe;
   limit?: number;
+  offset?: number;
 };
 
 export type ScannerCandle = {
@@ -259,6 +296,8 @@ export type ScannerChartResponse = {
   instrument_id?: string;
   symbol: string;
   timeframe: ScannerChartTimeframe;
+  limit: number;
+  offset: number;
   updated_at: string | null;
   candles: ScannerCandle[];
 };
@@ -275,6 +314,7 @@ export type ScannerAssetDetailsResponse = {
     change_24h: number | null;
     volume_24h: number | null;
     rvol_24h: number | null;
+    open_interest: number | null;
     oi_change_24h: number | null;
     funding_rate: number | null;
     atr_percent_24h: number | null;
@@ -471,7 +511,7 @@ export function useGetScanner(
   params: ScannerRequest = {},
   options: ScannerQueryOptions = {},
 ) {
-  const { enabled = true, refetchIntervalMs = 3000 } = options;
+  const { enabled = true, refetchIntervalMs = 5000 } = options;
 
   return useQuery({
     queryKey: ["scanner-v2-list", params],
@@ -508,6 +548,36 @@ export function useGetScannerChart(
     // The selected chart is a short-lived seed for the live socket stream.
     // Do not reuse a previously selected chart: fetch its latest history before
     // subscribing to candles for the newly selected instrument.
+    ...NO_FRONTEND_CACHE_QUERY_OPTIONS,
+  });
+}
+
+const MAX_SCANNER_CHART_OFFSET = 5000;
+
+/**
+ * Fetches chart history from newest to oldest. The API windows can overlap at
+ * the live/persisted boundary, so consumers must merge candles by time.
+ */
+export function useGetScannerChartHistory(
+  assetId: number | null | undefined,
+  params: Omit<ScannerChartRequest, "offset"> = {},
+) {
+  const limit = params.limit ?? 500;
+
+  return useInfiniteQuery({
+    queryKey: ["scanner-v2-chart-history", assetId, params],
+    queryFn: ({ pageParam }) =>
+      getScannerChart(assetId ?? 0, { ...params, limit, offset: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.candles.length < lastPage.limit) {
+        return undefined;
+      }
+
+      const nextOffset = lastPage.offset + lastPage.limit;
+      return nextOffset <= MAX_SCANNER_CHART_OFFSET ? nextOffset : undefined;
+    },
+    enabled: assetId !== null && assetId !== undefined,
     ...NO_FRONTEND_CACHE_QUERY_OPTIONS,
   });
 }

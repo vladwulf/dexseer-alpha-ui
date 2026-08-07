@@ -34,28 +34,43 @@ const presetKeyByLabel: Record<ScannerPreset, ScannerPresetKey> = {
   "High RVOL": "high_rvol",
 };
 
-const sortKeyByLabel: Record<SortOption, ScannerSortBy> = {
-  "Setup score": "score",
-  "Alert count": "alert_count",
+const sortKeyByLabel: Partial<Record<SortOption, ScannerSortBy>> = {
   "24h momentum": "change_24h",
   RVOL: "rvol_24h",
   Funding: "funding_rate",
-  "BTC correlation": "score",
 };
 
 const scannerColumnSortKeyById: Record<string, ScannerSortBy> = {
+  symbol: "symbol",
   price: "price",
   change5m: "change_5m",
   change15m: "change_15m",
   change1h: "change_1h",
   change4h: "change_4h",
   change24h: "change_24h",
+  volume1m: "volume_1m",
+  volume5m: "volume_5m",
+  volume15m: "volume_15m",
+  volume30m: "volume_30m",
+  volume1h: "volume_1h",
+  volume4h: "volume_4h",
   volume: "volume_24h",
+  rvol1m: "rvol_1m",
+  rvol5m: "rvol_5m",
+  rvol15m: "rvol_15m",
+  rvol30m: "rvol_30m",
+  rvol1h: "rvol_1h",
+  rvol4h: "rvol_4h",
   rvol: "rvol_24h",
+  openInterest: "open_interest",
+  oiDelta5m: "oi_change_5m",
+  oiDelta15m: "oi_change_15m",
+  oiDelta30m: "oi_change_30m",
+  oiDelta1h: "oi_change_1h",
+  oiDelta4h: "oi_change_4h",
   oiDelta: "oi_change_24h",
   funding: "funding_rate",
-  alertCount: "alert_count",
-  setupScore: "score",
+  fundingDelta8h: "funding_rate_delta_8h",
 };
 
 const volumeThresholdByLabel = {
@@ -70,7 +85,7 @@ export function getScannerPresetKey(preset: ScannerPreset) {
 }
 
 export function getScannerSortKey(sortBy: SortOption) {
-  return sortKeyByLabel[sortBy];
+  return sortKeyByLabel[sortBy] ?? "change_24h";
 }
 
 export function getScannerSortParams(sorting: SortingState): {
@@ -99,15 +114,6 @@ export function getMinVolumeValue(label: keyof typeof volumeThresholdByLabel) {
   return volumeThresholdByLabel[label];
 }
 
-function formatCompactVolume(value: number | null) {
-  if (value === null) return "-";
-
-  return Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 1,
-    notation: "compact",
-  }).format(value);
-}
-
 function toSparkline(row: ScannerRow) {
   const values = [
     row.change_15m,
@@ -130,16 +136,35 @@ export function mapScannerRowToAsset(row: ScannerRow): ScannerAsset {
     assetId: row.asset_id,
     symbol: row.symbol,
     market: row.market,
-    price: row.price ?? 0,
-    change5m: row.change_5m ?? 0,
-    change15m: row.change_15m ?? 0,
-    change1h: row.change_1h ?? 0,
-    change4h: row.change_4h ?? 0,
-    change24h: row.change_24h ?? 0,
-    volume: formatCompactVolume(row.volume_24h),
-    rvol: row.rvol_24h ?? 0,
-    oiDelta: row.oi_change_24h ?? 0,
-    funding: row.funding_rate ?? 0,
+    price: row.price,
+    change5m: row.change_5m,
+    change15m: row.change_15m,
+    change1h: row.change_1h,
+    change4h: row.change_4h,
+    change24h: row.change_24h,
+    volume: row.volume_24h,
+    rvol: row.rvol_24h,
+    openInterest: row.open_interest,
+    oiDelta: row.oi_change_24h,
+    funding: row.funding_rate,
+    volume1m: row.volume_1m,
+    volume5m: row.volume_5m,
+    volume15m: row.volume_15m,
+    volume30m: row.volume_30m,
+    volume1h: row.volume_1h,
+    volume4h: row.volume_4h,
+    rvol1m: row.rvol_1m,
+    rvol5m: row.rvol_5m,
+    rvol15m: row.rvol_15m,
+    rvol30m: row.rvol_30m,
+    rvol1h: row.rvol_1h,
+    rvol4h: row.rvol_4h,
+    oiDelta5m: row.oi_change_5m,
+    oiDelta15m: row.oi_change_15m,
+    oiDelta30m: row.oi_change_30m,
+    oiDelta1h: row.oi_change_1h,
+    oiDelta4h: row.oi_change_4h,
+    fundingDelta8h: row.funding_rate_delta_8h,
     atrPercent: 0,
     btcCorrelation: 0,
     alertCount: row.alert_count ?? 0,
@@ -163,16 +188,35 @@ export function mapMomentumEntryToAsset(row: MomentumEntry): ScannerAsset {
     instrumentId: row.instrument_id,
     symbol: row.symbol,
     market: "PERP",
-    price: row.price ?? 0,
+    price: row.price,
     change5m: row.change_5m,
     change15m: row.change_15m,
     change1h: row.change_1h,
-    change4h: 0,
-    change24h: 0,
-    volume: "-",
+    change4h: null,
+    change24h: null,
+    volume: null,
     rvol: row.rvol_24h,
-    oiDelta: 0,
-    funding: 0,
+    openInterest: null,
+    oiDelta: null,
+    funding: null,
+    volume1m: null,
+    volume5m: null,
+    volume15m: null,
+    volume30m: null,
+    volume1h: null,
+    volume4h: null,
+    rvol1m: null,
+    rvol5m: null,
+    rvol15m: null,
+    rvol30m: null,
+    rvol1h: null,
+    rvol4h: null,
+    oiDelta5m: null,
+    oiDelta15m: null,
+    oiDelta30m: null,
+    oiDelta1h: null,
+    oiDelta4h: null,
+    fundingDelta8h: null,
     atrPercent: 0,
     btcCorrelation: 0,
     alertCount: 0,
@@ -201,15 +245,16 @@ export function mergeDetailsIntoAsset(
 
   return {
     ...asset,
-    price: details.price ?? asset.price,
-    change15m: details.stats.change_15m ?? asset.change15m,
-    change1h: details.stats.change_1h ?? asset.change1h,
-    change4h: details.stats.change_4h ?? asset.change4h,
-    change24h: details.stats.change_24h ?? asset.change24h,
-    volume: formatCompactVolume(details.stats.volume_24h),
-    rvol: details.stats.rvol_24h ?? asset.rvol,
-    oiDelta: details.stats.oi_change_24h ?? asset.oiDelta,
-    funding: details.stats.funding_rate ?? asset.funding,
+    price: details.price,
+    change15m: details.stats.change_15m,
+    change1h: details.stats.change_1h,
+    change4h: details.stats.change_4h,
+    change24h: details.stats.change_24h,
+    volume: details.stats.volume_24h,
+    rvol: details.stats.rvol_24h,
+    openInterest: details.stats.open_interest,
+    oiDelta: details.stats.oi_change_24h,
+    funding: details.stats.funding_rate,
     atrPercent: details.stats.atr_percent_24h ?? asset.atrPercent,
     btcCorrelation: details.stats.btc_correlation_1h ?? asset.btcCorrelation,
   };

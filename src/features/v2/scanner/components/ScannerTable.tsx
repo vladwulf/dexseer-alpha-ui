@@ -7,6 +7,7 @@ import type {
 import {
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -20,109 +21,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { formatPrice, formatSigned, numberFormat } from "../lib/formatters";
-import type { DensityMode, ScannerAsset, ScannerPreset } from "../types";
-import { Sparkline } from "./Sparkline";
+import {
+  formatCompactNumber,
+  formatCompactUsd,
+  formatFundingRate,
+  formatPrice,
+  formatSigned,
+  numberFormat,
+} from "../lib/formatters";
+import { DEFAULT_SCANNER_COLUMN_ORDER } from "../lib/scannerColumns";
+import type { DensityMode, ScannerAsset } from "../types";
 
-const GAINERS_COLUMNS = new Set([
-  "symbol",
-  "price",
-  "change5m",
-  "change15m",
-  "change1h",
-  "change4h",
-  "change24h",
-  "volume",
-  "rvol",
-  "oiDelta",
-  "funding",
-]);
-
-const DEFAULT_COLUMNS = new Set([
-  "symbol",
-  "price",
-  "change5m",
-  "change15m",
-  "change1h",
-  "change4h",
-  "change24h",
-  "volume",
-  "rvol",
-  "oiDelta",
-  "funding",
-  "atrPercent",
-  "btcCorrelation",
-  "alertCount",
-  "setupScore",
-  "sparkline",
-]);
-
-const MOMENTUM_COLUMNS = new Set([
-  "symbol",
-  "price",
-  "setupScore",
-  "change5m",
-  "change15m",
-  "change1h",
-  "alignedTimeframes",
-  "rvol",
-  "momentumChoppiness",
-]);
-
-const SYMBOL_COLUMN_WIDTH_CLASS = "w-[144px] min-w-[144px]";
-function scoreColor(pct: number) {
-  return pct >= 70
-    ? "#5dc887"
-    : pct >= 40
-      ? "#f5a623"
-      : "rgba(255,255,255,0.32)";
-}
-
-function ScoreBadge({ value }: { value: number }) {
-  const pct = Math.min(100, Math.max(0, value));
-  const color = scoreColor(pct);
-  const bg =
-    pct >= 70
-      ? "rgba(93,200,135,0.12)"
-      : pct >= 40
-        ? "rgba(245,166,35,0.10)"
-        : "rgba(255,255,255,0.06)";
-  return (
-    <div className="flex items-center gap-1.5">
-      <span
-        style={{
-          color,
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.75rem",
-          fontWeight: 600,
-          background: bg,
-          borderRadius: 4,
-          padding: "2px 7px",
-        }}
-      >
-        {pct.toFixed(0)}
-      </span>
-      <div
-        style={{
-          width: 28,
-          height: 3,
-          background: "rgba(255,255,255,0.08)",
-          borderRadius: 999,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: "100%",
-            background: color,
-            borderRadius: 999,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+const SYMBOL_COLUMN_WIDTH_CLASS = "w-[80px] min-w-[80px]";
 
 function AlignedTfIndicator({ value }: { value: number | undefined }) {
   if (value === undefined) return <span className="text-white/20">—</span>;
@@ -242,7 +152,9 @@ function RvolCell({ value }: { value: number | null }) {
   );
 }
 
-function OiDeltaCell({ value }: { value: number }) {
+function OiDeltaCell({ value }: { value: number | null }) {
+  if (value === null) return <span className="text-white/20">—</span>;
+
   const abs = Math.abs(value);
   const isPos = value > 0;
   const textColor =
@@ -268,11 +180,13 @@ function OiDeltaCell({ value }: { value: number }) {
   );
 }
 
-function FundingCell({ value }: { value: number }) {
+function FundingCell({ value }: { value: number | null }) {
+  if (value === null) return <span className="text-white/20">—</span>;
+
   // Positive funding = longs pay shorts (overheated longs → red)
   // Negative funding = shorts pay longs (overheated shorts → green)
-  const isHot = value > 0.03;
-  const isSqueeze = value < -0.02;
+  const isHot = value > 0.0003;
+  const isSqueeze = value < -0.0002;
   const textColor = isHot
     ? "#e35561"
     : isSqueeze
@@ -291,7 +205,7 @@ function FundingCell({ value }: { value: number }) {
           fontSize: "0.75rem",
         }}
       >
-        {formatSigned(value, "%")}
+        {formatFundingRate(value)}
       </span>
       {(isHot || isSqueeze) && (
         <span
@@ -301,9 +215,11 @@ function FundingCell({ value }: { value: number }) {
             opacity: 0.75,
             fontFamily: "var(--font-mono)",
             letterSpacing: "0.04em",
+            lineHeight: 1.1,
+            whiteSpace: "pre-line",
           }}
         >
-          {isHot ? "HOT" : "SQZ"}
+          {isHot ? "LONG\nHEAVY" : "SHORT\nHEAVY"}
         </span>
       )}
     </div>
@@ -344,11 +260,18 @@ function ChoppinessCell({ value }: { value: number | null | undefined }) {
   );
 }
 
+function CompactValueCell({ value }: { value: number | null }) {
+  return (
+    <span className="font-[var(--font-mono)] text-[0.75rem] text-white/52">
+      {formatCompactNumber(value)}
+    </span>
+  );
+}
+
 const scannerColumns: ColumnDef<ScannerAsset>[] = [
   {
     accessorKey: "symbol",
     header: "Symbol",
-    enableSorting: false,
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
       const asset = row.original;
       return (
@@ -418,7 +341,6 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
   {
     accessorKey: "volume",
     header: "Volume",
-    enableSorting: false,
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <span
         style={{
@@ -427,7 +349,12 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
           color: "rgba(255,255,255,0.52)",
         }}
       >
-        {row.original.volume}
+        {row.original.volume === null
+          ? "—"
+          : Intl.NumberFormat("en-US", {
+              maximumFractionDigits: 1,
+              notation: "compact",
+            }).format(row.original.volume)}
       </span>
     ),
   },
@@ -436,6 +363,21 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     header: "RVOL",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <RvolCell value={row.original.rvol} />
+    ),
+  },
+  {
+    accessorKey: "openInterest",
+    header: "Open interest",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.75rem",
+          color: "rgba(255,255,255,0.52)",
+        }}
+      >
+        {formatCompactUsd(row.original.openInterest)}
+      </span>
     ),
   },
   {
@@ -467,30 +409,6 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     ),
   },
   {
-    accessorKey: "alertCount",
-    header: "Alerts",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span>{row.original.alertCount}</span>
-    ),
-  },
-  {
-    accessorKey: "setupScore",
-    header: "Score",
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <ScoreBadge value={row.original.setupScore} />
-    ),
-  },
-  {
-    accessorKey: "sparkline",
-    header: "Sparkline",
-    enableSorting: false,
-    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <div className="w-[96px] overflow-hidden text-white/62">
-        <Sparkline values={row.original.sparkline} />
-      </div>
-    ),
-  },
-  {
     accessorKey: "alignedTimeframes",
     header: "Strength",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
@@ -504,12 +422,66 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
       <ChoppinessCell value={row.original.momentumChoppiness} />
     ),
   },
+  ...[
+    ["volume1m", "Volume 1m"],
+    ["volume5m", "Volume 5m"],
+    ["volume15m", "Volume 15m"],
+    ["volume30m", "Volume 30m"],
+    ["volume1h", "Volume 1h"],
+    ["volume4h", "Volume 4h"],
+  ].map(([accessorKey, header]) => ({
+    accessorKey,
+    header,
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <CompactValueCell
+        value={row.original[accessorKey as keyof ScannerAsset] as number | null}
+      />
+    ),
+  })),
+  ...[
+    ["rvol1m", "RVOL 1m"],
+    ["rvol5m", "RVOL 5m"],
+    ["rvol15m", "RVOL 15m"],
+    ["rvol30m", "RVOL 30m"],
+    ["rvol1h", "RVOL 1h"],
+    ["rvol4h", "RVOL 4h"],
+  ].map(([accessorKey, header]) => ({
+    accessorKey,
+    header,
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <RvolCell
+        value={row.original[accessorKey as keyof ScannerAsset] as number | null}
+      />
+    ),
+  })),
+  ...[
+    ["oiDelta5m", "OI Δ 5m"],
+    ["oiDelta15m", "OI Δ 15m"],
+    ["oiDelta30m", "OI Δ 30m"],
+    ["oiDelta1h", "OI Δ 1h"],
+    ["oiDelta4h", "OI Δ 4h"],
+  ].map(([accessorKey, header]) => ({
+    accessorKey,
+    header,
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <OiDeltaCell
+        value={row.original[accessorKey as keyof ScannerAsset] as number | null}
+      />
+    ),
+  })),
+  {
+    accessorKey: "fundingDelta8h",
+    header: "Funding Δ 8h",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <ChangePctCell value={row.original.fundingDelta8h} />
+    ),
+  },
 ];
 
 type ScannerTableProps = {
   assets: ScannerAsset[];
+  columnOrder?: string[];
   density: DensityMode;
-  preset: ScannerPreset;
   selectedSymbol?: string;
   sorting: SortingState;
   onSelectSymbol: (symbol: string) => void;
@@ -629,8 +601,8 @@ function useEntryFlash(
 
 export function ScannerTable({
   assets,
+  columnOrder = DEFAULT_SCANNER_COLUMN_ORDER,
   density,
-  preset,
   selectedSymbol,
   sorting,
   onSelectSymbol,
@@ -642,33 +614,27 @@ export function ScannerTable({
     sorting,
     selectedSymbol,
   );
-  const isMomentumPreset =
-    preset === "Momentum Long" || preset === "Momentum Short";
-  const visibleColIds = isMomentumPreset
-    ? MOMENTUM_COLUMNS
-    : preset === "Classic Rolling"
-      ? GAINERS_COLUMNS
-      : DEFAULT_COLUMNS;
-  const columns = useMemo(
-    () =>
-      scannerColumns.filter((col) =>
-        "accessorKey" in col
-          ? visibleColIds.has(String(col.accessorKey))
-          : "id" in col
-            ? visibleColIds.has(String(col.id))
-            : true,
-      ),
-    [visibleColIds],
-  );
+  const columns = useMemo(() => {
+    const columnsById = new Map(
+      scannerColumns.map((column) => [
+        String("accessorKey" in column ? column.accessorKey : column.id),
+        column,
+      ]),
+    );
+    return columnOrder.flatMap((id) => {
+      const column = columnsById.get(id);
+      return column ? [column] : [];
+    });
+  }, [columnOrder]);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: assets,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     onSortingChange,
     state: { sorting },
-    manualSorting: true,
     enableSortingRemoval: false,
     getRowId: (row) => row.symbol,
   });

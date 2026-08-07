@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { ActiveAssetPanel } from "./components/ActiveAssetPanel";
+import { ScannerColumnCustomizer } from "./components/ScannerColumnCustomizer";
 import { ScannerControls } from "./components/ScannerControls";
 import { ScannerMarketStrip } from "./components/ScannerMarketStrip";
 import { ScannerSidePanel } from "./components/ScannerSidePanel";
@@ -8,10 +9,9 @@ import { TerminalWorkspace } from "./components/TerminalWorkspace";
 import {
   useGetMarketStrip,
   useGetScannerAssetDetails,
-  useGetScannerChart,
+  useGetScannerChartHistory,
 } from "./hooks/scanner.api";
 import { useIsMobileScanner } from "./hooks/useIsMobileScanner";
-import { useLiveScannerFeed } from "./hooks/useLiveScannerFeed";
 import { useScannerState } from "./hooks/useScannerState";
 import {
   getSupportedScannerChartTimeframe,
@@ -29,6 +29,7 @@ export function ScannerV2Screen() {
   const isMobileScanner = useIsMobileScanner();
   const marketStripQuery = useGetMarketStrip();
   const {
+    columnOrder,
     density,
     filteredAssets,
     minVolume,
@@ -38,6 +39,7 @@ export function ScannerV2Screen() {
     timeframe,
     watchlistFilter,
     setDensity,
+    setColumnOrder,
     setMinVolume,
     setSelectedSymbol,
     setSorting,
@@ -46,34 +48,42 @@ export function ScannerV2Screen() {
     scannerQuery,
   } = useScannerState({ refreshInterval });
   const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
-  useLiveScannerFeed({ preset: "Classic Rolling" });
   const selectedAssetId = selectedAsset?.assetId;
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
-  const selectedChartQuery = useGetScannerChart(selectedAssetId, {
+  const selectedChartQuery = useGetScannerChartHistory(selectedAssetId, {
     timeframe: chartTimeframe,
     limit: 500,
   });
   const canSubscribeToSelectedChart =
     selectedChartQuery.isSuccess &&
-    selectedChartQuery.data?.asset_id === selectedAssetId;
+    selectedChartQuery.data?.pages[0]?.asset_id === selectedAssetId;
   const marketStripItems = mapMarketStripResponse(marketStripQuery.data) ?? [];
   const panelAsset = useMemo(() => {
     if (!selectedAsset) return undefined;
 
-    const detailsChart = selectedChartQuery.data;
-    const chart =
-      detailsChart && detailsChart.asset_id === selectedAsset.assetId
-        ? mapScannerCandlesToOhlcv(
-            detailsChart.asset_id,
-            detailsChart.instrument_id,
-            detailsChart.candles,
-          )
-        : undefined;
+    const chartPages = selectedChartQuery.data?.pages ?? [];
+    const detailsChart = chartPages[0];
+    const chartByTime = new Map(
+      chartPages
+        .flatMap((page) =>
+          page.asset_id === selectedAsset.assetId
+            ? mapScannerCandlesToOhlcv(
+                page.asset_id,
+                page.instrument_id,
+                page.candles,
+              )
+            : [],
+        )
+        .map((candle) => [candle.time, candle] as const),
+    );
+    const chart = [...chartByTime.values()].sort((left, right) =>
+      left.time.localeCompare(right.time),
+    );
 
     return {
       ...mergeDetailsIntoAsset(selectedAsset, detailsQuery.data),
       instrumentId: detailsChart?.instrument_id ?? selectedAsset.instrumentId,
-      chart: chart ?? selectedAsset.chart,
+      chart: chart.length > 0 ? chart : selectedAsset.chart,
     };
   }, [detailsQuery.data, selectedAsset, selectedChartQuery.data]);
 
@@ -130,13 +140,17 @@ export function ScannerV2Screen() {
           }
           scanner={
             <>
-              <div className="terminal-section-label text-white/38">
-                % movers
+              <div className="terminal-section-label">
+                <span className="text-white/38">% movers</span>
+                <ScannerColumnCustomizer
+                  columnOrder={columnOrder}
+                  onColumnOrderChange={setColumnOrder}
+                />
               </div>
               <ScannerTable
                 assets={filteredAssets}
+                columnOrder={columnOrder}
                 density={density}
-                preset="Classic Rolling"
                 selectedSymbol={selectedSymbol}
                 sorting={sorting}
                 onSelectSymbol={handleSelectSymbol}
@@ -154,8 +168,13 @@ export function ScannerV2Screen() {
           inspector={
             <ScannerSidePanel
               asset={panelAsset}
+              hasMoreChartHistory={selectedChartQuery.hasNextPage}
+              isLoadingMoreChartHistory={selectedChartQuery.isFetchingNextPage}
               liveUpdatesEnabled={canSubscribeToSelectedChart}
               mobileOpen={isMobileScanner ? mobilePanelOpen : false}
+              onLoadMoreChartHistory={() => {
+                void selectedChartQuery.fetchNextPage();
+              }}
               onMobileOpenChange={setMobilePanelOpen}
               timeframe={timeframe}
             />
