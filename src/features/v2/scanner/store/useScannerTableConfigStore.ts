@@ -29,8 +29,20 @@ type ScannerTableConfigState = {
   setWatchlistFilter: (watchlistFilter: WatchlistFilter) => void;
 };
 
-const DEFAULT_SORTING: SortingState = [{ id: "change15m", desc: true }];
+const DEFAULT_SORTING: SortingState = [{ id: "momentumScore", desc: true }];
 const MOMENTUM_SORTING: SortingState = [{ id: "setupScore", desc: true }];
+
+function includeMomentumScoreColumn(columnOrder: string[]) {
+  if (columnOrder.includes("momentumScore")) return columnOrder;
+
+  const priceIndex = columnOrder.indexOf("price");
+  const insertAt = priceIndex === -1 ? 1 : priceIndex + 1;
+  return [
+    ...columnOrder.slice(0, insertAt),
+    "momentumScore",
+    ...columnOrder.slice(insertAt),
+  ];
+}
 
 function isMomentumPreset(preset: ScannerPreset) {
   return preset === "Momentum Long" || preset === "Momentum Short";
@@ -114,7 +126,7 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
         watchlistFilter,
       }),
       storage: createJSONStorage(() => localStorage),
-      version: 3,
+      version: 4,
       migrate: (persistedState) => {
         if (typeof persistedState !== "object" || persistedState === null) {
           return persistedState;
@@ -146,8 +158,10 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
             sortingsByPreset[preset] ??
             getDefaultSortingForPreset(preset),
           sortingsByPreset,
-          columnOrder: normalizeScannerColumnOrder(
-            persisted.columnOrder ?? DEFAULT_SCANNER_COLUMN_ORDER,
+          columnOrder: includeMomentumScoreColumn(
+            normalizeScannerColumnOrder(
+              persisted.columnOrder ?? DEFAULT_SCANNER_COLUMN_ORDER,
+            ),
           ),
         };
       },

@@ -268,6 +268,49 @@ function CompactValueCell({ value }: { value: number | null }) {
   );
 }
 
+function MomentumScoreCell({ asset }: { asset: ScannerAsset }) {
+  const value = asset.momentumScore;
+
+  if (value === null) {
+    return (
+      <span className="momentum-score-pill momentum-score-pill--empty">
+        <span className="momentum-score-pill__dot" />
+        No data
+      </span>
+    );
+  }
+
+  const direction = value > 0 ? "bullish" : value < 0 ? "bearish" : "balanced";
+  const directionLabel =
+    direction === "bullish"
+      ? "Bull"
+      : direction === "bearish"
+        ? "Bear"
+        : "Even";
+  const strength = Math.min(Math.abs(value), 100);
+  return (
+    <span
+      className={cn(
+        "momentum-score-pill",
+        `momentum-score-pill--${direction}`,
+        strength >= 70 && "momentum-score-pill--strong",
+      )}
+    >
+      <span
+        className="momentum-score-pill__strength"
+        style={{ width: `${strength}%` }}
+      />
+      <span className="momentum-score-pill__shine" />
+      <span className="momentum-score-pill__dot" />
+      <span className="momentum-score-pill__direction">{directionLabel}</span>
+      <span className="momentum-score-pill__value">
+        {value > 0 ? "+" : ""}
+        {value}
+      </span>
+    </span>
+  );
+}
+
 const scannerColumns: ColumnDef<ScannerAsset>[] = [
   {
     accessorKey: "symbol",
@@ -336,6 +379,15 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     header: "24h change",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
       <ChangePctCell value={row.original.change24h} />
+    ),
+  },
+  {
+    accessorKey: "momentumScore",
+    header: "Score",
+    cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
+      <div className="flex justify-center">
+        <MomentumScoreCell asset={row.original} />
+      </div>
     ),
   },
   {

@@ -8,11 +8,14 @@ import {
   ColorType,
   createChart,
   HistogramSeries,
+  LineSeries,
   LineStyle,
 } from "lightweight-charts";
 import { useEffect, useRef } from "react";
 import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
+import { CHART_EMA_PERIODS, EMA_COLORS } from "./ema";
+import { getEMASeriesData } from "./indicators";
 import { normalizeChartData } from "./normalizeChartData";
 
 export type AlertChartActiveCandle = {
@@ -52,6 +55,8 @@ interface AlertChartProps {
   upColor?: string;
   downColor?: string;
   showLegend?: boolean;
+  /** Number of candles to show when the chart first opens. */
+  initialVisibleCandleCount?: number;
   onActiveCandleChange?: (activeCandle: AlertChartActiveCandle) => void;
 }
 
@@ -88,6 +93,7 @@ export function AlertChart({
   upColor = "#5dc887", // Green for up candles
   downColor = "#e35561", // Red for down candles
   showLegend = true,
+  initialVisibleCandleCount,
   onActiveCandleChange,
 }: AlertChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -268,6 +274,18 @@ export function AlertChart({
 
     candlestickSeries.setData(candlestickData);
 
+    for (const period of CHART_EMA_PERIODS) {
+      const emaSeries = chart.addSeries(LineSeries, {
+        color: EMA_COLORS[period],
+        lineWidth: 1,
+        priceScaleId: "right",
+        lastValueVisible: false,
+        priceLineVisible: false,
+        crosshairMarkerVisible: false,
+      });
+      emaSeries.setData(getEMASeriesData(candlestickData, period));
+    }
+
     const alertCandle = candlestickData.find(
       (candle) => candle.time === alertTimestampUnix,
     );
@@ -429,41 +447,61 @@ export function AlertChart({
       chartContainerRef.current.appendChild(extremeTimeLine);
     }
 
-    // Find the index of the alert candle
-    const alertIndex = candlestickData.findIndex(
-      (candle) => candle.time === alertTimestampUnix,
-    );
-
-    // Center the chart on the alert timestamp
-    if (alertIndex >= 0 && candlestickData.length > 0) {
-      // Calculate how many candles to show (approximately 60% of total, centered on alert)
-      const totalCandles = candlestickData.length;
+    if (initialVisibleCandleCount != null) {
       const visibleCandles = Math.min(
-        Math.floor(totalCandles * 0.6),
-        totalCandles,
+        initialVisibleCandleCount,
+        candlestickData.length,
       );
-      const halfVisible = Math.floor(visibleCandles / 2);
+      const alertIndex = candlestickData.findIndex(
+        (candle) => candle.time === pivotTime,
+      );
+      const centeredIndex = alertIndex >= 0 ? alertIndex : visibleCandles - 1;
+      const startIndex = Math.min(
+        Math.max(0, centeredIndex - Math.floor(visibleCandles / 2)),
+        candlestickData.length - visibleCandles,
+      );
 
-      // Calculate start and end indices
-      let startIndex = Math.max(0, alertIndex - halfVisible);
-      let endIndex = Math.min(totalCandles - 1, alertIndex + halfVisible);
-
-      // If we're near the start or end, adjust to show more candles
-      if (startIndex === 0) {
-        endIndex = Math.min(totalCandles - 1, visibleCandles - 1);
-      } else if (endIndex === totalCandles - 1) {
-        startIndex = Math.max(0, totalCandles - visibleCandles);
-      }
-
-      // Use logical indexes so the right edge can extend beyond the final
-      // candle. A time range cannot represent this empty space.
       chart.timeScale().setVisibleLogicalRange({
         from: startIndex,
-        to: endIndex + RIGHT_EDGE_PADDING_BARS,
+        to: startIndex + visibleCandles - 1,
       });
     } else {
-      // Fallback to fitContent if alert candle not found
-      chart.timeScale().fitContent();
+      // Find the index of the alert candle
+      const alertIndex = candlestickData.findIndex(
+        (candle) => candle.time === alertTimestampUnix,
+      );
+
+      // Center the chart on the alert timestamp
+      if (alertIndex >= 0 && candlestickData.length > 0) {
+        // Calculate how many candles to show (approximately 60% of total, centered on alert)
+        const totalCandles = candlestickData.length;
+        const visibleCandles = Math.min(
+          Math.floor(totalCandles * 0.6),
+          totalCandles,
+        );
+        const halfVisible = Math.floor(visibleCandles / 2);
+
+        // Calculate start and end indices
+        let startIndex = Math.max(0, alertIndex - halfVisible);
+        let endIndex = Math.min(totalCandles - 1, alertIndex + halfVisible);
+
+        // If we're near the start or end, adjust to show more candles
+        if (startIndex === 0) {
+          endIndex = Math.min(totalCandles - 1, visibleCandles - 1);
+        } else if (endIndex === totalCandles - 1) {
+          startIndex = Math.max(0, totalCandles - visibleCandles);
+        }
+
+        // Use logical indexes so the right edge can extend beyond the final
+        // candle. A time range cannot represent this empty space.
+        chart.timeScale().setVisibleLogicalRange({
+          from: startIndex,
+          to: endIndex + RIGHT_EDGE_PADDING_BARS,
+        });
+      } else {
+        // Fallback to fitContent if alert candle not found
+        chart.timeScale().fitContent();
+      }
     }
 
     chart.timeScale().subscribeVisibleTimeRangeChange(updateAlertOverlay);
@@ -664,6 +702,7 @@ export function AlertChart({
     showAlertTimeMarker,
     inferAlertTimeFromPrice,
     showLegend,
+    initialVisibleCandleCount,
     onActiveCandleChange,
   ]);
 

@@ -7,14 +7,16 @@ export function StatCard({
 }: {
   label: string;
   value: string;
-  tone: "positive" | "neutral" | "accent";
+  tone: "positive" | "negative" | "neutral" | "accent";
 }) {
   const toneClass =
     tone === "positive"
       ? "text-[#5dc887]"
-      : tone === "accent"
-        ? "text-[#5b8ff9]"
-        : "text-white/85";
+      : tone === "negative"
+        ? "text-[#e35561]"
+        : tone === "accent"
+          ? "text-[#5b8ff9]"
+          : "text-white/85";
 
   return (
     <Card className="gap-0 rounded-xl border-white/6 bg-white/[0.025] px-3 py-2.5">

@@ -13,14 +13,10 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
+import { EMA_COLORS } from "./ema";
 import { getEMASeriesData } from "./indicators";
 import { normalizeChartData } from "./normalizeChartData";
 
-const EMA_COLORS: Record<number, string> = {
-  9: "#5b8ff9",
-  20: "#f5a623",
-  200: "#ff6a7a",
-};
 const NO_EMA_PERIODS: readonly number[] = [];
 const RIGHT_EDGE_PADDING_PX = 24;
 

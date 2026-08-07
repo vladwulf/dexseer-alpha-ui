@@ -50,6 +50,7 @@ export type ScannerSortBy =
   | "change_1h"
   | "change_4h"
   | "change_24h"
+  | "momentum_score"
   | "volume_1m"
   | "volume_5m"
   | "volume_15m"
@@ -184,6 +185,11 @@ export type ScannerRow = {
   funding_rate_delta_8h: number | null;
   alert_count: number | null;
   score: number | null;
+  momentum_score: number | null;
+  momentum_score_core: number | null;
+  momentum_score_coverage: number;
+  momentum_score_confirmed_coverage: number;
+  momentum_score_version: number;
 };
 
 export type MomentumEntry = {

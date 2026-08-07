@@ -51,6 +51,11 @@ export type ScannerAsset = {
   change1h: number | null;
   change4h: number | null;
   change24h: number | null;
+  momentumScore: number | null;
+  momentumScoreCore?: number | null;
+  momentumScoreCoverage?: number | null;
+  momentumScoreConfirmedCoverage?: number | null;
+  momentumScoreVersion?: number | null;
   volume: number | null;
   rvol: number | null;
   openInterest: number | null;

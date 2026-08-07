@@ -70,7 +70,6 @@ export function ScannerSidePanel({
       />
       <ScannerSidePanelBody
         asset={asset}
-        timeframe={timeframe}
         alerts={alerts}
         alertCount={alertsQuery.data?.meta.total ?? 0}
         isAlertsLoading={alertsQuery.isLoading}

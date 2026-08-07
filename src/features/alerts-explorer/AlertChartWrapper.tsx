@@ -17,6 +17,7 @@ type Props = {
   inferAlertTimeFromPrice?: boolean;
   enabled?: boolean;
   showLegend?: boolean;
+  initialVisibleCandleCount?: number;
   onActiveCandleChange?: (activeCandle: AlertChartActiveCandle) => void;
 };
 
@@ -102,6 +103,7 @@ export function AlertsChartWrapper(props: Props) {
             onActiveCandleChange={props.onActiveCandleChange}
             series={chartData.data ?? []}
             showLegend={props.showLegend}
+            initialVisibleCandleCount={props.initialVisibleCandleCount}
           />
         )}
     </div>

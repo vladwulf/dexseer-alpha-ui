@@ -21,6 +21,11 @@ export const SCANNER_COLUMNS: ScannerColumnDefinition[] = [
   { id: "change1h", label: "1h change", group: "Price & momentum" },
   { id: "change4h", label: "4h change", group: "Price & momentum" },
   { id: "change24h", label: "24h change", group: "Price & momentum" },
+  {
+    id: "momentumScore",
+    label: "Score",
+    group: "Price & momentum",
+  },
   { id: "atrPercent", label: "ATR %", group: "Price & momentum" },
   { id: "btcCorrelation", label: "BTC correlation", group: "Price & momentum" },
   { id: "alignedTimeframes", label: "TF alignment", group: "Price & momentum" },
@@ -53,6 +58,7 @@ export const SCANNER_COLUMNS: ScannerColumnDefinition[] = [
 export const DEFAULT_SCANNER_COLUMN_ORDER = [
   "symbol",
   "price",
+  "momentumScore",
   "change5m",
   "change15m",
   "change1h",
@@ -96,6 +102,7 @@ export const SCANNER_COLUMN_PRESETS: readonly ScannerColumnPreset[] = [
     columnOrder: [
       "symbol",
       "price",
+      "momentumScore",
       "change5m",
       "change15m",
       "volume1m",
@@ -115,6 +122,7 @@ export const SCANNER_COLUMN_PRESETS: readonly ScannerColumnPreset[] = [
     columnOrder: [
       "symbol",
       "price",
+      "momentumScore",
       "change5m",
       "change15m",
       "change1h",
@@ -135,6 +143,7 @@ export const SCANNER_COLUMN_PRESETS: readonly ScannerColumnPreset[] = [
     columnOrder: [
       "symbol",
       "price",
+      "momentumScore",
       "change15m",
       "change1h",
       "change24h",
@@ -155,6 +164,7 @@ export const SCANNER_COLUMN_PRESETS: readonly ScannerColumnPreset[] = [
     columnOrder: [
       "symbol",
       "price",
+      "momentumScore",
       "change1h",
       "change4h",
       "change24h",
@@ -174,6 +184,7 @@ export const SCANNER_COLUMN_PRESETS: readonly ScannerColumnPreset[] = [
     columnOrder: [
       "symbol",
       "price",
+      "momentumScore",
       "change1h",
       "change24h",
       "rvol",

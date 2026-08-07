@@ -1,6 +1,6 @@
-import { Activity, BellPlus, BookmarkPlus, ExternalLink } from "lucide-react";
-import { Link } from "react-router";
+import { Activity } from "lucide-react";
 import type { AlertListItem } from "@/features/alerts-explorer/hooks/alerts.api";
+import { CHART_EMA_PERIODS } from "@/features/chart/ema";
 import type { ChartAlertMarker } from "@/features/chart/IndexChart";
 import { IndexChart } from "@/features/chart/IndexChart";
 import { useLiveChartSeries } from "@/hooks/chart/useLiveChartSeries";
@@ -12,11 +12,8 @@ import {
 } from "../../lib/formatters";
 import { isMomentumPullback } from "../../lib/momentumLabels";
 import type { ScannerAsset, ScannerTimeframe } from "../../types";
-import { ActionButton } from "../ActionButton";
 import { Pill } from "../Pill";
 import { StatCard } from "../StatCard";
-
-const SIDE_PANEL_EMA_PERIODS = [9, 20, 200] as const;
 
 type ActiveAssetPanelProps = {
   asset?: ScannerAsset;
@@ -96,27 +93,6 @@ export function ActiveAssetPanel({
             <Pill value={asset.change24h} label="1d" />
           </div>
         </div>
-        <div className="hidden items-center gap-2 2xl:flex">
-          <ActionButton
-            icon={<BellPlus className="h-3.5 w-3.5" />}
-            variant="primary"
-          >
-            Alert
-          </ActionButton>
-          <ActionButton
-            icon={<BookmarkPlus className="h-3.5 w-3.5" />}
-            variant="secondary"
-          >
-            Watch
-          </ActionButton>
-          <Link
-            className="terminal-icon-action"
-            to={`/assets/${asset.symbol}`}
-            aria-label={`Open ${asset.symbol} full analysis`}
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-          </Link>
-        </div>
       </header>
 
       <div className="terminal-chart-toolbar">
@@ -142,7 +118,7 @@ export function ActiveAssetPanel({
           hasMoreHistory={hasMoreChartHistory}
           isLoadingMoreHistory={isLoadingMoreChartHistory}
           onLoadMoreHistory={onLoadMoreChartHistory}
-          emaPeriods={flushChart ? SIDE_PANEL_EMA_PERIODS : undefined}
+          emaPeriods={flushChart ? CHART_EMA_PERIODS : undefined}
           watermarkText={
             flushChart ? asset.symbol.replace(/[-/_]?USDT$/i, "") : undefined
           }

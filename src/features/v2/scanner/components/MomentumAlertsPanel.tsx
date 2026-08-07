@@ -895,6 +895,7 @@ export function MomentumAlertsPanel() {
                 expectedInstrumentId={selectedAlert.instrument.instrument_id}
                 timeframe={selectedAlert.timeframe as AlertTimeframe}
                 showLegend={false}
+                initialVisibleCandleCount={50}
               />
             </div>
           </div>
