@@ -239,7 +239,7 @@ export function AlertChart({
           const time = parseCandleTime(kline.time) as Time;
           let candleColor: string | undefined;
 
-          if (highlightAlertCandle && time === alertTimestampUnix) {
+          if (highlightAlertCandle && time === pivotTime) {
             candleColor = "#facc15";
           } else if (Number(time) >= Number(pivotTime)) {
             candleColor = kline.close > kline.open ? upColor : downColor;
