@@ -11,7 +11,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router";
 import {
   Table,
   TableBody,
@@ -322,13 +321,11 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
           className={cn("flex items-center gap-3", SYMBOL_COLUMN_WIDTH_CLASS)}
         >
           <div className="min-w-0">
-            <Link
-              to={`/assets/${asset.symbol}`}
-              onClick={(e) => e.stopPropagation()}
-              className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white transition hover:text-[oklch(0.72_0.18_248)]"
+            <span
+              className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white"
             >
               {asset.symbol.replace("USDT", "")}
-            </Link>
+            </span>
             <div className="mt-1 font-[var(--font-mono)] text-[0.58rem] uppercase tracking-[0.12em] text-white/28">
               USDT
             </div>
