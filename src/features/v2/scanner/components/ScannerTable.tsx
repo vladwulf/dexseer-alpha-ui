@@ -28,6 +28,7 @@ import {
   formatSigned,
   numberFormat,
 } from "../lib/formatters";
+import { MOMENTUM_THRESHOLDS } from "../lib/momentumInterpretation/constants";
 import { DEFAULT_SCANNER_COLUMN_ORDER } from "../lib/scannerColumns";
 import type { DensityMode, ScannerAsset } from "../types";
 
@@ -157,11 +158,11 @@ function OiDeltaCell({ value }: { value: number | null }) {
   const abs = Math.abs(value);
   const isPos = value > 0;
   const textColor =
-    abs >= 5
+    abs >= MOMENTUM_THRESHOLDS.largeOiChange
       ? isPos
         ? "#5dc887"
         : "#e35561"
-      : abs >= 2
+      : abs >= MOMENTUM_THRESHOLDS.meaningfulOiChange
         ? isPos
           ? "rgba(93,200,135,0.72)"
           : "rgba(227,85,97,0.72)"
@@ -184,8 +185,8 @@ function FundingCell({ value }: { value: number | null }) {
 
   // Positive funding = longs pay shorts (overheated longs → red)
   // Negative funding = shorts pay longs (overheated shorts → green)
-  const isHot = value > 0.0003;
-  const isSqueeze = value < -0.0002;
+  const isHot = value > MOMENTUM_THRESHOLDS.fundingCrowdedLong;
+  const isSqueeze = value < MOMENTUM_THRESHOLDS.fundingCrowdedShort;
   const textColor = isHot
     ? "#e35561"
     : isSqueeze
@@ -228,8 +229,8 @@ function FundingCell({ value }: { value: number | null }) {
 function ChoppinessCell({ value }: { value: number | null | undefined }) {
   if (value === null || value === undefined)
     return <span className="text-white/20">—</span>;
-  const trending = value < 38.2;
-  const choppy = value > 61.8;
+  const trending = value < MOMENTUM_THRESHOLDS.lowChoppiness;
+  const choppy = value > MOMENTUM_THRESHOLDS.highChoppiness;
   const color = trending
     ? "#5dc887"
     : choppy
@@ -445,14 +446,22 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     accessorKey: "atrPercent",
     header: "ATR %",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span>{numberFormat.format(row.original.atrPercent)}</span>
+      <span>
+        {row.original.atrPercent === null
+          ? "—"
+          : numberFormat.format(row.original.atrPercent)}
+      </span>
     ),
   },
   {
     accessorKey: "btcCorrelation",
     header: "BTC correlation",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => (
-      <span>{row.original.btcCorrelation.toFixed(2)}</span>
+      <span>
+        {row.original.btcCorrelation === null
+          ? "—"
+          : row.original.btcCorrelation.toFixed(2)}
+      </span>
     ),
   },
   {

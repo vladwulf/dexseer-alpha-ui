@@ -40,6 +40,58 @@ export type ScannerAlert = {
   time: string;
 };
 
+export type MomentumIntelligenceState =
+  | "neutral"
+  | "bullish_slow"
+  | "bullish_default"
+  | "bullish_unusual"
+  | "bearish_slow"
+  | "bearish_default"
+  | "bearish_unusual";
+
+export type MomentumIntelligenceSnapshot = {
+  state?: MomentumIntelligenceState;
+  direction?: "long" | "short" | null;
+  severity?: "slow" | "default" | "unusual" | null;
+  updatedAt?: string | null;
+};
+
+export type MomentumIntelligence = {
+  fiveMinutes: MomentumIntelligenceSnapshot | null;
+  fifteenMinutes: MomentumIntelligenceSnapshot | null;
+  oneHour: MomentumIntelligenceSnapshot | null;
+};
+
+export type MomentumStrength =
+  | "balanced"
+  | "tentative"
+  | "developing"
+  | "moderate"
+  | "strong"
+  | "very strong"
+  | "extreme";
+
+export type MomentumRegime =
+  | "forming"
+  | "balanced"
+  | "directional"
+  | "continuation"
+  | "acceleration"
+  | "pullback"
+  | "divergence"
+  | "covering"
+  | "choppy";
+
+export type MomentumRead = {
+  headline: string;
+  summary: string;
+  tone: "positive" | "negative" | "neutral";
+  confidence: "low" | "medium" | "high";
+  drivers: { label: string; value: string }[];
+  regime: MomentumRegime;
+  strength: MomentumStrength;
+};
+
 export type ScannerAsset = {
   assetId?: number;
   instrumentId?: string;
@@ -79,8 +131,8 @@ export type ScannerAsset = {
   oiDelta1h: number | null;
   oiDelta4h: number | null;
   fundingDelta8h: number | null;
-  atrPercent: number;
-  btcCorrelation: number;
+  atrPercent: number | null;
+  btcCorrelation: number | null;
   alertCount: number;
   setupLabel: string;
   setupScore: number;
@@ -95,4 +147,5 @@ export type ScannerAsset = {
   momentumDirection?: "long" | "short";
   alignedTimeframes?: number;
   momentumChoppiness?: number | null;
+  momentumIntelligence?: MomentumIntelligence;
 };

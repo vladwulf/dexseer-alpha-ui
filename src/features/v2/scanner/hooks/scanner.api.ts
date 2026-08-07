@@ -348,7 +348,7 @@ export type MomentumIntelligenceState =
 
 /** A null timeframe snapshot means the backend has no current, non-stale state. */
 export type MomentumIntelligenceSnapshot = {
-  state: MomentumIntelligenceState;
+  state?: MomentumIntelligenceState;
   direction?: "long" | "short" | null;
   severity?: "slow" | "default" | "unusual" | null;
   updated_at?: string | null;
@@ -603,11 +603,17 @@ export function useGetScannerCharts(
   });
 }
 
-export function useGetScannerAssetDetails(assetId: number | null | undefined) {
+export function useGetScannerAssetDetails(
+  assetId: number | null | undefined,
+  options: ScannerQueryOptions = {},
+) {
+  const { refetchIntervalMs = false } = options;
+
   return useQuery({
     queryKey: ["scanner-v2-asset-details", assetId],
     queryFn: () => getScannerAssetDetails(assetId ?? 0),
     enabled: assetId !== null && assetId !== undefined,
+    refetchInterval: refetchIntervalMs,
     ...SOCKET_PRIMED_QUERY_OPTIONS,
   });
 }

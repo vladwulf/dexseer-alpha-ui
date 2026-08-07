@@ -169,12 +169,20 @@ export function ActiveAssetPanel({
           />
           <StatCard
             label="ATR"
-            value={numberFormat.format(asset.atrPercent)}
+            value={
+              asset.atrPercent === null
+                ? "—"
+                : numberFormat.format(asset.atrPercent)
+            }
             tone="neutral"
           />
           <StatCard
             label="BTC corr"
-            value={asset.btcCorrelation.toFixed(2)}
+            value={
+              asset.btcCorrelation === null
+                ? "—"
+                : asset.btcCorrelation.toFixed(2)
+            }
             tone="neutral"
           />
         </div>

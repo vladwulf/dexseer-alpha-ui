@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
 import { Keyboard } from "lucide-react";
+import { useMemo, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -56,7 +56,9 @@ export function ScannerV2Screen() {
   } = useScannerState({ refreshInterval });
   const chartTimeframe = getSupportedScannerChartTimeframe(timeframe);
   const selectedAssetId = selectedAsset?.assetId;
-  const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
+  const detailsQuery = useGetScannerAssetDetails(selectedAssetId, {
+    refetchIntervalMs: refreshInterval === "live" ? 5_000 : false,
+  });
   const selectedChartQuery = useGetScannerChartHistory(selectedAssetId, {
     timeframe: chartTimeframe,
     limit: 500,
@@ -75,10 +77,10 @@ export function ScannerV2Screen() {
         .flatMap((page) =>
           page.asset_id === selectedAsset.assetId
             ? mapScannerCandlesToOhlcv(
-              page.asset_id,
-              page.instrument_id,
-              page.candles,
-            )
+                page.asset_id,
+                page.instrument_id,
+                page.candles,
+              )
             : [],
         )
         .map((candle) => [candle.time, candle] as const),

@@ -5,6 +5,7 @@ import {
   formatFundingRate,
   formatSigned,
 } from "../../../lib/formatters";
+import { interpretMomentum } from "../../../lib/momentumInterpretation";
 import type { ScannerAsset } from "../../../types";
 import { DetailBlock } from "../../DetailBlock";
 import { SessionBars } from "../../SessionBars";
@@ -33,62 +34,6 @@ function getMomentumToneClass(value: number | null) {
   return value > 0 ? "text-[#5dc887]" : "text-[#e35561]";
 }
 
-function getMomentumSummary(asset: ScannerAsset) {
-  const score = asset.momentumScore;
-
-  if (score === null) {
-    return "Momentum is still forming. There is not enough fresh market activity yet for a reliable directional read.";
-  }
-
-  if (score === 0) {
-    return "Momentum is mixed right now. Buyers and sellers are offsetting each other, so there is no clear directional edge.";
-  }
-
-  const strength = Math.abs(score);
-  const bullish = score > 0;
-
-  if (strength >= 70) {
-    return bullish
-      ? "Buyers are firmly in control. Short-term activity and the broader market rhythm are moving in the same direction, creating a strong bullish read."
-      : "Sellers are firmly in control. Short-term activity and the broader market rhythm are moving in the same direction, creating a strong bearish read.";
-  }
-
-  if (strength >= 40) {
-    return bullish
-      ? "Buyers have the edge. Momentum is leaning higher across the market, although the move is not yet fully decisive."
-      : "Sellers have the edge. Momentum is leaning lower across the market, although the move is not yet fully decisive.";
-  }
-
-  return bullish
-    ? "Buying pressure is starting to build, but the move is still early and may need more follow-through."
-    : "Selling pressure is starting to build, but the move is still early and may need more follow-through.";
-}
-
-function getMarketContext(asset: ScannerAsset) {
-  const performance = [
-    asset.change15m === null ? null : `${formatSigned(asset.change15m)} in 15m`,
-    asset.change1h === null ? null : `${formatSigned(asset.change1h)} in 1h`,
-    asset.change24h === null ? null : `${formatSigned(asset.change24h)} in 24h`,
-  ].filter((value): value is string => value !== null);
-  const priceAction =
-    performance.length > 0 ? performance.join(" · ") : "No recent price data";
-
-  const funding =
-    asset.funding === null
-      ? "Unavailable"
-      : asset.funding > 0.0003
-        ? "Bullish positioning is elevated"
-        : asset.funding < -0.0002
-          ? "Bearish positioning is elevated"
-          : "Positioning is balanced";
-  const openInterest =
-    asset.openInterest === null
-      ? "Unavailable"
-      : formatCompactUsd(asset.openInterest);
-
-  return { funding, openInterest, priceAction };
-}
-
 function getMomentumEvidence(asset: ScannerAsset) {
   const coverage = asset.momentumScoreCoverage ?? null;
   const confirmed = asset.momentumScoreConfirmedCoverage ?? null;
@@ -99,6 +44,10 @@ function getMomentumEvidence(asset: ScannerAsset) {
 
   if (coverage === 1 && confirmed !== null && confirmed >= 0.8) {
     return "This is a well-supported read: the signal has broad coverage and is mostly backed by completed price action.";
+  }
+
+  if (confirmed !== null && confirmed < 0.6) {
+    return `Only ${Math.round(confirmed * 100)}% of the score is backed by completed price action, so this read can still change quickly.`;
   }
 
   if (coverage !== null && coverage < 1) {
@@ -122,7 +71,7 @@ export function ScannerSidePanelBody({
   isAlertsError: boolean;
 }) {
   const score = asset.momentumScore;
-  const marketContext = getMarketContext(asset);
+  const momentumRead = interpretMomentum(asset);
 
   return (
     <div className="scanner-side-panel__body px-4 py-5">
@@ -133,34 +82,26 @@ export function ScannerSidePanelBody({
             {formatScore(score)}
           </span>
         </div>
-        <p className="text-[0.78rem] leading-5 text-white/62">
-          {getMomentumSummary(asset)}
+        <p className="text-[0.7rem] font-semibold text-white/82">
+          {momentumRead.headline}
+        </p>
+        <p className="mt-1 text-[0.78rem] leading-5 text-white/62">
+          {momentumRead.summary}
         </p>
         <div className="mt-3 space-y-1.5 border-t border-white/8 pt-3 font-[var(--font-mono)] text-[0.65rem]">
-          <div className="flex items-start justify-between gap-4">
-            <span className="shrink-0 uppercase tracking-[0.12em] text-white/35">
-              Price action
-            </span>
-            <span className="text-right tabular-nums text-white/70">
-              {marketContext.priceAction}
-            </span>
-          </div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="shrink-0 uppercase tracking-[0.12em] text-white/35">
-              Funding
-            </span>
-            <span className="text-right text-white/70">
-              {marketContext.funding}
-            </span>
-          </div>
-          <div className="flex items-start justify-between gap-4">
-            <span className="shrink-0 uppercase tracking-[0.12em] text-white/35">
-              Open interest
-            </span>
-            <span className="text-right tabular-nums text-white/70">
-              {marketContext.openInterest}
-            </span>
-          </div>
+          {momentumRead.drivers.map((driver) => (
+            <div
+              className="flex items-start justify-between gap-4"
+              key={driver.label}
+            >
+              <span className="shrink-0 uppercase tracking-[0.12em] text-white/35">
+                {driver.label}
+              </span>
+              <span className="text-right tabular-nums text-white/70">
+                {driver.value}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 

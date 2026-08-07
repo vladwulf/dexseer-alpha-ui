@@ -299,7 +299,11 @@ export function AssetDetailScreen() {
               />
               <DetailBlock
                 label="Volatility context"
-                body={`ATR is ${numberFormat.format(asset.atrPercent)} with ${asset.alertCount} recent signals across tracked windows.`}
+                body={
+                  asset.atrPercent === null
+                    ? `ATR is unavailable, with ${asset.alertCount} recent signals across tracked windows.`
+                    : `ATR is ${numberFormat.format(asset.atrPercent)} with ${asset.alertCount} recent signals across tracked windows.`
+                }
                 icon={<BellPlus className="h-4 w-4" />}
               />
             </div>
@@ -310,12 +314,20 @@ export function AssetDetailScreen() {
               <div className="mb-4 grid grid-cols-2 gap-3">
                 <StatCard
                   label="ATR %"
-                  value={numberFormat.format(asset.atrPercent)}
+                  value={
+                    asset.atrPercent === null
+                      ? "—"
+                      : numberFormat.format(asset.atrPercent)
+                  }
                   tone="neutral"
                 />
                 <StatCard
                   label="BTC corr 1h"
-                  value={asset.btcCorrelation.toFixed(2)}
+                  value={
+                    asset.btcCorrelation === null
+                      ? "—"
+                      : asset.btcCorrelation.toFixed(2)
+                  }
                   tone="neutral"
                 />
                 <StatCard

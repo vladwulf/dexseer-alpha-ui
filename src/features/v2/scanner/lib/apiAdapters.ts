@@ -1,6 +1,7 @@
 import type { SortingState } from "@tanstack/react-table";
 import type { OHLCVExtended } from "@/types/ohlcv";
 import type {
+  MomentumIntelligenceSnapshot as ApiMomentumIntelligenceSnapshot,
   MarketStripResponse,
   MomentumEntry,
   ScannerAssetDetailsResponse,
@@ -15,6 +16,7 @@ import type {
 } from "../hooks/scanner.api";
 import type {
   MarketStripItem,
+  MomentumIntelligenceSnapshot,
   ScannerAsset,
   ScannerPreset,
   SortOption,
@@ -172,8 +174,8 @@ export function mapScannerRowToAsset(row: ScannerRow): ScannerAsset {
     oiDelta1h: row.oi_change_1h,
     oiDelta4h: row.oi_change_4h,
     fundingDelta8h: row.funding_rate_delta_8h,
-    atrPercent: 0,
-    btcCorrelation: 0,
+    atrPercent: null,
+    btcCorrelation: null,
     alertCount: row.alert_count ?? 0,
     setupLabel: "Live scanner",
     setupScore: row.score ?? 0,
@@ -225,10 +227,11 @@ export function mapMomentumEntryToAsset(row: MomentumEntry): ScannerAsset {
     oiDelta1h: null,
     oiDelta4h: null,
     fundingDelta8h: null,
-    atrPercent: 0,
-    btcCorrelation: 0,
+    atrPercent: null,
+    btcCorrelation: null,
     alertCount: 0,
-    setupLabel: row.direction === "long" ? "Bullish momentum" : "Bearish momentum",
+    setupLabel:
+      row.direction === "long" ? "Bullish momentum" : "Bearish momentum",
     setupScore: row.score,
     rankingReason: `${row.aligned_timeframes}/3 timeframes aligned for ${row.direction} momentum.`,
     activeSetupSummary:
@@ -245,11 +248,38 @@ export function mapMomentumEntryToAsset(row: MomentumEntry): ScannerAsset {
   };
 }
 
+function mapMomentumIntelligenceSnapshot(
+  snapshot: ApiMomentumIntelligenceSnapshot | null,
+): MomentumIntelligenceSnapshot | null {
+  if (!snapshot) return null;
+
+  return {
+    state: snapshot.state,
+    direction: snapshot.direction,
+    severity: snapshot.severity,
+    updatedAt: snapshot.updated_at ?? null,
+  };
+}
+
 export function mergeDetailsIntoAsset(
   asset: ScannerAsset,
   details?: ScannerAssetDetailsResponse,
 ) {
-  if (!details) return asset;
+  if (!details || details.asset_id !== asset.assetId) return asset;
+
+  const momentumIntelligence = details.momentum_intelligence
+    ? {
+        fiveMinutes: mapMomentumIntelligenceSnapshot(
+          details.momentum_intelligence.five_minutes,
+        ),
+        fifteenMinutes: mapMomentumIntelligenceSnapshot(
+          details.momentum_intelligence.fifteen_minutes,
+        ),
+        oneHour: mapMomentumIntelligenceSnapshot(
+          details.momentum_intelligence.one_hour,
+        ),
+      }
+    : asset.momentumIntelligence;
 
   return {
     ...asset,
@@ -263,8 +293,9 @@ export function mergeDetailsIntoAsset(
     openInterest: details.stats.open_interest,
     oiDelta: details.stats.oi_change_24h,
     funding: details.stats.funding_rate,
-    atrPercent: details.stats.atr_percent_24h ?? asset.atrPercent,
-    btcCorrelation: details.stats.btc_correlation_1h ?? asset.btcCorrelation,
+    atrPercent: details.stats.atr_percent_24h,
+    btcCorrelation: details.stats.btc_correlation_1h,
+    momentumIntelligence,
   };
 }
 
