@@ -10,12 +10,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { type Ref, useEffect, useRef, useState } from "react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -37,6 +31,7 @@ import {
   useGetAlertsPaginated,
   useGetAlertTypes,
 } from "@/features/alerts-explorer/hooks/alerts.api";
+import { useIsMobileScanner } from "@/features/v2/scanner/hooks/useIsMobileScanner";
 import {
   getMomentumAlertEventType,
   getMomentumAlertLabel,
@@ -284,6 +279,7 @@ function AlertRow({
 }
 
 export function MomentumAlertsPanel() {
+  const isMobile = useIsMobileScanner();
   const [inspectorWidth, setInspectorWidth] = useState(420);
   const [strategyId, setStrategyId] =
     useState<StrategySelection>(ALL_STRATEGIES);
@@ -293,9 +289,10 @@ export function MomentumAlertsPanel() {
   const [sortBy, setSortBy] = useState<AlertSortBy>("triggered_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [voiceAlertsEnabled, setVoiceAlertsEnabled] = useState(
-    // Audio is opt-in: entering the Alerts page should never unexpectedly
-    // start speaking. A user who explicitly enabled it keeps that preference.
-    () => localStorage.getItem(VOICE_ALERTS_STORAGE_KEY) === "true",
+    // Mobile always starts muted, even when voice was previously enabled on a
+    // desktop device. Users can still explicitly turn it on from the control.
+    () =>
+      !isMobile && localStorage.getItem(VOICE_ALERTS_STORAGE_KEY) === "true",
   );
   const [voiceGender, setVoiceGender] = useState<VoiceGender>(() =>
     localStorage.getItem(VOICE_ALERT_GENDER_STORAGE_KEY) === "male"
@@ -894,29 +891,12 @@ export function MomentumAlertsPanel() {
                 alertId={selectedAlert.id}
                 alertTime={selectedAlert.time}
                 alertPrice={selectedAlert.price}
+                alertDirection={selectedAlert.direction}
                 expectedInstrumentId={selectedAlert.instrument.instrument_id}
                 timeframe={selectedAlert.timeframe as AlertTimeframe}
                 showLegend={false}
               />
             </div>
-            <Accordion type="multiple" className="px-4 font-mono text-xs">
-              <AccordionItem value="trigger">
-                <AccordionTrigger>Why this triggered</AccordionTrigger>
-                <AccordionContent>
-                  <pre className="max-h-44 overflow-auto whitespace-pre-wrap text-[0.68rem] text-white/60">
-                    {JSON.stringify(selectedAlert.trigger_values, null, 2)}
-                  </pre>
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="thresholds">
-                <AccordionTrigger>Strategy context</AccordionTrigger>
-                <AccordionContent>
-                  <pre className="max-h-44 overflow-auto whitespace-pre-wrap text-[0.68rem] text-white/60">
-                    {JSON.stringify(selectedAlert.thresholds, null, 2)}
-                  </pre>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
           </div>
         ) : (
           <p className="p-6 font-mono text-xs text-white/40">

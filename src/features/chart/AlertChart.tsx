@@ -13,7 +13,6 @@ import {
 import { useEffect, useRef } from "react";
 import { parseCandleTime } from "@/lib/parseCandleTime";
 import type { OHLCVExtended } from "@/types/ohlcv";
-import { MARibbonIndicator } from "./indicators/ma-ribbon-plugin";
 import { normalizeChartData } from "./normalizeChartData";
 
 export type AlertChartActiveCandle = {
@@ -31,12 +30,17 @@ const hexToRgba = (hex: string, opacity: number): string => {
 const getTimeValue = (time: Time): number =>
   typeof time === "number" ? time : Number.NaN;
 
+// Keep the newest candle clear of the price scale when an alert is near the
+// end of the rendered range.
+const RIGHT_EDGE_PADDING_BARS = 3;
+
 interface AlertChartProps {
   /**
    * Alert object containing the timestamp and candlestick series data
    */
   alertTime: string;
   alertPrice?: number;
+  alertDirection?: string;
   extremeTime?: string;
   extremePrice?: number;
   highlightAlertCandle?: boolean;
@@ -74,6 +78,7 @@ interface AlertChartProps {
 export function AlertChart({
   alertTime,
   alertPrice,
+  alertDirection,
   extremeTime,
   extremePrice,
   highlightAlertCandle = true,
@@ -278,52 +283,6 @@ export function AlertChart({
             .filter((time) => time <= Number(extremeTimestampUnix))
             .pop() ?? Number(extremeTimestampUnix));
 
-    const ribbonPlugin = new MARibbonIndicator({
-      fillColor: "rgba(100, 100, 100, 0.2)",
-      lineWidth: 0,
-    });
-    candlestickSeries.attachPrimitive(ribbonPlugin);
-
-    const ribbonData = series
-      .map((kline) => {
-        const time = parseCandleTime(kline.time) as Time;
-
-        if (
-          typeof kline.ema9 !== "number" ||
-          typeof kline.ema20 !== "number" ||
-          typeof kline.macd_histogram !== "number"
-        ) {
-          return null;
-        }
-
-        let color = "rgba(100, 100, 100, 0.2)";
-
-        if (time < pivotTime) {
-          color = "rgba(100, 100, 100, 0.15)";
-        } else {
-          const isBullTrend = kline.ema9 > kline.ema20;
-          const macdPositive = kline.macd_histogram > 0;
-          const macdNegative = kline.macd_histogram < 0;
-
-          if (isBullTrend && macdPositive) {
-            color = "#6be671";
-          } else if (!isBullTrend && macdNegative) {
-            color = "#FF244D";
-          }
-        }
-
-        return {
-          time,
-          upper: kline.ema9,
-          lower: kline.ema20,
-          color,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null)
-      .sort((a, b) => (a.time as number) - (b.time as number));
-
-    ribbonPlugin.setData(ribbonData);
-
     const volumeSeries = chart.addSeries(HistogramSeries, {
       priceFormat: {
         type: "volume",
@@ -377,19 +336,17 @@ export function AlertChart({
       return v.toFixed(2);
     };
 
-    let alertTimeLine: HTMLDivElement | null = null;
+    const alertCandleForMarker = candlestickData.find(
+      (candle) => candle.time === pivotTime,
+    );
+    const isBullishAlert = alertDirection
+      ? !/(short|bear|down)/i.test(alertDirection)
+      : (alertCandleForMarker?.close ?? 0) >= (alertCandleForMarker?.open ?? 0);
+    const alertMarkerPrice = isBullishAlert
+      ? (alertCandleForMarker?.low ?? triggerPrice)
+      : (alertCandleForMarker?.high ?? triggerPrice);
+    let alertTriggerMarker: HTMLDivElement | null = null;
     let extremeTimeLine: HTMLDivElement | null = null;
-    const alertPriceLine =
-      triggerPrice == null
-        ? null
-        : candlestickSeries.createPriceLine({
-            price: triggerPrice,
-            color: "#3b82f6",
-            lineWidth: 2,
-            lineStyle: LineStyle.Solid,
-            axisLabelVisible: true,
-            title: "alert",
-          });
     const extremePriceLine =
       extremePrice == null || !Number.isFinite(extremePrice)
         ? null
@@ -403,19 +360,19 @@ export function AlertChart({
           });
 
     const updateAlertOverlay = () => {
-      if (!alertTimeLine || triggerPrice == null) return;
+      if (!alertTriggerMarker || alertMarkerPrice == null) return;
 
-      const timeCoordinate = chart
-        .timeScale()
-        .timeToCoordinate(alertTimestampUnix);
+      const timeCoordinate = chart.timeScale().timeToCoordinate(pivotTime);
+      const priceCoordinate =
+        candlestickSeries.priceToCoordinate(alertMarkerPrice);
 
-      if (timeCoordinate == null) {
-        alertTimeLine.style.display = "none";
+      if (timeCoordinate == null || priceCoordinate == null) {
+        alertTriggerMarker.style.display = "none";
         return;
       }
 
-      alertTimeLine.style.display = "block";
-      alertTimeLine.style.transform = `translateX(${timeCoordinate}px)`;
+      alertTriggerMarker.style.display = "block";
+      alertTriggerMarker.style.transform = `translate(${timeCoordinate}px, ${priceCoordinate + (isBullishAlert ? 6 : -14)}px) translateX(-50%)`;
     };
 
     const updateExtremeOverlay = () => {
@@ -433,26 +390,26 @@ export function AlertChart({
 
     if (triggerPrice != null && showAlertTimeMarker) {
       chartContainerRef.current
-        .querySelectorAll("[data-alert-chart-trigger]")
+        .querySelectorAll("[data-alert-chart-trigger-marker]")
         .forEach((node) => {
           node.remove();
         });
 
-      alertTimeLine = document.createElement("div");
-      alertTimeLine.dataset.alertChartTrigger = "true";
-      alertTimeLine.style.cssText = `
+      alertTriggerMarker = document.createElement("div");
+      alertTriggerMarker.dataset.alertChartTriggerMarker = "true";
+      alertTriggerMarker.style.cssText = `
         position: absolute;
         top: 0;
-        bottom: 0;
         left: 0;
         width: 0;
-        border-left: 2px solid #3b82f6;
-        opacity: 0.85;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        ${isBullishAlert ? "border-bottom: 8px solid #3b82f6;" : "border-top: 8px solid #3b82f6;"}
         pointer-events: none;
-        z-index: 8;
+        z-index: 9;
       `;
-
-      chartContainerRef.current.appendChild(alertTimeLine);
+      chartContainerRef.current.appendChild(alertTriggerMarker);
     }
 
     if (extremeCandleTime != null) {
@@ -498,13 +455,11 @@ export function AlertChart({
         startIndex = Math.max(0, totalCandles - visibleCandles);
       }
 
-      // Set the visible range centered on the alert
-      const startTime = candlestickData[startIndex].time;
-      const endTime = candlestickData[endIndex].time;
-
-      chart.timeScale().setVisibleRange({
-        from: startTime,
-        to: endTime,
+      // Use logical indexes so the right edge can extend beyond the final
+      // candle. A time range cannot represent this empty space.
+      chart.timeScale().setVisibleLogicalRange({
+        from: startIndex,
+        to: endIndex + RIGHT_EDGE_PADDING_BARS,
       });
     } else {
       // Fallback to fitContent if alert candle not found
@@ -678,14 +633,11 @@ export function AlertChart({
       chart.unsubscribeCrosshairMove(updateLegend);
       chart.timeScale().unsubscribeVisibleTimeRangeChange(updateAlertOverlay);
       chart.timeScale().unsubscribeVisibleTimeRangeChange(updateExtremeOverlay);
-      if (alertPriceLine) {
-        candlestickSeries.removePriceLine(alertPriceLine);
-      }
       if (extremePriceLine) {
         candlestickSeries.removePriceLine(extremePriceLine);
       }
-      if (alertTimeLine?.parentNode) {
-        alertTimeLine.parentNode.removeChild(alertTimeLine);
+      if (alertTriggerMarker?.parentNode) {
+        alertTriggerMarker.parentNode.removeChild(alertTriggerMarker);
       }
       if (extremeTimeLine?.parentNode) {
         extremeTimeLine.parentNode.removeChild(extremeTimeLine);
@@ -705,6 +657,7 @@ export function AlertChart({
     upColor,
     downColor,
     alertPrice,
+    alertDirection,
     extremeTime,
     extremePrice,
     highlightAlertCandle,
