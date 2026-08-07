@@ -107,10 +107,13 @@ export function ActiveAssetPanel({
         }
       >
         <IndexChart
+          dataKey={asset.assetId}
+          initialVisibleCandleCount={flushChart ? 150 : undefined}
           klines={klines}
           upColor="#26c281"
           downColor="#ec5564"
           showVolume
+          interactive={flushChart}
         />
       </div>
       {showStats && (

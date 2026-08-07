@@ -51,7 +51,7 @@ export function ScannerV2Screen() {
   const detailsQuery = useGetScannerAssetDetails(selectedAssetId);
   const selectedChartQuery = useGetScannerChart(selectedAssetId, {
     timeframe: chartTimeframe,
-    limit: 100,
+    limit: 500,
   });
   const canSubscribeToSelectedChart =
     selectedChartQuery.isSuccess &&
