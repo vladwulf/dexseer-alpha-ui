@@ -2,8 +2,12 @@ import { MomentumAlertsPanel } from "@/features/v2/scanner/components/MomentumAl
 
 export function AlertsPage() {
   return (
-    <main className="terminal-alerts-page">
-      <MomentumAlertsPanel />
+    <main className="terminal-screen terminal-alerts-page">
+      <div className="terminal-container">
+        <div className="terminal-workspace">
+          <MomentumAlertsPanel />
+        </div>
+      </div>
     </main>
   );
 }

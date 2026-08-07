@@ -24,8 +24,8 @@ function getWsNamespaceUrl() {
 function getScannerRoomName(preset: ScannerPreset) {
   if (
     preset === "Classic Rolling" ||
-    preset === "Momentum Long" ||
-    preset === "Momentum Short"
+    preset === "Bullish Momentum" ||
+    preset === "Bearish Momentum"
   ) {
     return null;
   }
@@ -36,8 +36,8 @@ function getScannerRoomName(preset: ScannerPreset) {
 function getScannerEventName(preset: ScannerPreset) {
   if (
     preset === "Classic Rolling" ||
-    preset === "Momentum Long" ||
-    preset === "Momentum Short"
+    preset === "Bullish Momentum" ||
+    preset === "Bearish Momentum"
   ) {
     return null;
   }

@@ -77,9 +77,9 @@ function getMarketContext(asset: ScannerAsset) {
     asset.funding === null
       ? "Unavailable"
       : asset.funding > 0.0003
-        ? "Long positioning is elevated"
+        ? "Bullish positioning is elevated"
         : asset.funding < -0.0002
-          ? "Short positioning is elevated"
+          ? "Bearish positioning is elevated"
           : "Positioning is balanced";
   const openInterest =
     asset.openInterest === null

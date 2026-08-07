@@ -22,8 +22,8 @@ import type {
 
 const presetKeyByLabel: Record<ScannerPreset, ScannerPresetKey> = {
   "Classic Rolling": "gainers",
-  "Momentum Long": "momentum",
-  "Momentum Short": "momentum",
+  "Bullish Momentum": "momentum",
+  "Bearish Momentum": "momentum",
   Alerts: "gainers",
   Breakouts: "breakouts",
   Pullbacks: "pullbacks",
@@ -228,7 +228,7 @@ export function mapMomentumEntryToAsset(row: MomentumEntry): ScannerAsset {
     atrPercent: 0,
     btcCorrelation: 0,
     alertCount: 0,
-    setupLabel: row.direction === "long" ? "Long momentum" : "Short momentum",
+    setupLabel: row.direction === "long" ? "Bullish momentum" : "Bearish momentum",
     setupScore: row.score,
     rankingReason: `${row.aligned_timeframes}/3 timeframes aligned for ${row.direction} momentum.`,
     activeSetupSummary:

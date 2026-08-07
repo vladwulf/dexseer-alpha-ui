@@ -45,7 +45,7 @@ function includeMomentumScoreColumn(columnOrder: string[]) {
 }
 
 function isMomentumPreset(preset: ScannerPreset) {
-  return preset === "Momentum Long" || preset === "Momentum Short";
+  return preset === "Bullish Momentum" || preset === "Bearish Momentum";
 }
 
 function getDefaultSortingForPreset(preset: ScannerPreset) {
@@ -53,7 +53,9 @@ function getDefaultSortingForPreset(preset: ScannerPreset) {
 }
 
 function normalizePreset(preset: unknown): ScannerPreset {
-  return preset === "Momentum" ? "Momentum Long" : (preset as ScannerPreset);
+  if (preset === "Momentum Long") return "Bullish Momentum";
+  if (preset === "Momentum Short") return "Bearish Momentum";
+  return preset === "Momentum" ? "Bullish Momentum" : (preset as ScannerPreset);
 }
 
 export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
@@ -66,8 +68,8 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
       sorting: DEFAULT_SORTING,
       sortingsByPreset: {
         "Classic Rolling": DEFAULT_SORTING,
-        "Momentum Long": MOMENTUM_SORTING,
-        "Momentum Short": MOMENTUM_SORTING,
+        "Bullish Momentum": MOMENTUM_SORTING,
+        "Bearish Momentum": MOMENTUM_SORTING,
       },
       timeframe: "1h",
       watchlistFilter: WATCHLIST_OPTIONS[0],
@@ -126,7 +128,7 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
         watchlistFilter,
       }),
       storage: createJSONStorage(() => localStorage),
-      version: 4,
+      version: 5,
       migrate: (persistedState) => {
         if (typeof persistedState !== "object" || persistedState === null) {
           return persistedState;
@@ -141,14 +143,24 @@ export const useScannerTableConfigStore = create<ScannerTableConfigState>()(
           >;
         };
         const preset = normalizePreset(persisted.preset);
+        const legacySortings = persisted.sortingsByPreset as
+          | Record<string, SortingState>
+          | undefined;
         const sortingsByPreset = {
           ...persisted.sortingsByPreset,
-          "Momentum Long":
+          "Bullish Momentum":
             persisted.sortingsByPreset?.Momentum ??
-            persisted.sortingsByPreset?.["Momentum Long"] ??
+            persisted.sortingsByPreset?.["Bullish Momentum"] ??
+            legacySortings?.["Momentum Long"] ??
+            MOMENTUM_SORTING,
+          "Bearish Momentum":
+            persisted.sortingsByPreset?.["Bearish Momentum"] ??
+            legacySortings?.["Momentum Short"] ??
             MOMENTUM_SORTING,
         };
         delete sortingsByPreset.Momentum;
+        delete (sortingsByPreset as Record<string, SortingState>)["Momentum Long"];
+        delete (sortingsByPreset as Record<string, SortingState>)["Momentum Short"];
 
         return {
           ...persistedState,

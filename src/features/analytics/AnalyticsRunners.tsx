@@ -18,7 +18,7 @@ type BoardOption = {
 const BOARD_OPTIONS: BoardOption[] = [
   {
     key: "long",
-    label: "LONG",
+    label: "BULLISH",
     title: "Asset Race Runner",
     subtitle: (metricLabel) => `Top 10 Gainers · ${metricLabel} % Change`,
     panelLabel: (metricLabel) => `Race Track · ${metricLabel} Change`,
@@ -28,7 +28,7 @@ const BOARD_OPTIONS: BoardOption[] = [
   },
   {
     key: "short",
-    label: "SHORT",
+    label: "BEARISH",
     title: "Asset Race Runner",
     subtitle: (metricLabel) => `Top 10 Losers · ${metricLabel} % Change`,
     panelLabel: (metricLabel) => `Race Track · ${metricLabel} Change`,

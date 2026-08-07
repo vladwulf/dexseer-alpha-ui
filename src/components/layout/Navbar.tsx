@@ -27,6 +27,7 @@ import {
 import {
   applyTheme,
   getStoredTheme,
+  themeNames,
   type ThemeName,
   themes,
 } from "@/config/themes";
@@ -66,13 +67,13 @@ const searchGroups = [
     heading: "Alerts",
     items: [
       {
-        label: "BTC LONG",
+        label: "BTC BULLISH",
         detail: "15m continuation",
         meta: "2m ago",
         icon: BellRing,
       },
       {
-        label: "ETH SHORT",
+        label: "ETH BEARISH",
         detail: "4h rejection",
         meta: "11m ago",
         icon: BellRing,
@@ -250,36 +251,40 @@ export function Navbar() {
               <p className="px-2 pb-1 pt-0.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[var(--ds-text-tertiary)]">
                 Color theme
               </p>
-              {Object.entries(themes).map(([name, theme]) => (
-                <DropdownMenuItem
-                  key={name}
-                  onSelect={() => handleThemeChange(name as ThemeName)}
-                  className="group my-0.5 rounded-md py-2 pl-2 pr-2 focus:bg-white/[0.06] focus:text-[var(--ds-text-primary)]"
-                >
-                  <span className="flex flex-1 items-center gap-2.5">
-                    <span className="flex -space-x-1">
-                      {theme.swatches.map((color) => (
-                        <span
-                          key={color}
-                          className="h-3.5 w-3.5 rounded-full border border-black/30"
-                          style={{ background: color }}
-                        />
-                      ))}
-                    </span>
-                    <span>
-                      <span className="block text-xs font-medium">
-                        {theme.label}
+              {themeNames.map((name) => {
+                const theme = themes[name];
+
+                return (
+                  <DropdownMenuItem
+                    key={name}
+                    onSelect={() => handleThemeChange(name)}
+                    className="group my-0.5 rounded-md py-2 pl-2 pr-2 focus:bg-white/[0.06] focus:text-[var(--ds-text-primary)]"
+                  >
+                    <span className="flex flex-1 items-center gap-2.5">
+                      <span className="flex -space-x-1">
+                        {theme.swatches.map((color) => (
+                          <span
+                            key={color}
+                            className="h-3.5 w-3.5 rounded-full border border-black/30"
+                            style={{ background: color }}
+                          />
+                        ))}
                       </span>
-                      <span className="block text-[0.64rem] text-[var(--ds-text-tertiary)]">
-                        {theme.description}
+                      <span>
+                        <span className="block text-xs font-medium">
+                          {theme.label}
+                        </span>
+                        <span className="block text-[0.64rem] text-[var(--ds-text-tertiary)]">
+                          {theme.description}
+                        </span>
                       </span>
                     </span>
-                  </span>
-                  {themeName === name && (
-                    <Check className="h-3.5 w-3.5 text-[var(--ds-electric)]" />
-                  )}
-                </DropdownMenuItem>
-              ))}
+                    {themeName === name && (
+                      <Check className="h-3.5 w-3.5 text-[var(--ds-electric)]" />
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
 

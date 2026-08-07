@@ -218,7 +218,7 @@ function FundingCell({ value }: { value: number | null }) {
             whiteSpace: "pre-line",
           }}
         >
-          {isHot ? "LONG\nHEAVY" : "SHORT\nHEAVY"}
+          {isHot ? "BULLISH\nHEAVY" : "BEARISH\nHEAVY"}
         </span>
       )}
     </div>

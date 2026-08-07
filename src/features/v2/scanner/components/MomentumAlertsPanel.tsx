@@ -10,7 +10,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { type Ref, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -24,10 +23,8 @@ import {
 import { AlertsChartWrapper } from "@/features/alerts-explorer/AlertChartWrapper";
 import {
   type AlertListItem,
-  type AlertSortBy,
   type AlertTimeframe,
   MOMENTUM_INTELLIGENCE_STRATEGY_IDS,
-  type SortOrder,
   useGetAlertsPaginated,
   useGetAlertTypes,
 } from "@/features/alerts-explorer/hooks/alerts.api";
@@ -36,6 +33,7 @@ import {
   getMomentumAlertEventType,
   getMomentumAlertLabel,
 } from "@/features/v2/scanner/lib/momentumLabels";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 const VOICE_ALERTS_STORAGE_KEY = "scanner-v2-voice-alerts-enabled";
@@ -56,6 +54,9 @@ type StrategySelection =
 
 type FilterOption<T extends string> = { label: string; value: T };
 
+const alertControlClass =
+  "inline-flex h-[26px] items-center gap-[5px] whitespace-nowrap rounded-[4px] border border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] shadow-none transition-colors duration-150 hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)] focus-visible:border-[var(--ds-electric)] focus-visible:outline-none";
+
 function FilterDropdown<T extends string>({
   ariaLabel,
   value,
@@ -72,16 +73,14 @@ function FilterDropdown<T extends string>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
+        <button
           type="button"
-          variant="outline"
-          size="sm"
           aria-label={ariaLabel}
-          className="h-9 rounded-md border-white/15 bg-white/[0.025] px-3 font-mono text-xs font-normal text-white/75 shadow-none hover:border-white/25 hover:bg-white/[0.05] hover:text-white"
+          className={alertControlClass}
         >
           {selectedOption?.label}
-          <ChevronDown />
-        </Button>
+          <ChevronDown size={10} />
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
@@ -156,7 +155,8 @@ function getSetupLabel(alert: AlertListItem) {
   const event = getMomentumEvent(alert);
   if (event.includes("pullback")) return `↘ Pullback · ${alert.timeframe}`;
 
-  return `${alert.direction.toLowerCase().includes("short") ? "↓" : "↑"} ${alert.direction} · ${alert.timeframe}`;
+  const isBearish = alert.direction.toLowerCase().includes("short");
+  return `${isBearish ? "↓ Bearish" : "↑ Bullish"} · ${alert.timeframe}`;
 }
 
 function formatAlertTime(time: string) {
@@ -229,7 +229,7 @@ function AlertRow({
       ref={buttonRef}
       type="button"
       onClick={onSelect}
-      className={`grid w-full min-w-[650px] ${ALERT_TABLE_COLUMNS} items-center gap-2 border-b border-white/[0.08] px-3 py-1.5 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_2px_0_0_#5dc887]" : unusual ? "bg-[#ffae45]/[0.045] shadow-[inset_2px_0_0_#ffae45] hover:bg-[#ffae45]/[0.075]" : "bg-transparent"}`}
+      className={`grid w-full min-w-[650px] ${ALERT_TABLE_COLUMNS} items-center gap-2 px-3 py-1.5 text-left outline-none transition-colors hover:bg-white/[0.035] ${selected ? "bg-[#5dc887]/[0.065] shadow-[inset_2px_0_0_#5dc887]" : unusual ? "bg-[#ffae45]/[0.045] shadow-[inset_2px_0_0_#ffae45] hover:bg-[#ffae45]/[0.075]" : "bg-transparent"}`}
     >
       <span className="font-mono text-[0.76rem] tabular-nums text-white/50">
         {formatAlertTime(alert.triggered_at ?? alert.time)}
@@ -286,8 +286,6 @@ export function MomentumAlertsPanel() {
   const [direction, setDirection] = useState("");
   const [symbol, setSymbol] = useState("");
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<AlertSortBy>("triggered_at");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [voiceAlertsEnabled, setVoiceAlertsEnabled] = useState(
     // Mobile always starts muted, even when voice was previously enabled on a
     // desktop device. Users can still explicitly turn it on from the control.
@@ -316,8 +314,8 @@ export function MomentumAlertsPanel() {
     // alert stream and apply the selected event types in the client.
     alertType:
       selectedEventTypes.length === 1 ? selectedEventTypes[0] : undefined,
-    sortBy,
-    sortOrder,
+    sortBy: "triggered_at" as const,
+    sortOrder: "desc" as const,
   };
   const alertTypesQuery = useGetAlertTypes();
   const fiveMinuteQuery = useGetAlertsPaginated({
@@ -380,23 +378,18 @@ export function MomentumAlertsPanel() {
         selectedEventTypes.length === 0 ||
         selectedEventTypes.includes(getMomentumAlertEventType(alert) ?? ""),
     )
-    .sort((left, right) => {
-      const comparison =
-        sortBy === "alert_type"
-          ? (getMomentumAlertEventType(left) ?? "").localeCompare(
-              getMomentumAlertEventType(right) ?? "",
-            )
-          : Date.parse(left.triggered_at ?? left.time) -
-            Date.parse(right.triggered_at ?? right.time);
-      return sortOrder === "asc" ? comparison : -comparison;
-    });
+    .sort(
+      (left, right) =>
+        Date.parse(right.triggered_at ?? right.time) -
+        Date.parse(left.triggered_at ?? left.time),
+    );
   const isLoading = activeQueries.some((query) => query.isLoading);
   const isFetching = activeQueries.some((query) => query.isFetching);
   const isFetchingMore = activeQueries.some(
     (query) => query.isFetchingNextPage,
   );
   const isError = activeQueries.some((query) => query.isError);
-  const alertQueryScope = `${strategyId}:${direction}:${symbol}:${selectedEventTypes.join(",")}:${sortBy}:${sortOrder}`;
+  const alertQueryScope = `${strategyId}:${direction}:${symbol}:${selectedEventTypes.join(",")}`;
   const hasMoreAlerts = activeQueries.some((query) => query.hasNextPage);
   const [selectedAlertId, setSelectedAlertId] = useState<string>();
   const selectedAlert =
@@ -515,8 +508,6 @@ export function MomentumAlertsPanel() {
         direction,
         symbol,
         eventTypes: selectedEventTypes,
-        sortBy,
-        sortOrder,
       },
       newAlertIds: newAlerts.map((newAlert) => newAlert.id),
       cooldownElapsedMs: now - lastVoiceAlertAtRef.current,
@@ -546,8 +537,6 @@ export function MomentumAlertsPanel() {
     symbol,
     isFetching,
     isLoading,
-    sortBy,
-    sortOrder,
     strategyId,
     voiceAlertsEnabled,
     voiceGender,
@@ -607,10 +596,10 @@ export function MomentumAlertsPanel() {
   }, [alerts, selectedAlert?.id]);
 
   return (
-    <section className="flex min-h-[640px] border border-white/8 bg-[var(--ds-canvas)]">
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden border-b border-white/8 xl:border-b-0">
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.09] bg-[var(--ds-surface)] px-5 py-4 font-mono text-xs">
-          <span className="mr-1 text-[0.64rem] uppercase tracking-[0.2em] text-white/40">
+    <section className="flex min-h-[640px] bg-[var(--ds-canvas)]">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[6px] bg-[var(--ds-canvas-raised)] shadow-[inset_0_1px_rgb(255_255_255_/_4%)]">
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--ds-border)] bg-[var(--ds-surface)] px-4 py-2.5 font-mono text-xs">
+          <span className="mr-1 text-[0.58rem] uppercase tracking-[0.14em] text-white/35">
             Event
           </span>
           <FilterDropdown
@@ -634,8 +623,8 @@ export function MomentumAlertsPanel() {
             value={direction}
             options={[
               { label: "All directions", value: "" },
-              { label: "Long", value: "long" },
-              { label: "Short", value: "short" },
+              { label: "Bullish", value: "long" },
+              { label: "Bearish", value: "short" },
             ]}
             onValueChange={(value) => {
               setDirection(value);
@@ -647,20 +636,16 @@ export function MomentumAlertsPanel() {
               setSymbol(event.target.value);
             }}
             placeholder="Filter symbol…"
-            className="h-9 min-w-36 rounded-md border border-white/15 bg-white/[0.025] px-3 text-white/75 placeholder:text-white/30 outline-none transition-colors hover:border-white/25 focus:border-[#5dc887]/60"
+            className="h-[26px] min-w-32 rounded-[4px] border border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] placeholder:text-[var(--ds-text-tertiary)] outline-none transition-colors duration-150 hover:border-[var(--ds-border-strong)] focus:border-[var(--ds-electric)]"
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9 rounded-md border-white/15 bg-white/[0.025] px-3 font-mono text-xs font-normal text-white/75 shadow-none hover:border-white/25 hover:bg-white/[0.05] hover:text-white"
-              >
+              <button type="button" className={alertControlClass}>
                 {selectedEventTypes.length === 0
                   ? "All event types"
                   : `${selectedEventTypes.length} event type${selectedEventTypes.length === 1 ? "" : "s"}`}
-              </Button>
+                <ChevronDown size={10} />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
@@ -697,56 +682,35 @@ export function MomentumAlertsPanel() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <FilterDropdown
-            ariaLabel="Sort field"
-            value={sortBy}
-            options={[
-              { label: "Sort: triggered", value: "triggered_at" },
-              { label: "Sort: event type", value: "alert_type" },
-            ]}
-            onValueChange={(value) => {
-              setSortBy(value);
-            }}
-          />
-          <FilterDropdown
-            ariaLabel="Sort order"
-            value={sortOrder}
-            options={[
-              { label: "Descending", value: "desc" },
-              { label: "Ascending", value: "asc" },
-            ]}
-            onValueChange={(value) => {
-              setSortOrder(value);
-            }}
-          />
-          <div className="flex overflow-hidden rounded-md">
-            <Button
+          <div className="flex overflow-hidden rounded-[4px]">
+            <button
               type="button"
-              variant="outline"
-              size="sm"
               aria-pressed={voiceAlertsEnabled}
               onClick={handleVoiceAlertsChange}
-              className={`h-9 rounded-r-none border px-3 text-[0.65rem] uppercase tracking-[0.08em] shadow-none ${
+              className={cn(
+                "inline-flex h-[26px] items-center gap-[5px] rounded-r-none border px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] transition-colors duration-150 focus-visible:outline-none",
                 voiceAlertsEnabled
-                  ? "border-[#5dc887]/40 bg-[#5dc887]/10 text-[#5dc887] hover:bg-[#5dc887]/15 hover:text-[#5dc887]"
-                  : "border-white/10 bg-transparent text-white/45 hover:border-white/20 hover:bg-white/[0.03] hover:text-white/70"
-              }`}
+                  ? "border-[var(--ds-positive)] bg-[color-mix(in_srgb,var(--ds-positive)_12%,transparent)] text-[var(--ds-positive)] hover:bg-[color-mix(in_srgb,var(--ds-positive)_18%,transparent)]"
+                  : "border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] text-[var(--ds-text-tertiary)] hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)]",
+              )}
             >
-              {voiceAlertsEnabled ? <Volume2 /> : <VolumeX />}
+              {voiceAlertsEnabled ? (
+                <Volume2 size={11} />
+              ) : (
+                <VolumeX size={11} />
+              )}
               Voice {voiceAlertsEnabled ? "on" : "off"}
-            </Button>
+            </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
                   aria-label="Select voice"
-                  className="h-9 rounded-l-none border-l-0 border-white/10 bg-transparent px-2 text-white/60 shadow-none hover:border-white/20 hover:bg-white/[0.03] hover:text-white"
+                  className="inline-flex h-[26px] items-center gap-1 rounded-l-none border border-l-0 border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[7px] font-mono text-[0.64rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] transition-colors duration-150 hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)] focus-visible:outline-none"
                 >
                   {voiceGender}
-                  <ChevronDown />
-                </Button>
+                  <ChevronDown size={10} />
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-36">
                 <DropdownMenuLabel>Alert voice</DropdownMenuLabel>
@@ -766,14 +730,14 @@ export function MomentumAlertsPanel() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <span className="ml-auto flex items-center gap-2 whitespace-nowrap text-[0.72rem] text-[#5dc887]">
-            <span className="h-2 w-2 rounded-full bg-[#5dc887] shadow-[0_0_10px_#5dc887]" />
+          <span className="ml-auto flex items-center gap-1.5 whitespace-nowrap font-mono text-[0.62rem] uppercase tracking-[0.1em] text-[var(--ds-positive)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--ds-positive)] shadow-[0_0_8px_var(--ds-positive)]" />
             Streaming
           </span>
         </div>
         <div ref={alertListRef} className="min-h-0 flex-1 overflow-auto">
           <div
-            className={`sticky top-0 z-10 grid min-w-[650px] ${ALERT_TABLE_COLUMNS} gap-2 border-b border-white/[0.1] bg-[var(--ds-surface)] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/40 shadow-[0_1px_0_var(--ds-border)]`}
+            className={`sticky top-0 z-10 grid min-w-[650px] ${ALERT_TABLE_COLUMNS} gap-2 border-b border-[var(--ds-border)] bg-[var(--ds-surface)] px-3 py-2 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[var(--ds-text-tertiary)] shadow-[0_1px_0_var(--ds-border)]`}
           >
             <span>Time</span>
             <span>Symbol</span>
@@ -810,7 +774,7 @@ export function MomentumAlertsPanel() {
           ))}
           <div
             ref={loadMoreRef}
-            className="border-t border-white/8 px-4 py-3 text-center font-mono text-[0.65rem] text-white/40"
+            className="border-t border-[var(--ds-border)] px-4 py-3 text-center font-mono text-[0.65rem] text-[var(--ds-text-tertiary)]"
           >
             {hasMoreAlerts ? (
               isFetchingMore ? (
@@ -862,12 +826,12 @@ export function MomentumAlertsPanel() {
         }}
       />
       <aside
-        className="hidden min-w-0 bg-[var(--ds-canvas-raised)] xl:block"
+        className="hidden min-w-0 overflow-hidden rounded-[6px] bg-[var(--ds-canvas-raised)] shadow-[inset_0_1px_rgb(255_255_255_/_4%)] xl:block"
         style={{ width: inspectorWidth }}
       >
         {selectedAlert ? (
           <div className="flex h-full min-h-[640px] flex-col">
-            <div className="border-b border-white/8 p-4 font-mono">
+            <div className="border-b border-[var(--ds-border)] p-4 font-mono">
               <p className="text-[0.62rem] uppercase tracking-[0.12em] text-white/35">
                 Momentum Intelligence update
               </p>
@@ -886,7 +850,7 @@ export function MomentumAlertsPanel() {
                 ${formatPrice(selectedAlert.price)}
               </p>
             </div>
-            <div className="h-72 border-b border-white/8">
+            <div className="h-72 border-b border-[var(--ds-border)]">
               <AlertsChartWrapper
                 alertId={selectedAlert.id}
                 alertTime={selectedAlert.time}

@@ -33,9 +33,9 @@ function setupLabel(alert: AlertListItem) {
   const event = alertLabel(alert).toLowerCase();
   if (event.includes("pullback")) return `↘ Pullback · ${alert.timeframe}`;
   if (alert.direction.toLowerCase() === "short")
-    return `↓ Short · ${alert.timeframe}`;
+    return `↓ Bearish · ${alert.timeframe}`;
   if (alert.direction.toLowerCase() === "long")
-    return `↑ Long · ${alert.timeframe}`;
+    return `↑ Bullish · ${alert.timeframe}`;
   return `• Signal · ${alert.timeframe}`;
 }
 
@@ -130,8 +130,8 @@ export function TerminalBottomDock({
                 aria-label="Alert direction"
               >
                 <option value="all">All sides</option>
-                <option value="long">Long</option>
-                <option value="short">Short</option>
+                <option value="long">Bullish</option>
+                <option value="short">Bearish</option>
               </select>
               <select
                 value={timeframe}
