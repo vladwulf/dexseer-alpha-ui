@@ -27,6 +27,16 @@ type ActiveAssetPanelProps = {
   alerts?: AlertListItem[];
 };
 
+function formatMomentumScore(value: number | null) {
+  if (value === null) return "—";
+  return `${value > 0 ? "+" : ""}${value}`;
+}
+
+function getMomentumScoreTone(value: number | null) {
+  if (value === null || value === 0) return "neutral";
+  return value > 0 ? "positive" : "negative";
+}
+
 export function ActiveAssetPanel({
   asset,
   flushChart = false,
@@ -75,22 +85,32 @@ export function ActiveAssetPanel({
 
   return (
     <div className="terminal-active-panel">
-      <header className="terminal-panel-header">
+      <header className="terminal-panel-header terminal-panel-header--asset">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="terminal-asset-identity">
             <h1 className="font-[var(--font-display)] text-xl font-bold italic text-white">
               {asset.symbol}
             </h1>
             <span className="terminal-market-label">{asset.market}</span>
-            <span className="terminal-score">{asset.setupScore} score</span>
+            <span
+              className={`terminal-score terminal-score--${getMomentumScoreTone(asset.momentumScore)}`}
+              title="Asset momentum score"
+            >
+              <span className="terminal-score__label">Momentum</span>
+              <span className="terminal-score__value">
+                {formatMomentumScore(asset.momentumScore)}
+              </span>
+            </span>
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2 font-[var(--font-mono)]">
-            <span className="text-lg font-semibold tabular-nums text-white">
+          <div className="terminal-asset-quote font-[var(--font-mono)]">
+            <span className="terminal-asset-quote__price">
               {formatPrice(asset.price)}
             </span>
-            <Pill value={asset.change5m} label="5m" />
-            <Pill value={asset.change1h} label="1h" />
-            <Pill value={asset.change24h} label="1d" />
+            <div className="terminal-asset-quote__changes">
+              <Pill value={asset.change5m} label="5m" />
+              <Pill value={asset.change1h} label="1h" />
+              <Pill value={asset.change24h} label="1d" />
+            </div>
           </div>
         </div>
       </header>

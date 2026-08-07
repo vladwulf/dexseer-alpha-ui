@@ -416,6 +416,69 @@
   background: rgb(91 143 249 / 10%);
   color: #8caeff;
 }
+.terminal-panel-header--asset {
+  align-items: center;
+}
+.terminal-asset-identity,
+.terminal-asset-quote,
+.terminal-asset-quote__changes,
+.terminal-score {
+  display: flex;
+  align-items: center;
+}
+.terminal-asset-identity {
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.terminal-asset-quote {
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.terminal-asset-quote__price {
+  color: rgb(255 255 255 / 96%);
+  font-size: 1.1rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+.terminal-asset-quote__changes {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.terminal-score {
+  gap: 5px;
+  min-height: 22px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  letter-spacing: 0.05em;
+}
+.terminal-score__label {
+  color: currentcolor;
+  font-size: 0.52rem;
+  opacity: 0.72;
+  text-transform: uppercase;
+}
+.terminal-score__value {
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+}
+.terminal-score--positive {
+  border-color: rgb(93 200 135 / 35%);
+  background: rgb(93 200 135 / 10%);
+  color: #74d99a;
+}
+.terminal-score--negative {
+  border-color: rgb(227 85 97 / 38%);
+  background: rgb(227 85 97 / 10%);
+  color: #f07882;
+}
+.terminal-score--neutral {
+  border-color: rgb(255 255 255 / 12%);
+  background: rgb(255 255 255 / 4%);
+  color: rgb(255 255 255 / 48%);
+}
 .terminal-icon-action {
   display: inline-flex;
   height: 32px;
