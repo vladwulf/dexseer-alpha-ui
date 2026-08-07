@@ -1088,8 +1088,12 @@ button.terminal-alert-row:hover {
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(circle at 50% 0%, rgb(255 255 255 / 5%), transparent 24rem),
-    linear-gradient(180deg, var(--ds-surface-raised), var(--ds-surface) 32rem);
+    radial-gradient(
+      circle at 50% 0%,
+      rgb(255 255 255 / 2.5%),
+      transparent 24rem
+    ),
+    linear-gradient(180deg, var(--ds-canvas-raised), var(--ds-canvas));
 }
 .scanner-side-panel::before {
   position: sticky;
@@ -1111,24 +1115,24 @@ button.terminal-alert-row:hover {
   position: relative;
   min-height: 82px;
   padding: 16px 16px 14px;
-  border-bottom-color: rgb(255 255 255 / 9%);
-  background: linear-gradient(135deg, rgb(255 255 255 / 4%), transparent 58%);
+  border-bottom-color: var(--ds-border);
+  background: linear-gradient(135deg, rgb(255 255 255 / 2.5%), transparent 58%);
 }
 .scanner-side-panel .terminal-chart-toolbar {
   min-height: 30px;
   padding: 0 16px;
-  border-bottom-color: rgb(255 255 255 / 6%);
-  background: rgb(0 0 0 / 12%);
+  border-bottom-color: var(--ds-border);
+  background: rgb(0 0 0 / 20%);
 }
 .scanner-side-panel .terminal-chart-wrap {
   height: clamp(260px, 34vh, 390px);
   min-height: 0;
-  border-bottom: 1px solid rgb(255 255 255 / 7%);
+  border-bottom: 1px solid var(--ds-border);
 }
 .scanner-side-panel__body {
   background: linear-gradient(
     180deg,
-    rgb(255 255 255 / 2.5%),
+    rgb(255 255 255 / 1.25%),
     transparent 18rem
   );
 }
@@ -1141,15 +1145,15 @@ button.terminal-alert-row:hover {
 .scanner-side-panel__setup {
   background: linear-gradient(
     110deg,
-    rgb(255 255 255 / 5%),
-    rgb(255 255 255 / 2%) 52%
+    rgb(255 255 255 / 3%),
+    rgb(255 255 255 / 1%) 52%
   );
 }
 .scanner-side-panel__hours {
   background: linear-gradient(
     145deg,
-    rgb(255 255 255 / 4%),
-    rgb(255 255 255 / 1.5%)
+    rgb(255 255 255 / 2.5%),
+    rgb(255 255 255 / 1%)
   );
 }
 .scanner-side-panel__body .rounded-xl {
