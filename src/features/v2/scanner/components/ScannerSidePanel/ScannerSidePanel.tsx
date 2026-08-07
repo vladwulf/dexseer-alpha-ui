@@ -6,6 +6,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useGetAlertsPage } from "@/features/alerts-explorer/hooks/alerts.api";
+import { isMomentumPullback } from "../../lib/momentumLabels";
 import type { ScannerAsset, ScannerTimeframe } from "../../types";
 import { ActiveAssetPanel } from "../ActiveAssetPanel/ActiveAssetPanel";
 import { ScannerSidePanelBody } from "./components/ScannerSidePanelBody";
@@ -36,13 +37,21 @@ export function ScannerSidePanel({
   const alertSymbol = asset?.symbol.replace(/usdt$/i, "") ?? "";
   const alertsQuery = useGetAlertsPage({
     enabled: Boolean(asset),
-    limit: 5,
+    limit: 25,
     symbol: alertSymbol,
     refetchInterval: 5_000,
     sortBy: "triggered_at",
     sortOrder: "desc",
   });
-  const alerts = (alertsQuery.data?.data ?? []).slice(0, 5);
+  const alerts = (alertsQuery.data?.data ?? [])
+    .filter((alert) => {
+      const direction = alert.direction.toLowerCase();
+      return (
+        !isMomentumPullback(alert) &&
+        (direction === "long" || direction === "short")
+      );
+    })
+    .slice(0, 3);
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
@@ -71,7 +80,7 @@ export function ScannerSidePanel({
       <ScannerSidePanelBody
         asset={asset}
         alerts={alerts}
-        alertCount={alertsQuery.data?.meta.total ?? 0}
+        alertCount={alerts.length}
         isAlertsLoading={alertsQuery.isLoading}
         isAlertsError={alertsQuery.isError}
       />

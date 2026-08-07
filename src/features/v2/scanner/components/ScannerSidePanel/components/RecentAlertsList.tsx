@@ -20,18 +20,15 @@ function formatAlertTime(alert: AlertListItem) {
 }
 
 function setupLabel(alert: AlertListItem) {
-  const event = getMomentumAlertLabel(alert).toLowerCase();
-  if (event.includes("pullback")) return `↘ Pullback · ${alert.timeframe}`;
   if (alert.direction.toLowerCase() === "short")
-    return `↓ Short · ${alert.timeframe}`;
+    return `↓ Bearish momentum · ${alert.timeframe}`;
   if (alert.direction.toLowerCase() === "long")
-    return `↑ Long · ${alert.timeframe}`;
-  return `• Signal · ${alert.timeframe}`;
+    return `↑ Bullish momentum · ${alert.timeframe}`;
+  return `• Momentum · ${alert.timeframe}`;
 }
 
 function eventTone(alert: AlertListItem) {
   const event = getMomentumAlertLabel(alert).toLowerCase();
-  if (event.includes("pullback")) return "blue";
   if (
     event.includes("exited") ||
     alert.direction.toLowerCase().includes("short")
@@ -41,10 +38,6 @@ function eventTone(alert: AlertListItem) {
 }
 
 const EVENT_TONE_CLASSES = {
-  blue: {
-    dot: "bg-[#4ca7f8]",
-    badge: "border-[#1685dc]/30 bg-[#1685dc]/[0.18] text-[#4ca7f8]",
-  },
   green: {
     dot: "bg-[#57d992]",
     badge: "border-[#2d9d62]/30 bg-[#2d9d62]/[0.22] text-[#57d992]",
