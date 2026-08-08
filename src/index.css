@@ -1085,13 +1085,19 @@ button.terminal-alert-row:hover {
 .mobile-sheet-swipe-hint {
   position: absolute;
   z-index: 3;
-  top: 50%;
-  left: 12px;
+  top: 66.666%;
+  left: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgb(255 255 255 / 28%);
-  opacity: 0;
+  width: 32px;
+  height: 48px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+  background: rgb(8 12 18 / 70%);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 35%);
+  color: rgb(255 255 255 / 82%);
+  opacity: 0.7;
   pointer-events: none;
   transform: translateY(-50%);
   animation: mobile-sheet-swipe-hint 900ms ease-in-out 500ms 3;
@@ -1099,12 +1105,12 @@ button.terminal-alert-row:hover {
 @keyframes mobile-sheet-swipe-hint {
   0%,
   100% {
-    opacity: 0;
+    opacity: 0.7;
     transform: translateY(-50%) translateX(-2px);
   }
   35%,
   65% {
-    opacity: 0.45;
+    opacity: 1;
     transform: translateY(-50%) translateX(4px);
   }
 }

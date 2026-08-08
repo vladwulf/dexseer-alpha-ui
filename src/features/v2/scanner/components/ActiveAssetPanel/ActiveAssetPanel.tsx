@@ -120,6 +120,7 @@ export function ActiveAssetPanel({
         <span>{timeframe} · live</span>
       </div>
       <div
+        data-chart-interaction
         className={
           flushChart
             ? "terminal-chart-wrap terminal-chart-wrap--flush"

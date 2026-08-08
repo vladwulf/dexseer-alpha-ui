@@ -63,7 +63,7 @@ type StrategySelection =
 type FilterOption<T extends string> = { label: string; value: T };
 
 const alertControlClass =
-  "inline-flex h-[26px] items-center gap-[5px] whitespace-nowrap rounded-[4px] border border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] shadow-none transition-colors duration-150 hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)] focus-visible:border-[var(--ds-electric)] focus-visible:outline-none";
+  "inline-flex h-[26px] touch-manipulation items-center gap-[5px] whitespace-nowrap rounded-[4px] border border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] shadow-none transition-colors duration-150 hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)] focus-visible:border-[var(--ds-electric)] focus-visible:outline-none max-md:h-9 max-md:px-3 max-md:text-xs";
 
 function FilterDropdown<T extends string>({
   ariaLabel,
@@ -99,7 +99,11 @@ function FilterDropdown<T extends string>({
           onValueChange={(nextValue) => onValueChange(nextValue as T)}
         >
           {options.map((option) => (
-            <DropdownMenuRadioItem key={option.value} value={option.value}>
+            <DropdownMenuRadioItem
+              key={option.value}
+              value={option.value}
+              className="max-md:min-h-10"
+            >
               {option.label}
             </DropdownMenuRadioItem>
           ))}
@@ -320,7 +324,10 @@ function AlertInspectorContent({
           {formatPrice(alert.price)}
         </p>
       </div>
-      <div className="h-72 border-b border-[var(--ds-border)] sm:h-80">
+      <div
+        data-chart-interaction
+        className="h-72 border-b border-[var(--ds-border)] sm:h-80"
+      >
         {renderChart ? (
           <AlertsChartWrapper
             alertId={alert.id}
@@ -694,6 +701,11 @@ export function MomentumAlertsPanel() {
   };
 
   const handleMobileSheetTouchStart = (event: React.TouchEvent) => {
+    if ((event.target as HTMLElement).closest("[data-chart-interaction]")) {
+      mobileSheetTouchStartX.current = null;
+      return;
+    }
+
     mobileSheetTouchStartX.current = event.touches[0]?.clientX ?? null;
   };
 
@@ -785,7 +797,7 @@ export function MomentumAlertsPanel() {
               setSymbol(event.target.value);
             }}
             placeholder="Filter symbol…"
-            className="h-[26px] min-w-32 rounded-[4px] border border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] placeholder:text-[var(--ds-text-tertiary)] outline-none transition-colors duration-150 hover:border-[var(--ds-border-strong)] focus:border-[var(--ds-electric)]"
+            className="h-[26px] min-w-32 rounded-[4px] border border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] placeholder:text-[var(--ds-text-tertiary)] outline-none transition-colors duration-150 hover:border-[var(--ds-border-strong)] focus:border-[var(--ds-electric)] max-md:h-9 max-md:px-3 max-md:text-xs"
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -805,6 +817,7 @@ export function MomentumAlertsPanel() {
               </DropdownMenuLabel>
               <DropdownMenuCheckboxItem
                 checked={selectedEventTypes.length === 0}
+                className="max-md:min-h-10"
                 onSelect={(event) => {
                   if (!isMobile) event.preventDefault();
                 }}
@@ -819,6 +832,7 @@ export function MomentumAlertsPanel() {
                 <DropdownMenuCheckboxItem
                   key={alert_type}
                   checked={selectedEventTypes.includes(alert_type)}
+                  className="max-md:min-h-10"
                   onSelect={(event) => {
                     if (!isMobile) event.preventDefault();
                   }}
@@ -841,7 +855,7 @@ export function MomentumAlertsPanel() {
               aria-pressed={voiceAlertsEnabled}
               onClick={handleVoiceAlertsChange}
               className={cn(
-                "inline-flex h-[26px] items-center gap-[5px] rounded-r-none border px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] transition-colors duration-150 focus-visible:outline-none",
+                "inline-flex h-[26px] touch-manipulation items-center gap-[5px] rounded-r-none border px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] transition-colors duration-150 focus-visible:outline-none max-md:h-9 max-md:px-3 max-md:text-xs",
                 voiceAlertsEnabled
                   ? "border-[var(--ds-positive)] bg-[color-mix(in_srgb,var(--ds-positive)_12%,transparent)] text-[var(--ds-positive)] hover:bg-[color-mix(in_srgb,var(--ds-positive)_18%,transparent)]"
                   : "border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] text-[var(--ds-text-tertiary)] hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)]",
@@ -859,7 +873,7 @@ export function MomentumAlertsPanel() {
                 <button
                   type="button"
                   aria-label="Select voice"
-                  className="inline-flex h-[26px] items-center gap-1 rounded-l-none border border-l-0 border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[7px] font-mono text-[0.64rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] transition-colors duration-150 hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)] focus-visible:outline-none"
+                  className="inline-flex h-[26px] touch-manipulation items-center gap-1 rounded-l-none border border-l-0 border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[7px] font-mono text-[0.64rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] transition-colors duration-150 hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)] focus-visible:outline-none max-md:h-9 max-md:px-3 max-md:text-xs"
                 >
                   {voiceGender}
                   <ChevronDown size={10} />
@@ -870,6 +884,7 @@ export function MomentumAlertsPanel() {
                 <DropdownMenuSeparator />
                 <DropdownMenuCheckboxItem
                   checked={voiceGender === "female"}
+                  className="max-md:min-h-10"
                   onSelect={(event) => {
                     if (previewVoiceRef.current !== "female") return;
                     event.preventDefault();
@@ -896,6 +911,7 @@ export function MomentumAlertsPanel() {
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                   checked={voiceGender === "male"}
+                  className="max-md:min-h-10"
                   onSelect={(event) => {
                     if (previewVoiceRef.current !== "male") return;
                     event.preventDefault();
@@ -1051,7 +1067,7 @@ export function MomentumAlertsPanel() {
             Chart context for the selected Momentum Intelligence alert.
           </SheetDescription>
           <div aria-hidden="true" className="mobile-sheet-swipe-hint">
-            <ChevronRight className="size-6" strokeWidth={1.25} />
+            <ChevronRight className="size-7" strokeWidth={2.25} />
           </div>
           {selectedAlert && (
             <AlertInspectorContent
