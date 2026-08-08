@@ -369,6 +369,7 @@ export function MomentumAlertsPanel() {
       ? "male"
       : "female",
   );
+  const activeVoiceGender: VoiceGender = isMobile ? "female" : voiceGender;
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
   const mobileSheetTouchStartX = useRef<number | null>(null);
@@ -652,7 +653,7 @@ export function MomentumAlertsPanel() {
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(getVoiceAlertMessage(alert));
-    const selectedVoice = getVoiceForGender(voices, voiceGender);
+    const selectedVoice = getVoiceForGender(voices, activeVoiceGender);
     if (selectedVoice) utterance.voice = selectedVoice;
     utterance.rate = 1.1;
     utterance.volume = 0.7;
@@ -676,7 +677,7 @@ export function MomentumAlertsPanel() {
     isLoading,
     strategyId,
     voiceAlertsEnabled,
-    voiceGender,
+    activeVoiceGender,
     voices,
   ]);
 
@@ -883,7 +884,7 @@ export function MomentumAlertsPanel() {
                   aria-label="Select voice"
                   className="inline-flex h-[26px] touch-manipulation items-center gap-1 rounded-l-none border border-l-0 border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[7px] font-mono text-[0.64rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] transition-colors duration-150 hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-raised)] hover:text-[var(--ds-text-primary)] focus-visible:outline-none max-md:h-9 max-md:px-3 max-md:text-xs"
                 >
-                  {voiceGender}
+                  {activeVoiceGender}
                   <ChevronDown size={10} />
                 </button>
               </DropdownMenuTrigger>
@@ -891,7 +892,7 @@ export function MomentumAlertsPanel() {
                 <DropdownMenuLabel>Alert voice</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuCheckboxItem
-                  checked={voiceGender === "female"}
+                  checked={activeVoiceGender === "female"}
                   className="max-md:min-h-10"
                   onSelect={(event) => {
                     if (previewVoiceRef.current !== "female") return;
@@ -917,33 +918,46 @@ export function MomentumAlertsPanel() {
                     <Volume2 size={12} />
                   </button>
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={voiceGender === "male"}
-                  className="max-md:min-h-10"
-                  onSelect={(event) => {
-                    if (previewVoiceRef.current !== "male") return;
-                    event.preventDefault();
-                    previewVoiceRef.current = null;
-                  }}
-                  onCheckedChange={() => handleVoiceGenderChange("male")}
-                >
-                  <span>Male</span>
-                  <button
-                    type="button"
-                    aria-label="Test male voice"
-                    className="ml-auto rounded-sm p-0.5 hover:bg-accent focus-visible:outline-none"
-                    onPointerDown={(event) => {
-                      previewVoiceRef.current = "male";
-                      event.stopPropagation();
-                    }}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleTestVoice("male");
-                    }}
+                {isMobile ? (
+                  <DropdownMenuCheckboxItem
+                    checked={false}
+                    disabled
+                    className="max-md:min-h-10"
                   >
-                    <Volume2 size={12} />
-                  </button>
-                </DropdownMenuCheckboxItem>
+                    <span>Male</span>
+                    <span className="ml-auto text-[0.62rem] text-white/35">
+                      Unsupported on mobile
+                    </span>
+                  </DropdownMenuCheckboxItem>
+                ) : (
+                  <DropdownMenuCheckboxItem
+                    checked={voiceGender === "male"}
+                    className="max-md:min-h-10"
+                    onSelect={(event) => {
+                      if (previewVoiceRef.current !== "male") return;
+                      event.preventDefault();
+                      previewVoiceRef.current = null;
+                    }}
+                    onCheckedChange={() => handleVoiceGenderChange("male")}
+                  >
+                    <span>Male</span>
+                    <button
+                      type="button"
+                      aria-label="Test male voice"
+                      className="ml-auto rounded-sm p-0.5 hover:bg-accent focus-visible:outline-none"
+                      onPointerDown={(event) => {
+                        previewVoiceRef.current = "male";
+                        event.stopPropagation();
+                      }}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleTestVoice("male");
+                      }}
+                    >
+                      <Volume2 size={12} />
+                    </button>
+                  </DropdownMenuCheckboxItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
