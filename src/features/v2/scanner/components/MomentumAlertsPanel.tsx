@@ -9,7 +9,7 @@ import {
   VolumeX,
   XCircle,
 } from "lucide-react";
-import { type Ref, useEffect, useRef, useState } from "react";
+import { type Ref, useCallback, useEffect, useRef, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -20,6 +20,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { AlertsChartWrapper } from "@/features/alerts-explorer/AlertChartWrapper";
 import {
   type AlertListItem,
@@ -285,6 +291,43 @@ function AlertRow({
   );
 }
 
+function AlertInspectorContent({ alert }: { alert: AlertListItem }) {
+  return (
+    <>
+      <div className="border-b border-[var(--ds-border)] p-4 font-mono">
+        <p className="text-[0.62rem] uppercase tracking-[0.12em] text-white/35">
+          Momentum Intelligence update
+        </p>
+        <div className="mt-2 flex items-baseline justify-between gap-3">
+          <h2 className="text-base font-semibold text-white/90">
+            {alert.instrument.instrument_symbol}
+          </h2>
+          <span className="text-xs text-white/55">
+            {formatTime(alert.triggered_at ?? alert.time)}
+          </span>
+        </div>
+        <p className="mt-1 text-xs text-white/55">
+          {alert.direction} · {alert.timeframe} · {getMomentumEvent(alert)} ·{" "}
+          {isConfirmed(alert) ? "closed candle" : "provisional"} · $
+          {formatPrice(alert.price)}
+        </p>
+      </div>
+      <div className="h-72 border-b border-[var(--ds-border)] sm:h-80">
+        <AlertsChartWrapper
+          alertId={alert.id}
+          alertTime={alert.triggered_at ?? alert.time}
+          alertPrice={alert.price}
+          alertDirection={alert.direction}
+          expectedInstrumentId={alert.instrument.instrument_id}
+          timeframe={alert.timeframe as AlertTimeframe}
+          showLegend={false}
+          initialVisibleCandleCount={50}
+        />
+      </div>
+    </>
+  );
+}
+
 export function MomentumAlertsPanel() {
   const isMobile = useIsMobileScanner();
   const [inspectorWidth, setInspectorWidth] = useState(420);
@@ -306,6 +349,7 @@ export function MomentumAlertsPanel() {
   );
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
+  const mobileSheetTouchStartX = useRef<number | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const alertListRef = useRef<HTMLDivElement>(null);
   const knownAlertIdsRef = useRef(new Set<string>());
@@ -399,8 +443,17 @@ export function MomentumAlertsPanel() {
   const alertQueryScope = `${strategyId}:${direction}:${symbol}:${selectedEventTypes.join(",")}`;
   const hasMoreAlerts = activeQueries.some((query) => query.hasNextPage);
   const [selectedAlertId, setSelectedAlertId] = useState<string>();
+  const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false);
   const selectedAlert =
     alerts.find((alert) => alert.id === selectedAlertId) ?? alerts[0];
+
+  const handleSelectAlert = useCallback(
+    (alertId: string) => {
+      setSelectedAlertId(alertId);
+      if (isMobile) setMobileInspectorOpen(true);
+    },
+    [isMobile],
+  );
 
   useEffect(() => {
     if (selectedAlert && selectedAlert.id !== selectedAlertId)
@@ -564,6 +617,19 @@ export function MomentumAlertsPanel() {
     localStorage.setItem(VOICE_ALERT_GENDER_STORAGE_KEY, gender);
   };
 
+  const handleMobileSheetTouchStart = (event: React.TouchEvent) => {
+    mobileSheetTouchStartX.current = event.touches[0]?.clientX ?? null;
+  };
+
+  const handleMobileSheetTouchEnd = (event: React.TouchEvent) => {
+    if (mobileSheetTouchStartX.current === null) return;
+
+    const delta =
+      event.changedTouches[0].clientX - mobileSheetTouchStartX.current;
+    mobileSheetTouchStartX.current = null;
+    if (delta > 80) setMobileInspectorOpen(false);
+  };
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
@@ -593,14 +659,14 @@ export function MomentumAlertsPanel() {
       event.preventDefault();
       if (nextAlert.id === selectedAlert?.id) return;
 
-      setSelectedAlertId(nextAlert.id);
+      handleSelectAlert(nextAlert.id);
       rowRefs.current.get(nextAlert.id)?.scrollIntoView({ block: "nearest" });
     };
 
     window.addEventListener("keydown", handleKeyDown, { capture: true });
     return () =>
       window.removeEventListener("keydown", handleKeyDown, { capture: true });
-  }, [alerts, selectedAlert?.id]);
+  }, [alerts, handleSelectAlert, selectedAlert?.id]);
 
   return (
     <section className="flex min-h-[640px] bg-[var(--ds-canvas)]">
@@ -772,7 +838,7 @@ export function MomentumAlertsPanel() {
               key={alert.id}
               alert={alert}
               selected={selectedAlert?.id === alert.id}
-              onSelect={() => setSelectedAlertId(alert.id)}
+              onSelect={() => handleSelectAlert(alert.id)}
               buttonRef={(element) => {
                 if (element) rowRefs.current.set(alert.id, element);
                 else rowRefs.current.delete(alert.id);
@@ -838,37 +904,7 @@ export function MomentumAlertsPanel() {
       >
         {selectedAlert ? (
           <div className="flex h-full min-h-[640px] flex-col">
-            <div className="border-b border-[var(--ds-border)] p-4 font-mono">
-              <p className="text-[0.62rem] uppercase tracking-[0.12em] text-white/35">
-                Momentum Intelligence update
-              </p>
-              <div className="mt-2 flex items-baseline justify-between gap-3">
-                <h2 className="text-base font-semibold text-white/90">
-                  {selectedAlert.instrument.instrument_symbol}
-                </h2>
-                <span className="text-xs text-white/55">
-                  {formatTime(selectedAlert.triggered_at ?? selectedAlert.time)}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-white/55">
-                {selectedAlert.direction} · {selectedAlert.timeframe} ·{" "}
-                {getMomentumEvent(selectedAlert)} ·{" "}
-                {isConfirmed(selectedAlert) ? "closed candle" : "provisional"} ·
-                ${formatPrice(selectedAlert.price)}
-              </p>
-            </div>
-            <div className="h-72 border-b border-[var(--ds-border)]">
-              <AlertsChartWrapper
-                alertId={selectedAlert.id}
-                alertTime={selectedAlert.time}
-                alertPrice={selectedAlert.price}
-                alertDirection={selectedAlert.direction}
-                expectedInstrumentId={selectedAlert.instrument.instrument_id}
-                timeframe={selectedAlert.timeframe as AlertTimeframe}
-                showLegend={false}
-                initialVisibleCandleCount={50}
-              />
-            </div>
+            <AlertInspectorContent alert={selectedAlert} />
           </div>
         ) : (
           <p className="p-6 font-mono text-xs text-white/40">
@@ -876,6 +912,27 @@ export function MomentumAlertsPanel() {
           </p>
         )}
       </aside>
+      <Sheet
+        open={isMobile && mobileInspectorOpen}
+        onOpenChange={setMobileInspectorOpen}
+      >
+        <SheetContent
+          side="right"
+          className="h-[100dvh] overflow-y-auto border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] p-0 pb-[env(safe-area-inset-bottom)] xl:hidden"
+          onTouchStart={handleMobileSheetTouchStart}
+          onTouchEnd={handleMobileSheetTouchEnd}
+        >
+          <SheetTitle className="sr-only">
+            {selectedAlert
+              ? `${selectedAlert.instrument.instrument_symbol} alert chart`
+              : "Alert chart"}
+          </SheetTitle>
+          <SheetDescription className="sr-only">
+            Chart context for the selected Momentum Intelligence alert.
+          </SheetDescription>
+          {selectedAlert && <AlertInspectorContent alert={selectedAlert} />}
+        </SheetContent>
+      </Sheet>
     </section>
   );
 }

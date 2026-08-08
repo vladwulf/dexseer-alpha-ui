@@ -708,6 +708,7 @@ button.terminal-alert-row:hover {
     border-right: 0;
     border-left: 0;
     border-radius: 0;
+    -webkit-overflow-scrolling: touch;
   }
   .terminal-dock-metrics {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1077,6 +1078,9 @@ button.terminal-alert-row:hover {
       transparent 24rem
     ),
     linear-gradient(180deg, var(--ds-canvas-raised), var(--ds-canvas));
+}
+.scanner-side-panel[data-slot="sheet-content"] {
+  position: fixed;
 }
 .scanner-side-panel::before {
   position: sticky;

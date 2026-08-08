@@ -70,7 +70,7 @@ export function ActionButtons({
           type="button"
           onClick={onManualRefresh}
           aria-label="Refresh"
-          className="inline-flex h-[26px] w-[26px] cursor-pointer items-center justify-center rounded-[4px] border border-[oklch(1_0_0_/_8%)] bg-[#0d0d0d] text-[oklch(0.48_0_0)] transition-colors duration-150"
+          className="inline-flex size-9 cursor-pointer items-center justify-center rounded-[4px] border border-[oklch(1_0_0_/_8%)] bg-[#0d0d0d] text-[oklch(0.48_0_0)] transition-colors duration-150 md:size-[26px]"
         >
           <RefreshCw size={11} className={isRefreshing ? "animate-spin" : ""} />
         </button>
@@ -79,7 +79,7 @@ export function ActionButtons({
             <button
               type="button"
               className={cn(
-                "inline-flex h-[26px] cursor-pointer items-center gap-[5px] whitespace-nowrap rounded-[4px] border px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] transition-all duration-150",
+                "inline-flex h-9 cursor-pointer items-center gap-[5px] whitespace-nowrap rounded-[4px] border px-[10px] font-mono text-[0.68rem] font-medium tracking-[0.05em] transition-all duration-150 md:h-[26px] md:px-[8px]",
                 refreshInterval !== "manual"
                   ? "border-[oklch(0.72_0.18_248_/_30%)] bg-[oklch(0.72_0.18_248_/_10%)] text-[oklch(0.72_0.18_248)]"
                   : "border-[oklch(1_0_0_/_8%)] bg-[#0d0d0d] text-[oklch(0.48_0_0)]",

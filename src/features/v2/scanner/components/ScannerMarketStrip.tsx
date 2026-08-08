@@ -196,9 +196,9 @@ export function ScannerMarketStrip({
   );
 
   return (
-    <section className="scanner-market-strip border border-[var(--ds-border)] bg-[var(--ds-surface)] px-4 py-1 md:px-6">
-      <div className="flex flex-wrap items-center gap-3 md:gap-6">
-        <div className="flex flex-wrap items-center gap-4 md:gap-6">
+    <section className="scanner-market-strip overflow-x-auto border border-[var(--ds-border)] bg-[var(--ds-surface)] px-4 py-1 md:px-6">
+      <div className="flex min-w-max items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
           {items.map((item) => (
             <div key={item.symbol} className="flex items-center gap-2">
               <span className="[font-family:var(--font-display)] text-[0.76rem] font-bold italic text-white">
@@ -238,7 +238,7 @@ export function ScannerMarketStrip({
           </div>
         </div>
 
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+        <div className="flex items-center gap-3 md:ml-auto">
           <TooltipProvider delayDuration={200}>
             {HUBS.map((hub) => {
               const state = getSessionState(

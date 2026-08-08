@@ -98,7 +98,7 @@ export function ScannerSidePanel({
       <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <SheetContent
           side="right"
-          className="scanner-side-panel w-full overflow-y-auto border-white/8 p-0 sm:max-w-[460px]"
+          className="scanner-side-panel h-[100dvh] w-full overflow-y-auto border-white/8 p-0 pb-[env(safe-area-inset-bottom)] sm:max-w-[460px]"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
