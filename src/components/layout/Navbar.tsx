@@ -410,7 +410,11 @@ export function Navbar() {
               </span>
             </button>
             {navLinks.map(({ to, label }) => {
-              const isActive = to ? location.pathname.startsWith(to) : false;
+              const isActive = to
+                ? to === "/"
+                  ? location.pathname === to
+                  : location.pathname.startsWith(to)
+                : false;
 
               if (!to) {
                 return (
