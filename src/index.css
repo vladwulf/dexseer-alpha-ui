@@ -82,15 +82,8 @@
   }
 }
 
-/* Keep scrollable content usable without visual scrollbar rails. */
-*,
-*::before,
-*::after {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-*::-webkit-scrollbar {
+/* Keep vertical scrolling unobtrusive while preserving horizontal table rails. */
+*::-webkit-scrollbar:vertical {
   display: none;
 }
 
@@ -118,6 +111,33 @@
 
 .hide-scrollbar-x::-webkit-scrollbar:horizontal {
   display: none;
+}
+
+/* Keep the scanner's horizontal scrollbar available for mouse-only users. */
+.scanner-table-scroll-container {
+  overflow: auto;
+  scrollbar-width: auto;
+  -ms-overflow-style: auto;
+}
+
+.scanner-table-scroll-container::-webkit-scrollbar {
+  display: block;
+  height: 10px;
+}
+
+.scanner-table-scroll-container::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--ds-surface) 84%, white);
+}
+
+.scanner-table-scroll-container::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ds-text-tertiary) 70%, transparent);
+  border: 2px solid var(--ds-surface);
+  border-radius: 999px;
+}
+
+.scanner-table-scroll-container::-webkit-scrollbar:vertical {
+  display: none;
+  width: 0;
 }
 
 /* Scanner terminal ------------------------------------------------------- */

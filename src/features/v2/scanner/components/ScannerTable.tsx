@@ -799,8 +799,11 @@ export function ScannerTable({
   }, [assets, onSelectSymbol, selectedSymbol]);
 
   return (
-    <div className="min-w-0 border-b border-white/8 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-auto xl:border-b-0">
-      <Table className="min-w-max w-full border-collapse hide-scrollbar-x">
+    <div className="min-w-0 border-b border-white/8 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-hidden xl:border-b-0">
+      <Table
+        className="min-w-max w-full border-collapse"
+        containerClassName="scanner-table-scroll-container xl:min-h-0 xl:flex-1"
+      >
         <TableHeader className="bg-[var(--ds-surface)]">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
