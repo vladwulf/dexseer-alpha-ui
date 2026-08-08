@@ -79,7 +79,7 @@ function FilterDropdown<T extends string>({
   const selectedOption = options.find((option) => option.value === value);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
@@ -799,7 +799,7 @@ export function MomentumAlertsPanel() {
             placeholder="Filter symbol…"
             className="h-[26px] min-w-32 rounded-[4px] border border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] px-[8px] font-mono text-[0.68rem] font-medium tracking-[0.05em] text-[var(--ds-text-secondary)] placeholder:text-[var(--ds-text-tertiary)] outline-none transition-colors duration-150 hover:border-[var(--ds-border-strong)] focus:border-[var(--ds-electric)] max-md:h-9 max-md:px-3 max-md:text-xs"
           />
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <button type="button" className={alertControlClass}>
                 {selectedEventTypes.length === 0
@@ -868,7 +868,7 @@ export function MomentumAlertsPanel() {
               )}
               Voice {voiceAlertsEnabled ? "on" : "off"}
             </button>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
