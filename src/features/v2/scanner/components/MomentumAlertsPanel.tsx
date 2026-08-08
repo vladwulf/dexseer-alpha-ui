@@ -365,6 +365,7 @@ export function MomentumAlertsPanel() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
   const mobileSheetTouchStartX = useRef<number | null>(null);
+  const mobileSelectionTimeoutRef = useRef<number | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const alertListRef = useRef<HTMLDivElement>(null);
   const knownAlertIdsRef = useRef(new Set<string>());
@@ -466,13 +467,31 @@ export function MomentumAlertsPanel() {
 
   const handleSelectAlert = useCallback(
     (alertId: string) => {
-      setSelectedAlertId(alertId);
       if (isMobile) {
         setMobileChartReady(false);
         setMobileInspectorOpen(true);
+        if (mobileSelectionTimeoutRef.current !== null) {
+          window.clearTimeout(mobileSelectionTimeoutRef.current);
+        }
+        mobileSelectionTimeoutRef.current = window.setTimeout(() => {
+          setSelectedAlertId(alertId);
+          mobileSelectionTimeoutRef.current = null;
+        }, 16);
+        return;
       }
+
+      setSelectedAlertId(alertId);
     },
     [isMobile],
+  );
+
+  useEffect(
+    () => () => {
+      if (mobileSelectionTimeoutRef.current !== null) {
+        window.clearTimeout(mobileSelectionTimeoutRef.current);
+      }
+    },
+    [],
   );
 
   useEffect(() => {
@@ -960,7 +979,7 @@ export function MomentumAlertsPanel() {
       >
         <SheetContent
           side="right"
-          className="h-[100dvh] overflow-y-auto border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] p-0 pb-[env(safe-area-inset-bottom)] data-[state=closed]:duration-150 data-[state=open]:duration-200 xl:hidden"
+          className="h-[100dvh] transform-gpu overflow-y-auto border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] p-0 pb-[env(safe-area-inset-bottom)] will-change-transform data-[state=closed]:duration-150 data-[state=open]:duration-200 xl:hidden"
           onTouchStart={handleMobileSheetTouchStart}
           onTouchEnd={handleMobileSheetTouchEnd}
         >
