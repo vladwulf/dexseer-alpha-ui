@@ -375,6 +375,17 @@ export function AlertChart({
       : (alertCandleForMarker?.high ?? triggerPrice);
     let alertTriggerMarker: HTMLDivElement | null = null;
     let extremeTimeLine: HTMLDivElement | null = null;
+    const alertPriceLine =
+      triggerPrice == null || !showAlertTimeMarker
+        ? null
+        : candlestickSeries.createPriceLine({
+            price: triggerPrice,
+            color: "#3b82f6",
+            lineWidth: 1,
+            lineStyle: LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: "alert",
+          });
     const extremePriceLine =
       extremePrice == null || !Number.isFinite(extremePrice)
         ? null
@@ -681,6 +692,9 @@ export function AlertChart({
       chart.unsubscribeCrosshairMove(updateLegend);
       chart.timeScale().unsubscribeVisibleTimeRangeChange(updateAlertOverlay);
       chart.timeScale().unsubscribeVisibleTimeRangeChange(updateExtremeOverlay);
+      if (alertPriceLine) {
+        candlestickSeries.removePriceLine(alertPriceLine);
+      }
       if (extremePriceLine) {
         candlestickSeries.removePriceLine(extremePriceLine);
       }
