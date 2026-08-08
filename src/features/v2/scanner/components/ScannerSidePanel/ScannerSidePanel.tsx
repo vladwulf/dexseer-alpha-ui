@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import { useRef } from "react";
 import {
   Sheet,
@@ -108,6 +109,9 @@ export function ScannerSidePanel({
           <SheetDescription className="sr-only">
             Asset intelligence details for the selected scanner symbol.
           </SheetDescription>
+          <div aria-hidden="true" className="mobile-sheet-swipe-hint">
+            <ChevronRight className="size-6" strokeWidth={1.25} />
+          </div>
           <div className="min-h-full pb-6 xl:hidden">{panelContent}</div>
         </SheetContent>
       </Sheet>

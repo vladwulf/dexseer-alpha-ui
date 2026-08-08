@@ -2,6 +2,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   ChevronDown,
+  ChevronRight,
   Flame,
   LoaderCircle,
   RotateCcw,
@@ -940,6 +941,9 @@ export function MomentumAlertsPanel() {
           <SheetDescription className="sr-only">
             Chart context for the selected Momentum Intelligence alert.
           </SheetDescription>
+          <div aria-hidden="true" className="mobile-sheet-swipe-hint">
+            <ChevronRight className="size-6" strokeWidth={1.25} />
+          </div>
           {selectedAlert && <AlertInspectorContent alert={selectedAlert} />}
         </SheetContent>
       </Sheet>

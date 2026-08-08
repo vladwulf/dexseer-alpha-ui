@@ -1082,6 +1082,32 @@ button.terminal-alert-row:hover {
 .scanner-side-panel[data-slot="sheet-content"] {
   position: fixed;
 }
+.mobile-sheet-swipe-hint {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(255 255 255 / 28%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  animation: mobile-sheet-swipe-hint 900ms ease-in-out 500ms 3;
+}
+@keyframes mobile-sheet-swipe-hint {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-2px);
+  }
+  35%,
+  65% {
+    opacity: 0.45;
+    transform: translateY(-50%) translateX(4px);
+  }
+}
 .scanner-side-panel::before {
   position: sticky;
   z-index: 2;
