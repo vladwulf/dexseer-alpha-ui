@@ -190,6 +190,13 @@ export type ScannerRow = {
   momentum_score_coverage: number;
   momentum_score_confirmed_coverage: number;
   momentum_score_version: number;
+  momentum_unusual_timeframes?: {
+    "5m": "bullish" | "bearish" | null;
+    "15m": "bullish" | "bearish" | null;
+    "1h": "bullish" | "bearish" | null;
+  } | null;
+  momentum_unusual_coverage?: number | null;
+  momentum_unusual_direction?: "none" | "bullish" | "bearish" | "mixed" | null;
 };
 
 export type MomentumEntry = {

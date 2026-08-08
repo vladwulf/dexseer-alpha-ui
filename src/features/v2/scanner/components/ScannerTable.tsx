@@ -10,6 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Flame } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Table,
@@ -19,6 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
   formatCompactNumber,
@@ -33,6 +40,33 @@ import { DEFAULT_SCANNER_COLUMN_ORDER } from "../lib/scannerColumns";
 import type { DensityMode, ScannerAsset } from "../types";
 
 const SYMBOL_COLUMN_WIDTH_CLASS = "w-[80px] min-w-[80px]";
+
+function getUnusualMomentumTooltip(asset: ScannerAsset) {
+  const direction = asset.momentumUnusualDirection;
+  const timeframes = asset.momentumUnusualTimeframes;
+  if (!direction || direction === "none" || !timeframes) return null;
+
+  const active = (["5m", "15m", "1h"] as const).flatMap((timeframe) => {
+    const state = timeframes[timeframe];
+    if (!state) return [];
+    return { timeframe, state };
+  });
+  if (active.length === 0) return null;
+
+  const timeframesLabel =
+    direction === "mixed"
+      ? active
+          .map(({ timeframe, state }) => `${timeframe} ${state}`)
+          .join(" · ")
+      : active.map(({ timeframe }) => timeframe).join(" · ");
+  const coverage = asset.momentumUnusualCoverage;
+  const coverageLabel =
+    coverage === null || coverage === undefined
+      ? ""
+      : ` Unusual coverage: ${Math.round(coverage * 100)}%.`;
+
+  return `Unusual ${direction} momentum: ${timeframesLabel}.${coverageLabel}`;
+}
 
 function AlignedTfIndicator({ value }: { value: number | undefined }) {
   if (value === undefined) return <span className="text-white/20">—</span>;
@@ -317,14 +351,33 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
     header: "Symbol",
     cell: ({ row }: CellContext<ScannerAsset, unknown>) => {
       const asset = row.original;
+      const unusualTooltip = getUnusualMomentumTooltip(asset);
       return (
         <div
           className={cn("flex items-center gap-3", SYMBOL_COLUMN_WIDTH_CLASS)}
         >
           <div className="min-w-0">
-            <span className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white">
-              {asset.symbol.replace("USDT", "")}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="[font-family:var(--font-display)] text-[0.88rem] font-semibold italic leading-none text-white">
+                {asset.symbol.replace("USDT", "")}
+              </span>
+              {unusualTooltip && (
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span
+                        role="img"
+                        aria-label={unusualTooltip}
+                        className="inline-flex shrink-0 text-[#ffae45]"
+                      >
+                        <Flame className="h-3.5 w-3.5" aria-hidden="true" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">{unusualTooltip}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
             <div className="mt-1 font-[var(--font-mono)] text-[0.58rem] uppercase tracking-[0.12em] text-white/28">
               USDT
             </div>

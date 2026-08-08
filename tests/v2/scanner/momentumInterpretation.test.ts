@@ -12,7 +12,7 @@ function asset(overrides: Partial<ScannerAsset> = {}): ScannerAsset {
     change1h: 1.4,
     change4h: 3.2,
     change24h: 6.8,
-    momentumScore: 64,
+    momentumScore: 76,
     momentumScoreCore: 61,
     momentumScoreCoverage: 1,
     momentumScoreConfirmedCoverage: 0.9,
@@ -135,12 +135,24 @@ describe("interpretMomentum", () => {
     expect(read.summary).toContain("does not confirm");
   });
 
-  test("uses a developing band below 45 and a moderate band from 45", () => {
-    expect(interpretMomentum(asset({ momentumScore: 44 })).strength).toBe(
+  test("uses a developing band below 50 and a moderate band from 50", () => {
+    expect(interpretMomentum(asset({ momentumScore: 49 })).strength).toBe(
       "developing",
     );
-    expect(interpretMomentum(asset({ momentumScore: 45 })).strength).toBe(
+    expect(interpretMomentum(asset({ momentumScore: 50 })).strength).toBe(
       "moderate",
+    );
+  });
+
+  test("uses the recalibrated v2 strong and full-strength bands", () => {
+    expect(interpretMomentum(asset({ momentumScore: 69 })).strength).toBe(
+      "moderate",
+    );
+    expect(interpretMomentum(asset({ momentumScore: 70 })).strength).toBe(
+      "strong",
+    );
+    expect(interpretMomentum(asset({ momentumScore: 100 })).strength).toBe(
+      "extreme",
     );
   });
 
@@ -217,7 +229,7 @@ describe("interpretMomentum", () => {
     );
 
     expect(read.regime).toBe("continuation");
-    expect(read.headline).toBe("Very strong bearish continuation");
+    expect(read.headline).toBe("Strong bearish continuation");
     expect(read.summary).toContain("new positions");
   });
 

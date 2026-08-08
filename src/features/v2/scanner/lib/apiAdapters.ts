@@ -151,6 +151,9 @@ export function mapScannerRowToAsset(row: ScannerRow): ScannerAsset {
     momentumScoreConfirmedCoverage:
       row.momentum_score_confirmed_coverage ?? null,
     momentumScoreVersion: row.momentum_score_version ?? null,
+    momentumUnusualTimeframes: row.momentum_unusual_timeframes ?? null,
+    momentumUnusualCoverage: row.momentum_unusual_coverage ?? null,
+    momentumUnusualDirection: row.momentum_unusual_direction ?? null,
     volume: row.volume_24h,
     rvol: row.rvol_24h,
     openInterest: row.open_interest,

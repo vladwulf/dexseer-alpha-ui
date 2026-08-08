@@ -43,18 +43,22 @@ function getMomentumEvidence(asset: ScannerAsset) {
   }
 
   if (coverage === 1 && confirmed !== null && confirmed >= 0.8) {
-    return "This is a well-supported read: the signal has broad coverage and is mostly backed by completed price action.";
+    return "This is a well-supported read: the score has broad fresh-timeframe coverage, and most active states match their latest closed-candle confirmation.";
+  }
+
+  if (confirmed === 0) {
+    return "No active timeframe state currently matches its latest closed-candle confirmation.";
   }
 
   if (confirmed !== null && confirmed < 0.6) {
-    return `Only ${Math.round(confirmed * 100)}% of the score is backed by completed price action, so this read can still change quickly.`;
+    return `Only ${Math.round(confirmed * 100)}% of active timeframe weight currently matches its latest closed-candle confirmation, so this read can still change quickly.`;
   }
 
   if (coverage !== null && coverage < 1) {
     return "This is an early read with partial market coverage. Treat the direction as a developing signal rather than a fully established trend.";
   }
 
-  return "The direction is supported by the latest market activity, though some of that activity is still developing in real time.";
+  return "The direction is supported by fresh market activity, though some active timeframe states do not yet match their latest closed-candle confirmation.";
 }
 
 export function ScannerSidePanelBody({

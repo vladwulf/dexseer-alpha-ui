@@ -62,6 +62,14 @@ export type MomentumIntelligence = {
   oneHour: MomentumIntelligenceSnapshot | null;
 };
 
+export type MomentumUnusualTimeframes = {
+  "5m": "bullish" | "bearish" | null;
+  "15m": "bullish" | "bearish" | null;
+  "1h": "bullish" | "bearish" | null;
+};
+
+export type MomentumUnusualDirection = "none" | "bullish" | "bearish" | "mixed";
+
 export type MomentumStrength =
   | "balanced"
   | "tentative"
@@ -108,6 +116,9 @@ export type ScannerAsset = {
   momentumScoreCoverage?: number | null;
   momentumScoreConfirmedCoverage?: number | null;
   momentumScoreVersion?: number | null;
+  momentumUnusualTimeframes?: MomentumUnusualTimeframes | null;
+  momentumUnusualCoverage?: number | null;
+  momentumUnusualDirection?: MomentumUnusualDirection | null;
   volume: number | null;
   rvol: number | null;
   openInterest: number | null;

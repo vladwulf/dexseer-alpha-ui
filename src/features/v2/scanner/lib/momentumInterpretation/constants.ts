@@ -1,8 +1,8 @@
 export const SCORE_BANDS = [
-  { minimum: 90, label: "extreme" },
-  { minimum: 75, label: "very strong" },
-  { minimum: 60, label: "strong" },
-  { minimum: 45, label: "moderate" },
+  { minimum: 95, label: "extreme" },
+  { minimum: 85, label: "very strong" },
+  { minimum: 70, label: "strong" },
+  { minimum: 50, label: "moderate" },
   { minimum: 30, label: "developing" },
   { minimum: 15, label: "tentative" },
 ] as const;
