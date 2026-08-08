@@ -133,7 +133,7 @@ function ColumnCustomizerContent({
         </div>
       </div>
       <div className="grid min-h-0 flex-1 divide-x divide-white/8 md:grid-cols-[1.1fr_0.9fr]">
-        <div className="min-h-0 overflow-y-auto px-3 py-3">
+        <div className="hide-scrollbar min-h-0 overflow-y-auto px-3 py-3">
           {SCANNER_COLUMN_GROUPS.map((group) => {
             const columns = SCANNER_COLUMNS.filter(
               (column) =>
@@ -186,7 +186,7 @@ function ColumnCustomizerContent({
             );
           })}
         </div>
-        <div className="min-h-0 overflow-y-auto bg-black/15 px-3 py-3">
+        <div className="hide-scrollbar min-h-0 overflow-y-auto bg-[var(--ds-canvas-raised)] px-3 py-3">
           <div className="mb-2 flex items-center justify-between px-2">
             <h3 className="font-mono text-[0.6rem] font-semibold tracking-[0.13em] text-white/35 uppercase">
               Visible columns
@@ -267,7 +267,7 @@ export function ScannerColumnCustomizer(props: ScannerColumnCustomizerProps) {
   const trigger = (
     <button
       type="button"
-      className="inline-flex h-[26px] cursor-pointer items-center gap-1.5 rounded-[4px] border border-white/8 bg-[#0d0d0d] px-2 font-mono text-[0.65rem] font-medium tracking-[0.05em] text-white/55 transition-colors hover:border-white/15 hover:text-white"
+      className="inline-flex h-[26px] cursor-pointer items-center gap-1.5 rounded-[4px] border border-white/8 bg-[var(--ds-surface)] px-2 font-mono text-[0.65rem] font-medium tracking-[0.05em] text-white/55 transition-colors hover:border-white/15 hover:text-white"
     >
       <SlidersHorizontal className="size-3" />
       <span className="hidden sm:inline">Columns</span>
@@ -281,7 +281,7 @@ export function ScannerColumnCustomizer(props: ScannerColumnCustomizerProps) {
         <SheetTrigger asChild>{trigger}</SheetTrigger>
         <SheetContent
           side="bottom"
-          className="flex h-[82dvh] flex-col gap-0 p-0"
+          className="flex h-[82dvh] flex-col gap-0 bg-[var(--ds-surface)] p-0"
         >
           <SheetHeader className="border-b border-white/8 px-5 py-4 text-left">
             <SheetTitle className="font-[var(--font-display)] text-base italic text-white">
@@ -300,7 +300,7 @@ export function ScannerColumnCustomizer(props: ScannerColumnCustomizerProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="flex h-[min(680px,82vh)] max-w-3xl flex-col gap-0 overflow-hidden border-white/10 bg-[#0d0d0d] p-0">
+      <DialogContent className="flex h-[min(680px,82vh)] max-w-3xl flex-col gap-0 overflow-hidden border-white/10 bg-[var(--ds-surface)] p-0">
         <DialogHeader className="border-b border-white/8 px-5 py-4 text-left">
           <DialogTitle className="font-[var(--font-display)] text-base italic text-white">
             Columns
