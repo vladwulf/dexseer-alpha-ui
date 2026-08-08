@@ -576,11 +576,19 @@ export function MomentumAlertsPanel() {
           });
         }
       },
-      { root: scrollContainer, rootMargin: "240px" },
+      // The alerts list has a fixed scrolling area on desktop, but grows with
+      // the page on mobile. Using that growing element as the observer root
+      // keeps the sentinel permanently intersecting and exhausts every page.
+      // Observe against the viewport on mobile so another page is requested
+      // only when the user reaches the end of the document.
+      {
+        root: isMobile ? null : scrollContainer,
+        rootMargin: isMobile ? "0px" : "240px",
+      },
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [activeQueries, hasMoreAlerts, isFetchingMore, isLoading]);
+  }, [activeQueries, hasMoreAlerts, isFetchingMore, isLoading, isMobile]);
 
   useEffect(() => {
     if (!voiceAlertsPrimedRef.current) {
