@@ -34,6 +34,7 @@ import {
   MOMENTUM_INTELLIGENCE_STRATEGY_IDS,
   useGetAlertsPaginated,
   useGetAlertTypes,
+  useLiveMomentumIntelligenceAlerts,
 } from "@/features/alerts-explorer/hooks/alerts.api";
 import { useIsMobileScanner } from "@/features/v2/scanner/hooks/useIsMobileScanner";
 import {
@@ -292,7 +293,13 @@ function AlertRow({
   );
 }
 
-function AlertInspectorContent({ alert }: { alert: AlertListItem }) {
+function AlertInspectorContent({
+  alert,
+  renderChart = true,
+}: {
+  alert: AlertListItem;
+  renderChart?: boolean;
+}) {
   return (
     <>
       <div className="border-b border-[var(--ds-border)] p-4 font-mono">
@@ -314,16 +321,22 @@ function AlertInspectorContent({ alert }: { alert: AlertListItem }) {
         </p>
       </div>
       <div className="h-72 border-b border-[var(--ds-border)] sm:h-80">
-        <AlertsChartWrapper
-          alertId={alert.id}
-          alertTime={alert.triggered_at ?? alert.time}
-          alertPrice={alert.price}
-          alertDirection={alert.direction}
-          expectedInstrumentId={alert.instrument.instrument_id}
-          timeframe={alert.timeframe as AlertTimeframe}
-          showLegend={false}
-          initialVisibleCandleCount={50}
-        />
+        {renderChart ? (
+          <AlertsChartWrapper
+            alertId={alert.id}
+            alertTime={alert.triggered_at ?? alert.time}
+            alertPrice={alert.price}
+            alertDirection={alert.direction}
+            expectedInstrumentId={alert.instrument.instrument_id}
+            timeframe={alert.timeframe as AlertTimeframe}
+            showLegend={false}
+            initialVisibleCandleCount={50}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center font-mono text-[0.7rem] tracking-[0.08em] text-white/35">
+            Loading chart…
+          </div>
+        )}
       </div>
     </>
   );
@@ -331,6 +344,7 @@ function AlertInspectorContent({ alert }: { alert: AlertListItem }) {
 
 export function MomentumAlertsPanel() {
   const isMobile = useIsMobileScanner();
+  useLiveMomentumIntelligenceAlerts();
   const [inspectorWidth, setInspectorWidth] = useState(420);
   const [strategyId, setStrategyId] =
     useState<StrategySelection>(ALL_STRATEGIES);
@@ -445,13 +459,18 @@ export function MomentumAlertsPanel() {
   const hasMoreAlerts = activeQueries.some((query) => query.hasNextPage);
   const [selectedAlertId, setSelectedAlertId] = useState<string>();
   const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false);
+  const [mobileChartReady, setMobileChartReady] = useState(false);
   const selectedAlert =
     alerts.find((alert) => alert.id === selectedAlertId) ?? alerts[0];
+  const selectedAlertKey = selectedAlert?.id ?? "";
 
   const handleSelectAlert = useCallback(
     (alertId: string) => {
       setSelectedAlertId(alertId);
-      if (isMobile) setMobileInspectorOpen(true);
+      if (isMobile) {
+        setMobileChartReady(false);
+        setMobileInspectorOpen(true);
+      }
     },
     [isMobile],
   );
@@ -460,6 +479,18 @@ export function MomentumAlertsPanel() {
     if (selectedAlert && selectedAlert.id !== selectedAlertId)
       setSelectedAlertId(selectedAlert.id);
   }, [selectedAlert, selectedAlertId]);
+
+  useEffect(() => {
+    if (!isMobile || !mobileInspectorOpen || !selectedAlertKey) {
+      setMobileChartReady(false);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setMobileChartReady(true);
+    }, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, [isMobile, mobileInspectorOpen, selectedAlertKey]);
 
   useEffect(() => {
     if (!alertQueryScope) return;
@@ -929,7 +960,7 @@ export function MomentumAlertsPanel() {
       >
         <SheetContent
           side="right"
-          className="h-[100dvh] overflow-y-auto border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] p-0 pb-[env(safe-area-inset-bottom)] xl:hidden"
+          className="h-[100dvh] overflow-y-auto border-[var(--ds-border)] bg-[var(--ds-canvas-raised)] p-0 pb-[env(safe-area-inset-bottom)] data-[state=closed]:duration-150 data-[state=open]:duration-200 xl:hidden"
           onTouchStart={handleMobileSheetTouchStart}
           onTouchEnd={handleMobileSheetTouchEnd}
         >
@@ -944,7 +975,12 @@ export function MomentumAlertsPanel() {
           <div aria-hidden="true" className="mobile-sheet-swipe-hint">
             <ChevronRight className="size-6" strokeWidth={1.25} />
           </div>
-          {selectedAlert && <AlertInspectorContent alert={selectedAlert} />}
+          {selectedAlert && (
+            <AlertInspectorContent
+              alert={selectedAlert}
+              renderChart={mobileChartReady}
+            />
+          )}
         </SheetContent>
       </Sheet>
     </section>
