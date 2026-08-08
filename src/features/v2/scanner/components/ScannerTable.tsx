@@ -59,13 +59,8 @@ function getUnusualMomentumTooltip(asset: ScannerAsset) {
           .map(({ timeframe, state }) => `${timeframe} ${state}`)
           .join(" · ")
       : active.map(({ timeframe }) => timeframe).join(" · ");
-  const coverage = asset.momentumUnusualCoverage;
-  const coverageLabel =
-    coverage === null || coverage === undefined
-      ? ""
-      : ` Unusual coverage: ${Math.round(coverage * 100)}%.`;
 
-  return `Unusual ${direction} momentum: ${timeframesLabel}.${coverageLabel}`;
+  return `Unusual ${direction} momentum: ${timeframesLabel}.`;
 }
 
 function AlignedTfIndicator({ value }: { value: number | undefined }) {
@@ -368,9 +363,16 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
                       <span
                         role="img"
                         aria-label={unusualTooltip}
-                        className="inline-flex shrink-0 text-[#ffae45]"
+                        className="scanner-unusual-flame relative inline-flex size-3.5 shrink-0 text-[#ffae45]"
                       >
-                        <Flame className="h-3.5 w-3.5" aria-hidden="true" />
+                        <Flame
+                          className="scanner-unusual-flame__outline absolute inset-0 size-3.5"
+                          aria-hidden="true"
+                        />
+                        <Flame
+                          className="scanner-unusual-flame__fill absolute inset-0 size-3.5"
+                          aria-hidden="true"
+                        />
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top">{unusualTooltip}</TooltipContent>
