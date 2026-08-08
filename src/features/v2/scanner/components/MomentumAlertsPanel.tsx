@@ -805,7 +805,9 @@ export function MomentumAlertsPanel() {
               </DropdownMenuLabel>
               <DropdownMenuCheckboxItem
                 checked={selectedEventTypes.length === 0}
-                onSelect={(event) => event.preventDefault()}
+                onSelect={(event) => {
+                  if (!isMobile) event.preventDefault();
+                }}
                 onCheckedChange={() => {
                   setSelectedEventTypes([]);
                 }}
@@ -817,7 +819,9 @@ export function MomentumAlertsPanel() {
                 <DropdownMenuCheckboxItem
                   key={alert_type}
                   checked={selectedEventTypes.includes(alert_type)}
-                  onSelect={(event) => event.preventDefault()}
+                  onSelect={(event) => {
+                    if (!isMobile) event.preventDefault();
+                  }}
                   onCheckedChange={(checked) => {
                     setSelectedEventTypes((current) =>
                       checked
