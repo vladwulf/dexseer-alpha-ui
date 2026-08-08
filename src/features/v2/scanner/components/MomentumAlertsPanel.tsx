@@ -472,14 +472,24 @@ export function MomentumAlertsPanel() {
   }, [isFetchingMore]);
 
   useEffect(() => {
-    if (!window.speechSynthesis) return;
+    // Mobile voice alerts are intentionally disabled. Avoid asking mobile
+    // browsers for their voice objects: some expose non-standard values that
+    // cannot safely be stored in React state.
+    if (isMobile || !window.speechSynthesis) return;
 
-    const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
+    const loadVoices = () => {
+      try {
+        const availableVoices = window.speechSynthesis.getVoices();
+        setVoices(Array.isArray(availableVoices) ? availableVoices : []);
+      } catch {
+        setVoices([]);
+      }
+    };
     loadVoices();
     window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
     return () =>
       window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const sentinel = loadMoreRef.current;
