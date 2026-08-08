@@ -1002,24 +1002,7 @@ button.terminal-alert-row:hover {
   padding: 20px;
 }
 
-@keyframes alert-unusual-flame-flicker {
-  0%,
-  100% {
-    opacity: 0.72;
-    transform: scale(0.9) rotate(-4deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1) rotate(4deg);
-  }
-}
-
-.alert-unusual-flame {
-  animation: alert-unusual-flame-flicker 1.25s ease-in-out infinite;
-  filter: drop-shadow(0 0 5px rgb(255 139 45 / 60%));
-}
-
-@keyframes scanner-unusual-flame-fill {
+@keyframes unusual-momentum-flame-fill {
   0%,
   100% {
     clip-path: inset(58% 0 0);
@@ -1031,23 +1014,22 @@ button.terminal-alert-row:hover {
   }
 }
 
-.scanner-unusual-flame {
+.unusual-momentum-flame {
   filter: drop-shadow(0 0 4px rgb(255 139 45 / 45%));
 }
 
-.scanner-unusual-flame__outline {
+.unusual-momentum-flame__outline {
   stroke-width: 1.8;
 }
 
-.scanner-unusual-flame__fill {
-  animation: scanner-unusual-flame-fill 2.2s ease-in-out infinite;
+.unusual-momentum-flame__fill {
+  animation: unusual-momentum-flame-fill 2.2s ease-in-out infinite;
   fill: currentColor;
   stroke-width: 1.2;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .alert-unusual-flame,
-  .scanner-unusual-flame__fill {
+  .unusual-momentum-flame__fill {
     animation: none;
   }
 }

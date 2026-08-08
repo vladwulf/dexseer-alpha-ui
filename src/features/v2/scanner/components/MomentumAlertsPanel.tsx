@@ -244,9 +244,16 @@ function AlertRow({
               role="img"
               aria-label="Unusual momentum"
               title="Unusual momentum"
-              className="alert-unusual-flame shrink-0 text-[#ffae45]"
+              className="unusual-momentum-flame relative inline-flex size-3.5 shrink-0 text-[#ffae45]"
             >
-              <Flame aria-hidden="true" className="size-3.5 fill-current" />
+              <Flame
+                aria-hidden="true"
+                className="unusual-momentum-flame__outline absolute inset-0 size-3.5"
+              />
+              <Flame
+                aria-hidden="true"
+                className="unusual-momentum-flame__fill absolute inset-0 size-3.5"
+              />
             </span>
           )}
         </span>

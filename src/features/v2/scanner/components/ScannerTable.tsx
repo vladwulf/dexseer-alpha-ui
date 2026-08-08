@@ -363,14 +363,14 @@ const scannerColumns: ColumnDef<ScannerAsset>[] = [
                       <span
                         role="img"
                         aria-label={unusualTooltip}
-                        className="scanner-unusual-flame relative inline-flex size-3.5 shrink-0 text-[#ffae45]"
+                        className="unusual-momentum-flame relative inline-flex size-3.5 shrink-0 text-[#ffae45]"
                       >
                         <Flame
-                          className="scanner-unusual-flame__outline absolute inset-0 size-3.5"
+                          className="unusual-momentum-flame__outline absolute inset-0 size-3.5"
                           aria-hidden="true"
                         />
                         <Flame
-                          className="scanner-unusual-flame__fill absolute inset-0 size-3.5"
+                          className="unusual-momentum-flame__fill absolute inset-0 size-3.5"
                           aria-hidden="true"
                         />
                       </span>
