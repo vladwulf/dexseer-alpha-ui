@@ -912,7 +912,7 @@ export function MomentumAlertsPanel() {
         className="hidden min-w-0 overflow-hidden rounded-[6px] bg-[var(--ds-canvas-raised)] shadow-[inset_0_1px_rgb(255_255_255_/_4%)] xl:block"
         style={{ width: inspectorWidth }}
       >
-        {selectedAlert ? (
+        {!isMobile && selectedAlert ? (
           <div className="flex h-full min-h-[640px] flex-col">
             <AlertInspectorContent alert={selectedAlert} />
           </div>
