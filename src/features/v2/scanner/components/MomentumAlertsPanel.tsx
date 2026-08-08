@@ -1067,7 +1067,7 @@ export function MomentumAlertsPanel() {
             Chart context for the selected Momentum Intelligence alert.
           </SheetDescription>
           <div aria-hidden="true" className="mobile-sheet-swipe-hint">
-            <ChevronRight className="size-7" strokeWidth={2.25} />
+            <ChevronRight className="size-6" strokeWidth={1.25} />
           </div>
           {selectedAlert && (
             <AlertInspectorContent

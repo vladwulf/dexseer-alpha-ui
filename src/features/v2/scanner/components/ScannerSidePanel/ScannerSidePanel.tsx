@@ -115,7 +115,7 @@ export function ScannerSidePanel({
             Asset intelligence details for the selected scanner symbol.
           </SheetDescription>
           <div aria-hidden="true" className="mobile-sheet-swipe-hint">
-            <ChevronRight className="size-7" strokeWidth={2.25} />
+            <ChevronRight className="size-6" strokeWidth={1.25} />
           </div>
           <div className="min-h-full pb-6 xl:hidden">{panelContent}</div>
         </SheetContent>
